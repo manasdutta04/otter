@@ -1,6 +1,7 @@
 from urllib.parse import urlencode
+from secrets import token_urlsafe
 import httpx
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 from .config import get_settings
@@ -11,6 +12,7 @@ settings = get_settings()
 app = FastAPI(title=settings.app_name, version="0.1.0")
 app.add_middleware(CORSMiddleware, allow_origins=[settings.next_public_url], allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
 store = RepositoryStore()
+sessions: dict[str, str] = {}
 
 @app.get("/health", response_model=HealthResponse)
 async def health() -> HealthResponse:
@@ -24,7 +26,7 @@ async def github_login() -> RedirectResponse:
     return RedirectResponse(f"https://github.com/login/oauth/authorize?{params}")
 
 @app.get("/auth/github/callback")
-async def github_callback(code: str) -> dict[str, str]:
+async def github_callback(code: str) -> RedirectResponse:
     if not settings.github_client_id or not settings.github_client_secret:
         raise HTTPException(status_code=503, detail="GitHub OAuth is not configured")
     async with httpx.AsyncClient() as client:
@@ -33,7 +35,15 @@ async def github_callback(code: str) -> dict[str, str]:
     token = response.json().get("access_token")
     if not token:
         raise HTTPException(status_code=400, detail="GitHub did not return an access token")
-    return {"message": "GitHub authentication succeeded", "access_token": token}
+    session_id = token_urlsafe(32)
+    sessions[session_id] = token
+    response = RedirectResponse(settings.next_public_url)
+    response.set_cookie("veridexs_session", session_id, httponly=True, samesite="lax", secure=False, max_age=86400)
+    return response
+
+@app.get("/auth/me")
+async def auth_me(request: Request) -> dict[str, bool]:
+    return {"authenticated": request.cookies.get("veridexs_session") in sessions}
 
 @app.get("/repositories", response_model=RepositoryListResponse)
 async def repositories() -> RepositoryListResponse:
