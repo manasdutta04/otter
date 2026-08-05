@@ -11,9 +11,9 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from .config import get_settings
 from .database import get_db
-from .models import AuthSession, Repository, RepositoryImportJob, RepositoryIntelligence, RepositoryPlan, User
+from .models import AuthSession, Repository, RepositoryGraph, RepositoryImportJob, RepositoryIntelligence, RepositoryPlan, User
 from .planner import build_plan, save_plan
-from .schemas import ChatRequest, ChatResponse, HealthResponse, ImportStatus, IntelligenceResponse, PlanRequest, PlanResponse, RepositoryCreate, RepositoryListResponse, RepositorySummary
+from .schemas import ArchitectureGraphResponse, ChatRequest, ChatResponse, HealthResponse, ImportStatus, IntelligenceResponse, PlanRequest, PlanResponse, RepositoryCreate, RepositoryListResponse, RepositorySummary
 from .store import RepositoryStore
 from .worker import import_repository_task
 
@@ -154,6 +154,14 @@ async def list_plans(repository_id: str, session: AuthSession = Depends(current_
         raise HTTPException(status_code=404, detail="Repository not found")
     records = await db.scalars(select(RepositoryPlan).where(RepositoryPlan.repository_id == repository_id, RepositoryPlan.user_id == session.user_id).order_by(RepositoryPlan.created_at.desc()))
     return [PlanResponse(id=plan.id, repository_id=plan.repository_id, request=plan.request, title=plan.title, complexity=plan.complexity, summary=plan.summary, steps=json.loads(plan.steps), affected_files=json.loads(plan.affected_files), dependencies=json.loads(plan.dependencies), risks=json.loads(plan.risks), created_at=plan.created_at) for plan in records]
+
+@app.get("/repositories/{repository_id}/architecture", response_model=ArchitectureGraphResponse)
+async def architecture(repository_id: str, session: AuthSession = Depends(current_session), db: AsyncSession = Depends(get_db)) -> ArchitectureGraphResponse:
+    repository = await store.get(db, session.user_id, repository_id)
+    graph = await db.get(RepositoryGraph, repository_id)
+    if not repository or not graph:
+        raise HTTPException(status_code=404, detail="Architecture graph is not ready")
+    return ArchitectureGraphResponse(repository_id=repository_id, nodes=json.loads(graph.nodes), edges=json.loads(graph.edges), generated_at=graph.generated_at)
 
 @app.get("/repositories/{repository_id}/import-status", response_model=ImportStatus)
 async def import_status(repository_id: str, session: AuthSession = Depends(current_session), db: AsyncSession = Depends(get_db)) -> ImportStatus:

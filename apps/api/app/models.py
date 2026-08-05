@@ -66,3 +66,10 @@ class RepositoryPlan(Base):
     dependencies: Mapped[str] = mapped_column(Text, default="[]")
     risks: Mapped[str] = mapped_column(Text, default="[]")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+class RepositoryGraph(Base):
+    __tablename__ = "repository_graphs"
+    repository_id: Mapped[str] = mapped_column(String(32), ForeignKey("repositories.id", ondelete="CASCADE"), primary_key=True)
+    nodes: Mapped[str] = mapped_column(Text, default="[]")
+    edges: Mapped[str] = mapped_column(Text, default="[]")
+    generated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

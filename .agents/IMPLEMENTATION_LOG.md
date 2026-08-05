@@ -283,3 +283,19 @@ The PRD requires veridexs to explain and plan before coding. A persisted plan gi
 ### Next Phase 2 step
 
 The next step is the architecture graph: extract imports, service boundaries, and dependency relationships into a persisted graph that can be displayed and used by the planner.
+
+## Phase 2, Step 2 — Architecture graph
+
+### What changed
+
+The architecture graph is now generated after repository import and stored in PostgreSQL. It contains file nodes, folder nodes, `contains` edges, and `imports` edges when a source file references another discovered file.
+
+The worker builds the graph after cloning and before completing the import job. The API exposes it through `GET /repositories/{repository_id}/architecture` with ownership checks.
+
+### Why
+
+The planner currently reasons from filenames and heuristics. A graph adds relationships: which files import which modules, which folders contain implementation surfaces, and where coupling exists. This becomes the foundation for architecture diagrams, dependency explanations, and more accurate planning.
+
+### Boundary
+
+This is a lightweight language-agnostic graph extractor. It does not claim compiler-grade semantic analysis. Tree-sitter parsing, symbol resolution, service-boundary inference, and interactive visualization are later hardening steps.

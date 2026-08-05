@@ -63,3 +63,37 @@ class PlanResponse(BaseModel):
     dependencies: list[str]
     risks: list[str]
     created_at: datetime
+
+class GraphNode(BaseModel):
+    id: str
+    label: str
+    kind: str
+    path: str
+
+class GraphEdge(BaseModel):
+    source: str
+    target: str
+    kind: str
+
+class ArchitectureGraphResponse(BaseModel):
+    repository_id: str
+    nodes: list[GraphNode]
+    edges: list[GraphEdge]
+    generated_at: datetime
+
+class GraphNode(BaseModel):
+    id: str
+    label: str
+    kind: str
+    path: str
+
+class GraphEdge(BaseModel):
+    source: str
+    target: str
+    kind: str
+
+class ArchitectureGraphResponse(BaseModel):
+    repository_id: str
+    nodes: list[GraphNode]
+    edges: list[GraphEdge]
+    generated_at: datetime
