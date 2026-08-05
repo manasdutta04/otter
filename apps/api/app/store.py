@@ -1,59 +1,58 @@
 import asyncio
-from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from uuid import uuid4
 from git import Repo
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 from .config import get_settings
-
-@dataclass
-class RepositoryRecord:
-    id: str
-    url: str
-    name: str
-    status: str
-    created_at: str
-    branch: str | None = None
-    file_count: int = 0
-    error: str | None = None
+from .models import Repository
 
 class RepositoryStore:
     def __init__(self) -> None:
         self.root = Path(get_settings().repository_data_dir)
         self.root.mkdir(parents=True, exist_ok=True)
-        self._records: dict[str, RepositoryRecord] = {}
-        self._lock = asyncio.Lock()
 
-    async def list(self) -> list[RepositoryRecord]:
-        async with self._lock:
-            return list(self._records.values())
+    async def list(self, db: AsyncSession, user_id: str) -> list[Repository]:
+        result = await db.scalars(select(Repository).where(Repository.user_id == user_id).order_by(Repository.created_at.desc()))
+        return list(result)
 
-    async def create(self, url: str, access_token: str | None = None) -> RepositoryRecord:
+    async def create(self, db: AsyncSession, user_id: str, url: str, access_token: str) -> Repository:
         repository_id = uuid4().hex[:12]
         name = url.rstrip("/").split("/")[-1].removesuffix(".git") or "repository"
-        record = RepositoryRecord(repository_id, url, name, "queued", datetime.now(timezone.utc).isoformat())
-        async with self._lock:
-            self._records[repository_id] = record
-        asyncio.create_task(self._clone(record, access_token))
+        record = Repository(id=repository_id, user_id=user_id, url=url, name=name, status="queued")
+        db.add(record)
+        await db.commit()
+        await db.refresh(record)
+        asyncio.create_task(self._clone(record.id, url, access_token))
         return record
 
-    async def get(self, repository_id: str) -> RepositoryRecord | None:
-        async with self._lock:
-            return self._records.get(repository_id)
+    async def get(self, db: AsyncSession, user_id: str, repository_id: str) -> Repository | None:
+        return await db.scalar(select(Repository).where(Repository.id == repository_id, Repository.user_id == user_id))
 
-    async def _clone(self, record: RepositoryRecord, access_token: str | None) -> None:
-        record.status = "cloning"
-        destination = self.root / record.id
+    async def _clone(self, repository_id: str, url: str, access_token: str) -> None:
+        destination = self.root / repository_id
+        async with __import__("app.database", fromlist=["SessionLocal"]).SessionLocal() as db:
+            record = await db.get(Repository, repository_id)
+            if not record:
+                return
+            record.status = "cloning"
+            await db.commit()
         try:
-            clone_url = record.url
-            if access_token and clone_url.startswith("https://github.com/"):
-                clone_url = clone_url.replace("https://github.com/", f"https://x-access-token:{access_token}@github.com/", 1)
+            clone_url = url.replace("https://github.com/", f"https://x-access-token:{access_token}@github.com/", 1)
             await asyncio.to_thread(Repo.clone_from, clone_url, destination, depth=1)
             files = [path for path in destination.rglob("*") if path.is_file() and ".git" not in path.parts]
             repository = await asyncio.to_thread(Repo, destination)
-            record.branch = repository.active_branch.name
-            record.file_count = len(files)
-            record.status = "ready"
+            async with __import__("app.database", fromlist=["SessionLocal"]).SessionLocal() as db:
+                record = await db.get(Repository, repository_id)
+                record.branch = repository.active_branch.name
+                record.file_count = len(files)
+                record.status = "ready"
+                await db.commit()
         except Exception as exc:  # noqa: BLE001
-            record.status = "failed"
-            record.error = str(exc)
+            async with __import__("app.database", fromlist=["SessionLocal"]).SessionLocal() as db:
+                record = await db.get(Repository, repository_id)
+                if record:
+                    record.status = "failed"
+                    record.error = str(exc)
+                    await db.commit()
