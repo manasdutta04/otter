@@ -114,11 +114,21 @@ class CodeTaskResponse(BaseModel):
     repository_id: str
     plan_id: str | None
     request: str
-    status: Literal["draft", "ready_for_approval", "approved", "rejected"]
+    status: Literal["draft", "ready_for_approval", "patch_ready", "approved", "rejected", "applied"]
     proposed_summary: str
+    changed_files: list[str] = []
     approval_note: str | None
     created_at: datetime
     approved_at: datetime | None
+    applied_at: datetime | None
+
+class PatchFile(BaseModel):
+    path: str = Field(min_length=1, max_length=500)
+    content: str = Field(max_length=500000)
+
+class PatchProposal(BaseModel):
+    summary: str = Field(min_length=8, max_length=2000)
+    files: list[PatchFile] = Field(min_length=1, max_length=50)
 
 class MemoryCreate(BaseModel):
     kind: Literal["decision", "convention", "note"] = "note"

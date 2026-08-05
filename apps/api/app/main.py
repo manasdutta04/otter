@@ -14,7 +14,7 @@ from .database import get_db
 from .models import AuthSession, CodeChangeTask, GeneratedDocument, MemoryEntry, Repository, RepositoryGraph, RepositoryImportJob, RepositoryIntelligence, RepositoryPlan, User
 from .knowledge import add_memory, generate_overview
 from .planner import build_plan, save_plan
-from .schemas import ArchitectureGraphResponse, ChatRequest, ChatResponse, CodeTaskCreate, CodeTaskDecision, CodeTaskResponse, DocumentResponse, HealthResponse, ImportStatus, IntelligenceResponse, MemoryCreate, MemoryResponse, PlanRequest, PlanResponse, RepositoryCreate, RepositoryListResponse, RepositorySummary
+from .schemas import ArchitectureGraphResponse, ChatRequest, ChatResponse, CodeTaskCreate, CodeTaskDecision, CodeTaskResponse, DocumentResponse, HealthResponse, ImportStatus, IntelligenceResponse, MemoryCreate, MemoryResponse, PatchProposal, PlanRequest, PlanResponse, RepositoryCreate, RepositoryListResponse, RepositorySummary
 from .store import RepositoryStore
 from .worker import import_repository_task
 
@@ -215,15 +215,41 @@ async def list_code_tasks(repository_id: str, session: AuthSession = Depends(cur
 @app.post("/repositories/{repository_id}/code-tasks/{task_id}/approve", response_model=CodeTaskResponse)
 async def approve_code_task(repository_id: str, task_id: str, payload: CodeTaskDecision, session: AuthSession = Depends(current_session), db: AsyncSession = Depends(get_db)) -> CodeTaskResponse:
     task = await db.scalar(select(CodeChangeTask).where(CodeChangeTask.id == task_id, CodeChangeTask.repository_id == repository_id, CodeChangeTask.user_id == session.user_id))
-    if not task or task.status != "ready_for_approval": raise HTTPException(status_code=409, detail="Task is not awaiting approval")
+    if not task or task.status != "patch_ready": raise HTTPException(status_code=409, detail="A patch proposal is required before approval")
     task.status = "approved"; task.approval_note = payload.note; task.approved_at = datetime.now(timezone.utc); await db.commit(); await db.refresh(task)
     return CodeTaskResponse.model_validate(task, from_attributes=True)
 
 @app.post("/repositories/{repository_id}/code-tasks/{task_id}/reject", response_model=CodeTaskResponse)
 async def reject_code_task(repository_id: str, task_id: str, payload: CodeTaskDecision, session: AuthSession = Depends(current_session), db: AsyncSession = Depends(get_db)) -> CodeTaskResponse:
     task = await db.scalar(select(CodeChangeTask).where(CodeChangeTask.id == task_id, CodeChangeTask.repository_id == repository_id, CodeChangeTask.user_id == session.user_id))
-    if not task or task.status != "ready_for_approval": raise HTTPException(status_code=409, detail="Task is not awaiting approval")
+    if not task or task.status not in {"ready_for_approval", "patch_ready"}: raise HTTPException(status_code=409, detail="Task is not awaiting decision")
     task.status = "rejected"; task.approval_note = payload.note; await db.commit(); await db.refresh(task)
+    return CodeTaskResponse.model_validate(task, from_attributes=True)
+
+@app.post("/repositories/{repository_id}/code-tasks/{task_id}/proposal", response_model=CodeTaskResponse)
+async def propose_patch(repository_id: str, task_id: str, payload: PatchProposal, session: AuthSession = Depends(current_session), db: AsyncSession = Depends(get_db)) -> CodeTaskResponse:
+    task = await db.scalar(select(CodeChangeTask).where(CodeChangeTask.id == task_id, CodeChangeTask.repository_id == repository_id, CodeChangeTask.user_id == session.user_id))
+    if not task or task.status != "ready_for_approval": raise HTTPException(status_code=409, detail="Task is not awaiting a patch proposal")
+    safe_files = []
+    for file in payload.files:
+        candidate = Path(file.path)
+        if candidate.is_absolute() or ".." in candidate.parts or candidate.name in {"", ".", ".."}:
+            raise HTTPException(status_code=422, detail=f"Unsafe patch path: {file.path}")
+        safe_files.append({"path": candidate.as_posix(), "content": file.content})
+    task.patch_json = json.dumps(safe_files); task.changed_files = json.dumps([file["path"] for file in safe_files]); task.proposed_summary = payload.summary; task.status = "patch_ready"; await db.commit(); await db.refresh(task)
+    return CodeTaskResponse.model_validate(task, from_attributes=True)
+
+@app.post("/repositories/{repository_id}/code-tasks/{task_id}/apply", response_model=CodeTaskResponse)
+async def apply_patch(repository_id: str, task_id: str, session: AuthSession = Depends(current_session), db: AsyncSession = Depends(get_db)) -> CodeTaskResponse:
+    task = await db.scalar(select(CodeChangeTask).where(CodeChangeTask.id == task_id, CodeChangeTask.repository_id == repository_id, CodeChangeTask.user_id == session.user_id))
+    if not task or task.status != "approved": raise HTTPException(status_code=409, detail="Only approved tasks can be applied")
+    root = (Path(settings.repository_data_dir) / repository_id).resolve()
+    for item in json.loads(task.patch_json):
+        target = (root / item["path"]).resolve()
+        if root not in target.parents and target != root: raise HTTPException(status_code=422, detail="Patch path escapes repository workspace")
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(item["content"], encoding="utf-8")
+    task.status = "applied"; task.applied_at = datetime.now(timezone.utc); await db.commit(); await db.refresh(task)
     return CodeTaskResponse.model_validate(task, from_attributes=True)
 
 @app.get("/repositories/{repository_id}/import-status", response_model=ImportStatus)

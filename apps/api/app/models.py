@@ -20,9 +20,12 @@ class CodeChangeTask(Base):
     request: Mapped[str] = mapped_column(Text)
     status: Mapped[str] = mapped_column(String(32), default="draft", index=True)
     proposed_summary: Mapped[str] = mapped_column(Text, default="")
+    patch_json: Mapped[str] = mapped_column(Text, default="[]")
+    changed_files: Mapped[str] = mapped_column(Text, default="[]")
     approval_note: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     approved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    applied_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
 class AuthSession(Base):
     __tablename__ = "auth_sessions"

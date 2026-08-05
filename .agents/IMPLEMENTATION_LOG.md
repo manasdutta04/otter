@@ -340,3 +340,16 @@ New endpoints:
 - `POST /repositories/{repository_id}/code-tasks/{task_id}/reject`
 
 Creating a task produces `ready_for_approval`. Approval changes it to `approved`; rejection changes it to `rejected`. No endpoint in this step edits a source file. That is intentional: model-generated patches will be added only after this durable approval contract exists.
+
+## Phase 3, Step 2 — Structured patch proposal and application
+
+Coding tasks now support a structured patch lifecycle: create a task, submit a file-content proposal, review the changed-file list, approve or reject it, and apply only an approved proposal.
+
+New endpoints:
+
+- `POST /repositories/{repository_id}/code-tasks/{task_id}/proposal`
+- `POST /repositories/{repository_id}/code-tasks/{task_id}/apply`
+
+Patch paths are restricted to relative paths inside the imported repository workspace. Absolute paths and traversal such as `../outside.txt` are rejected. The apply endpoint is the only new path that writes repository files, and it requires the task to be explicitly approved.
+
+This is the execution contract for future model-generated patches. The next step can connect a model/provider adapter that produces these structured proposals, followed by Git diff verification before application.
