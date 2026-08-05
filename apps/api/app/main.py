@@ -5,12 +5,14 @@ import httpx
 from fastapi import Depends, FastAPI, HTTPException, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
+import json
+from pathlib import Path
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from .config import get_settings
 from .database import get_db
-from .models import AuthSession, RepositoryImportJob, User
-from .schemas import HealthResponse, ImportStatus, RepositoryCreate, RepositoryListResponse, RepositorySummary
+from .models import AuthSession, Repository, RepositoryImportJob, RepositoryIntelligence, User
+from .schemas import ChatRequest, ChatResponse, HealthResponse, ImportStatus, IntelligenceResponse, RepositoryCreate, RepositoryListResponse, RepositorySummary
 from .store import RepositoryStore
 from .worker import import_repository_task
 
@@ -103,6 +105,36 @@ async def repository(repository_id: str, session: AuthSession = Depends(current_
     if not record:
         raise HTTPException(status_code=404, detail="Repository not found")
     return RepositorySummary.model_validate(record, from_attributes=True)
+
+@app.get("/repositories/{repository_id}/intelligence", response_model=IntelligenceResponse)
+async def intelligence(repository_id: str, session: AuthSession = Depends(current_session), db: AsyncSession = Depends(get_db)) -> IntelligenceResponse:
+    repository = await store.get(db, session.user_id, repository_id)
+    record = await db.get(RepositoryIntelligence, repository_id)
+    if not repository or not record:
+        raise HTTPException(status_code=404, detail="Repository intelligence is not ready")
+    return IntelligenceResponse(repository_id=repository_id, summary=record.summary, tech_stack=json.loads(record.tech_stack), folders=json.loads(record.folders), entry_points=json.loads(record.entry_points), architecture_signals=json.loads(record.architecture_signals), analyzed_at=record.analyzed_at)
+
+@app.post("/repositories/{repository_id}/chat", response_model=ChatResponse)
+async def repository_chat(repository_id: str, payload: ChatRequest, session: AuthSession = Depends(current_session), db: AsyncSession = Depends(get_db)) -> ChatResponse:
+    repository = await store.get(db, session.user_id, repository_id)
+    if not repository or repository.status != "ready":
+        raise HTTPException(status_code=409, detail="Repository must finish importing before chat is available")
+    root = Path(settings.repository_data_dir) / repository_id
+    question = payload.question.lower()
+    matches: list[str] = []
+    for path in root.rglob("*"):
+        if path.is_file() and ".git" not in path.parts and any(term in path.name.lower() or term in str(path.parent).lower() for term in question.split() if len(term) > 3):
+            matches.append(str(path.relative_to(root)).replace("\\", "/"))
+    matches = matches[:8]
+    intelligence_record = await db.get(RepositoryIntelligence, repository_id)
+    if "auth" in question or "login" in question:
+        answer = "Authentication-related files are the strongest matches I found. Review these files first: " + ", ".join(matches) if matches else "I could not find an obvious authentication path in the indexed file names."
+    elif "folder" in question or "structure" in question or "architecture" in question:
+        folders = json.loads(intelligence_record.folders) if intelligence_record else []
+        answer = "The repository is organized around these folders: " + ", ".join(folders[:12]) if folders else "Repository structure is not indexed yet."
+    else:
+        answer = "I found these likely relevant files: " + ", ".join(matches) if matches else "I did not find a strong filename match. Ask about a concrete subsystem such as authentication, API, tests, or folder structure."
+    return ChatResponse(answer=answer, sources=matches)
 
 @app.get("/repositories/{repository_id}/import-status", response_model=ImportStatus)
 async def import_status(repository_id: str, session: AuthSession = Depends(current_session), db: AsyncSession = Depends(get_db)) -> ImportStatus:

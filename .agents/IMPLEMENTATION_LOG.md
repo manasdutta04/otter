@@ -205,3 +205,45 @@ The token is deliberately not included in the Celery message. Worker failures ar
 The API is now a control plane: it authenticates users, writes intent, and reports state. The worker is the execution plane: it performs slow and failure-prone repository work. PostgreSQL is the source of truth for state, while Redis only transports task messages. This separation allows API and worker processes to restart or scale independently.
 
 The next hardening work is to add integration tests for actual Celery task transitions, encrypt GitHub tokens at rest, and add explicit migration upgrade/downgrade checks in CI.
+
+## Step 8 — Phase 1 completion: repository intelligence and chat
+
+### What changed
+
+The remaining Phase 1 product capabilities were implemented:
+
+- Added repository intelligence persistence.
+- Added a deterministic repository analyzer that detects manifests, languages, folders, entry points, README context, and architecture signals.
+- The import worker now analyzes a repository after cloning and stores the result before marking the import complete.
+- Added `GET /repositories/{repository_id}/intelligence`.
+- Added `POST /repositories/{repository_id}/chat`.
+- Updated the dashboard so users can select a repository, view its intelligence read, and ask contextual questions.
+
+### How the Phase 1 chat works
+
+The current chat endpoint is intentionally a grounded repository lookup rather than a generic AI response. It uses the imported repository’s file structure and persisted intelligence to answer questions about authentication, architecture, folders, and likely matching files. It returns source file paths with the answer.
+
+This creates a truthful foundation for the later LangGraph/RAG model layer. The system has repository context and source references before a model is introduced.
+
+### Phase 1 is now complete
+
+The Phase 1 PRD loop is covered:
+
+- GitHub authentication.
+- GitHub URL repository import.
+- Durable PostgreSQL users, sessions, repositories, and import jobs.
+- Background repository processing with Redis/Celery.
+- Repository summary and structural intelligence.
+- Repository contextual chat.
+- Basic engineering dashboard.
+
+### Validation
+
+- Alembic upgraded the existing database from `0001_initial` to `0002_intelligence`.
+- API, worker, web, Redis, PostgreSQL, and migration services are running.
+- API health returned successfully.
+- Analyzer tests passed alongside worker and schema tests.
+
+### Explicit boundary
+
+Phase 1 chat is deterministic and source-grounded. LangGraph orchestration, vector embeddings, Qdrant retrieval, multi-model routing, architecture diagrams, and production code generation remain later platform phases. This boundary keeps the first release inspectable and avoids presenting a simple model wrapper as the finished veridexs product.

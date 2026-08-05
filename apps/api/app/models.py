@@ -41,3 +41,13 @@ class RepositoryImportJob(Base):
     started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+class RepositoryIntelligence(Base):
+    __tablename__ = "repository_intelligence"
+    repository_id: Mapped[str] = mapped_column(String(32), ForeignKey("repositories.id", ondelete="CASCADE"), primary_key=True)
+    summary: Mapped[str] = mapped_column(Text, default="")
+    tech_stack: Mapped[str] = mapped_column(Text, default="[]")
+    folders: Mapped[str] = mapped_column(Text, default="[]")
+    entry_points: Mapped[str] = mapped_column(Text, default="[]")
+    architecture_signals: Mapped[str] = mapped_column(Text, default="[]")
+    analyzed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

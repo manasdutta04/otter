@@ -31,3 +31,19 @@ class ImportStatus(BaseModel):
     created_at: datetime
     started_at: datetime | None = None
     finished_at: datetime | None = None
+
+class IntelligenceResponse(BaseModel):
+    repository_id: str
+    summary: str
+    tech_stack: list[str]
+    folders: list[str]
+    entry_points: list[str]
+    architecture_signals: list[str]
+    analyzed_at: datetime
+
+class ChatRequest(BaseModel):
+    question: str = Field(min_length=2, max_length=1000)
+
+class ChatResponse(BaseModel):
+    answer: str
+    sources: list[str]

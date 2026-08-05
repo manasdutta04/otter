@@ -7,6 +7,7 @@ from sqlalchemy import select
 from .config import get_settings
 from .database import SessionLocal
 from .models import AuthSession, Repository, RepositoryImportJob
+from .analyzer import inspect_repository, save_intelligence
 
 settings = get_settings()
 celery_app = Celery("veridexs", broker=settings.redis_url, backend=settings.redis_url)
@@ -40,6 +41,7 @@ async def process_import(job_id: str, repository_id: str) -> None:
         git_repository = await asyncio.to_thread(Repo, destination)
         async with SessionLocal() as db:
             job = await db.get(RepositoryImportJob, job_id); repository = await db.get(Repository, repository_id)
+            await save_intelligence(db, repository_id, await asyncio.to_thread(inspect_repository, destination))
             job.status = "succeeded"; job.finished_at = datetime.now(timezone.utc); repository.status = "ready"; repository.branch = git_repository.active_branch.name; repository.file_count = len(files); await db.commit()
     except Exception as error:
         async with SessionLocal() as db:
