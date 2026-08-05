@@ -1,4 +1,14 @@
 services:
+  migration:
+    build: {context: .., dockerfile: docker/api/Dockerfile}
+    working_dir: /workspace
+    command: alembic upgrade head
+    volumes: ["../apps/api:/workspace", "repository_data:/data/repositories"]
+    env_file:
+      - path: ../.env
+        required: false
+    environment: {REPOSITORY_DATA_DIR: /data/repositories}
+    depends_on: [postgres]
   api:
     build: {context: .., dockerfile: docker/api/Dockerfile}
     working_dir: /workspace
@@ -10,7 +20,9 @@ services:
     environment:
       REPOSITORY_DATA_DIR: /data/repositories
     ports: ["8000:8000"]
-    depends_on: [postgres, redis]
+    depends_on:
+      migration: {condition: service_completed_successfully}
+      redis: {condition: service_started}
   web:
     build: {context: .., dockerfile: docker/web/Dockerfile}
     working_dir: /workspace
@@ -19,6 +31,18 @@ services:
     environment: {NEXT_PUBLIC_API_URL: http://localhost:8000}
     ports: ["3000:3000"]
     depends_on: [api]
+  worker:
+    build: {context: .., dockerfile: docker/api/Dockerfile}
+    working_dir: /workspace
+    command: celery -A app.worker.celery_app worker --loglevel=INFO
+    volumes: ["../apps/api:/workspace", "repository_data:/data/repositories"]
+    env_file:
+      - path: ../.env
+        required: false
+    environment: {REPOSITORY_DATA_DIR: /data/repositories}
+    depends_on:
+      migration: {condition: service_completed_successfully}
+      redis: {condition: service_started}
   postgres:
     image: postgres:16-alpine
     environment: {POSTGRES_USER: veridexs, POSTGRES_PASSWORD: veridexs, POSTGRES_DB: veridexs}

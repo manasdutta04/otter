@@ -166,3 +166,42 @@ These are deliberate next-stage items, not hidden assumptions:
 
 The next safe platform step is to introduce Alembic migrations and a durable Redis/Celery import worker. That will make schema changes explicit and prevent repository imports from being lost when an API process restarts.
 
+## Step 7 — Durable repository import infrastructure
+
+### What changed
+
+The recommended platform step was implemented:
+
+- Alembic now owns database schema versioning.
+- The initial migration creates the existing user, session, and repository tables safely with `IF NOT EXISTS`, preserving the current local PostgreSQL volume.
+- The API no longer creates tables during application startup.
+- `repository_import_jobs` stores each import attempt and its lifecycle.
+- Celery uses Redis as its broker and result backend.
+- A dedicated worker owns Git cloning and repository inspection.
+- Docker Compose now starts a one-shot migration service and an independently scalable worker service.
+
+### New import flow
+
+`POST /repositories` now writes the repository and a queued import job, publishes only the repository ID and job ID to Celery, and returns immediately. The worker loads the job and repository from PostgreSQL, obtains the user’s active server-side GitHub token, clones the repository, records the branch and file count, and persists either success or a sanitized failure.
+
+The token is deliberately not included in the Celery message. Worker failures are retried up to three times with exponential backoff, and the final failure is recorded in both the job and repository records.
+
+### New API endpoints
+
+- `GET /repositories/{repository_id}/import-status` returns the latest durable import job.
+- `POST /repositories/{repository_id}/retry-import` creates a new job for the repository owner.
+- `POST /auth/logout` removes the persisted session and clears the browser cookie.
+
+### Runtime validation
+
+- Alembic migration completed successfully against the existing PostgreSQL volume.
+- API, web, PostgreSQL, Redis, migration, and worker services started through Compose.
+- Celery worker connected to `redis://redis:6379/0` and registered `repositories.import`.
+- API health returned successfully.
+- Three backend tests passed, including secret redaction and import lifecycle schema validation.
+
+### Learning notes
+
+The API is now a control plane: it authenticates users, writes intent, and reports state. The worker is the execution plane: it performs slow and failure-prone repository work. PostgreSQL is the source of truth for state, while Redis only transports task messages. This separation allows API and worker processes to restart or scale independently.
+
+The next hardening work is to add integration tests for actual Celery task transitions, encrypt GitHub tokens at rest, and add explicit migration upgrade/downgrade checks in CI.

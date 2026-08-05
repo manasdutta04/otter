@@ -21,3 +21,13 @@ class RepositorySummary(BaseModel):
 
 class RepositoryListResponse(BaseModel):
     repositories: list[RepositorySummary]
+
+class ImportStatus(BaseModel):
+    job_id: str
+    repository_id: str
+    status: Literal["queued", "running", "succeeded", "failed"]
+    attempt_count: int
+    error: str | None = None
+    created_at: datetime
+    started_at: datetime | None = None
+    finished_at: datetime | None = None

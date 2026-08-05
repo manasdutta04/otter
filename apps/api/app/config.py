@@ -9,6 +9,7 @@ class Settings(BaseSettings):
     next_public_url: str = "http://localhost:3000"
     repository_data_dir: str = "./data/repositories"
     database_url: str = "postgresql+asyncpg://veridexs:veridexs@postgres:5432/veridexs"
+    redis_url: str = "redis://redis:6379/0"
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
 @lru_cache

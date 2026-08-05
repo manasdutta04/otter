@@ -2,26 +2,22 @@ from datetime import datetime, timedelta, timezone
 from secrets import token_urlsafe
 from urllib.parse import urlencode
 import httpx
-from fastapi import Depends, FastAPI, HTTPException, Request
+from fastapi import Depends, FastAPI, HTTPException, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from .config import get_settings
-from .database import Base, SessionLocal, engine, get_db
-from .models import AuthSession, User
-from .schemas import HealthResponse, RepositoryCreate, RepositoryListResponse, RepositorySummary
+from .database import get_db
+from .models import AuthSession, RepositoryImportJob, User
+from .schemas import HealthResponse, ImportStatus, RepositoryCreate, RepositoryListResponse, RepositorySummary
 from .store import RepositoryStore
+from .worker import import_repository_task
 
 settings = get_settings()
 app = FastAPI(title=settings.app_name, version="0.2.0")
 app.add_middleware(CORSMiddleware, allow_origins=[settings.next_public_url], allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
 store = RepositoryStore()
-
-@app.on_event("startup")
-async def initialize_database() -> None:
-    async with engine.begin() as connection:
-        await connection.run_sync(Base.metadata.create_all)
 
 @app.get("/health", response_model=HealthResponse)
 async def health() -> HealthResponse:
@@ -76,6 +72,18 @@ async def auth_me(request: Request, db: AsyncSession = Depends(get_db)) -> dict[
     except HTTPException:
         return {"authenticated": False}
 
+@app.post("/auth/logout", status_code=204)
+async def logout(request: Request, db: AsyncSession = Depends(get_db)) -> Response:
+    session_id = request.cookies.get("veridexs_session")
+    if session_id:
+        session = await db.get(AuthSession, session_id)
+        if session:
+            await db.delete(session)
+            await db.commit()
+    response = Response(status_code=204)
+    response.delete_cookie("veridexs_session")
+    return response
+
 @app.get("/repositories", response_model=RepositoryListResponse)
 async def repositories(session: AuthSession = Depends(current_session), db: AsyncSession = Depends(get_db)) -> RepositoryListResponse:
     records = await store.list(db, session.user_id)
@@ -85,7 +93,8 @@ async def repositories(session: AuthSession = Depends(current_session), db: Asyn
 async def import_repository(payload: RepositoryCreate, session: AuthSession = Depends(current_session), db: AsyncSession = Depends(get_db)) -> RepositorySummary:
     if "github.com/" not in payload.url.lower():
         raise HTTPException(status_code=422, detail="Only GitHub repository URLs are supported")
-    record = await store.create(db, session.user_id, payload.url, session.github_token)
+    record, job = await store.create(db, session.user_id, payload.url)
+    import_repository_task.delay(job.id, record.id)
     return RepositorySummary.model_validate(record, from_attributes=True)
 
 @app.get("/repositories/{repository_id}", response_model=RepositorySummary)
@@ -94,3 +103,21 @@ async def repository(repository_id: str, session: AuthSession = Depends(current_
     if not record:
         raise HTTPException(status_code=404, detail="Repository not found")
     return RepositorySummary.model_validate(record, from_attributes=True)
+
+@app.get("/repositories/{repository_id}/import-status", response_model=ImportStatus)
+async def import_status(repository_id: str, session: AuthSession = Depends(current_session), db: AsyncSession = Depends(get_db)) -> ImportStatus:
+    job = await store.get_job(db, session.user_id, repository_id)
+    if not job:
+        raise HTTPException(status_code=404, detail="Import job not found")
+    return ImportStatus.model_validate(job, from_attributes=True)
+
+@app.post("/repositories/{repository_id}/retry-import", response_model=ImportStatus, status_code=202)
+async def retry_import(repository_id: str, session: AuthSession = Depends(current_session), db: AsyncSession = Depends(get_db)) -> ImportStatus:
+    repository = await store.get(db, session.user_id, repository_id)
+    if not repository:
+        raise HTTPException(status_code=404, detail="Repository not found")
+    job = RepositoryImportJob(id=token_urlsafe(9), repository_id=repository.id, user_id=session.user_id, status="queued")
+    repository.status = "queued"; repository.error = None
+    db.add(job); await db.commit(); await db.refresh(job)
+    import_repository_task.delay(job.id, repository.id)
+    return ImportStatus.model_validate(job, from_attributes=True)
