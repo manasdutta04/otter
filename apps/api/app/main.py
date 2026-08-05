@@ -6,15 +6,19 @@ from fastapi import Depends, FastAPI, HTTPException, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 import json
+import subprocess
 from pathlib import Path
+import httpx
+from git import Repo
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from .config import get_settings
 from .database import get_db
 from .models import AuthSession, CodeChangeTask, GeneratedDocument, MemoryEntry, Repository, RepositoryGraph, RepositoryImportJob, RepositoryIntelligence, RepositoryPlan, User
 from .knowledge import add_memory, generate_overview
+from .llm import generate_patch
 from .planner import build_plan, save_plan
-from .schemas import ArchitectureGraphResponse, ChatRequest, ChatResponse, CodeTaskCreate, CodeTaskDecision, CodeTaskResponse, DocumentResponse, HealthResponse, ImportStatus, IntelligenceResponse, MemoryCreate, MemoryResponse, PatchProposal, PlanRequest, PlanResponse, RepositoryCreate, RepositoryListResponse, RepositorySummary
+from .schemas import ArchitectureGraphResponse, ChatRequest, ChatResponse, CodeTaskCreate, CodeTaskDecision, CodeTaskResponse, DocumentResponse, HealthResponse, ImportStatus, IntelligenceResponse, MemoryCreate, MemoryResponse, PatchProposal, PlanRequest, PlanResponse, PullRequestRequest, PullRequestResponse, RepositoryCreate, RepositoryListResponse, RepositorySummary, TestResponse
 from .store import RepositoryStore
 from .worker import import_repository_task
 
@@ -251,6 +255,64 @@ async def apply_patch(repository_id: str, task_id: str, session: AuthSession = D
         target.write_text(item["content"], encoding="utf-8")
     task.status = "applied"; task.applied_at = datetime.now(timezone.utc); await db.commit(); await db.refresh(task)
     return CodeTaskResponse.model_validate(task, from_attributes=True)
+
+@app.post("/repositories/{repository_id}/code-tasks/{task_id}/generate", response_model=CodeTaskResponse)
+async def generate_code_task_patch(repository_id: str, task_id: str, session: AuthSession = Depends(current_session), db: AsyncSession = Depends(get_db)) -> CodeTaskResponse:
+    task = await db.scalar(select(CodeChangeTask).where(CodeChangeTask.id == task_id, CodeChangeTask.repository_id == repository_id, CodeChangeTask.user_id == session.user_id))
+    if not task or task.status != "ready_for_approval": raise HTTPException(status_code=409, detail="Task is not ready for patch generation")
+    root = Path(settings.repository_data_dir) / repository_id
+    files = []
+    for path in root.rglob("*"):
+        if path.is_file() and ".git" not in path.parts and len(files) < 20:
+            files.append({"path": str(path.relative_to(root)).replace("\\", "/"), "content": path.read_text(encoding="utf-8", errors="ignore")})
+    proposal = await generate_patch(task.request, files)
+    safe_files = []
+    for item in proposal["files"]:
+        candidate = Path(str(item["path"]))
+        if candidate.is_absolute() or ".." in candidate.parts: raise HTTPException(status_code=502, detail="LLM returned an unsafe patch path")
+        safe_files.append({"path": candidate.as_posix(), "content": str(item["content"])})
+    task.patch_json = json.dumps(safe_files); task.changed_files = json.dumps([item["path"] for item in safe_files]); task.proposed_summary = str(proposal["summary"]); task.status = "patch_ready"; await db.commit(); await db.refresh(task)
+    return CodeTaskResponse.model_validate(task, from_attributes=True)
+
+@app.post("/repositories/{repository_id}/code-tasks/{task_id}/test", response_model=TestResponse)
+async def test_code_task(repository_id: str, task_id: str, session: AuthSession = Depends(current_session), db: AsyncSession = Depends(get_db)) -> TestResponse:
+    task = await db.scalar(select(CodeChangeTask).where(CodeChangeTask.id == task_id, CodeChangeTask.repository_id == repository_id, CodeChangeTask.user_id == session.user_id))
+    if not task or task.status != "applied": raise HTTPException(status_code=409, detail="Task must be applied before tests can run")
+    root = Path(settings.repository_data_dir) / repository_id
+    try:
+        result = subprocess.run(["python", "-m", "pytest", "-q"], cwd=root, capture_output=True, text=True, timeout=120)
+        output = (result.stdout + "\n" + result.stderr)[-12000:]
+        return TestResponse(passed=result.returncode == 0, output=output)
+    except (OSError, subprocess.TimeoutExpired) as error:
+        return TestResponse(passed=False, output=str(error))
+
+@app.post("/repositories/{repository_id}/code-tasks/{task_id}/pull-request", response_model=PullRequestResponse)
+async def create_pull_request(repository_id: str, task_id: str, payload: PullRequestRequest, session: AuthSession = Depends(current_session), db: AsyncSession = Depends(get_db)) -> PullRequestResponse:
+    task = await db.scalar(select(CodeChangeTask).where(CodeChangeTask.id == task_id, CodeChangeTask.repository_id == repository_id, CodeChangeTask.user_id == session.user_id))
+    repository = await store.get(db, session.user_id, repository_id)
+    if not task or not repository or task.status != "applied": raise HTTPException(status_code=409, detail="Only applied tasks can create pull requests")
+    parts = repository.url.rstrip("/").removesuffix(".git").split("/")
+    if len(parts) < 2: raise HTTPException(status_code=422, detail="Repository URL cannot identify a GitHub project")
+    owner, name = parts[-2], parts[-1]
+    root = Path(settings.repository_data_dir) / repository_id
+    branch = f"veridexs/task-{task.id}"
+    git_repository = Repo(root)
+    await __import__("asyncio").to_thread(git_repository.git.checkout, "-B", branch)
+    await __import__("asyncio").to_thread(git_repository.git.add, "--", *json.loads(task.changed_files))
+    await __import__("asyncio").to_thread(git_repository.index.commit, payload.title)
+    remote = git_repository.remote("origin")
+    original_url = remote.url
+    authenticated_url = original_url.replace("https://github.com/", f"https://x-access-token:{session.github_token}@github.com/", 1)
+    try:
+        remote.set_url(authenticated_url)
+        await __import__("asyncio").to_thread(remote.push, branch)
+    finally:
+        remote.set_url(original_url)
+    async with httpx.AsyncClient(timeout=30) as client:
+        response = await client.post(f"{settings.github_api_url}/repos/{owner}/{name}/pulls", headers={"Authorization": f"Bearer {session.github_token}", "Accept": "application/vnd.github+json"}, json={"title": payload.title, "body": payload.body, "head": branch, "base": payload.base})
+    if response.status_code >= 400: raise HTTPException(status_code=502, detail="GitHub rejected pull request creation")
+    data = response.json()
+    return PullRequestResponse(url=data["html_url"], number=data["number"], branch=branch)
 
 @app.get("/repositories/{repository_id}/import-status", response_model=ImportStatus)
 async def import_status(repository_id: str, session: AuthSession = Depends(current_session), db: AsyncSession = Depends(get_db)) -> ImportStatus:

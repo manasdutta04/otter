@@ -10,6 +10,10 @@ class Settings(BaseSettings):
     repository_data_dir: str = "./data/repositories"
     database_url: str = "postgresql+asyncpg://veridexs:veridexs@postgres:5432/veridexs"
     redis_url: str = "redis://redis:6379/0"
+    llm_api_key: str = ""
+    llm_model: str = "gpt-4o-mini"
+    llm_base_url: str = "https://api.openai.com/v1"
+    github_api_url: str = "https://api.github.com"
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
 @lru_cache

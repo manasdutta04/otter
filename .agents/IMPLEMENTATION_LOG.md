@@ -353,3 +353,28 @@ New endpoints:
 Patch paths are restricted to relative paths inside the imported repository workspace. Absolute paths and traversal such as `../outside.txt` are rejected. The apply endpoint is the only new path that writes repository files, and it requires the task to be explicitly approved.
 
 This is the execution contract for future model-generated patches. The next step can connect a model/provider adapter that produces these structured proposals, followed by Git diff verification before application.
+
+## Phase 3, Steps 3–4 — Model generation, tests, and GitHub pull requests
+
+Phase 3 now has the complete coding loop:
+
+- Optional OpenAI-compatible LLM adapter generates structured patch proposals.
+- Generated proposals still require human approval.
+- Approved patches can be applied to the repository workspace.
+- Applied tasks can run the repository’s `pytest` suite with bounded execution time.
+- Tested/applied changes can be committed to a task branch and pushed to GitHub.
+- GitHub pull requests can be created from that branch.
+
+New endpoints:
+
+- `POST /repositories/{repository_id}/code-tasks/{task_id}/generate`
+- `POST /repositories/{repository_id}/code-tasks/{task_id}/test`
+- `POST /repositories/{repository_id}/code-tasks/{task_id}/pull-request`
+
+LLM generation is disabled unless `LLM_API_KEY` is configured. The generated response must be JSON with a summary and complete file contents; unsafe paths are rejected before a proposal is stored.
+
+The pull-request endpoint uses the authenticated GitHub session, creates a `veridexs/task-*` branch, commits only the approved changed files, pushes the branch, and asks GitHub to create the PR. Credentials are restored on the local remote after pushing.
+
+### Phase 3 status
+
+Phase 3 now covers the PRD’s AI coding, approval, testing, and GitHub PR workflow. Future hardening should add diff previews, test-command allowlists, encrypted provider credentials, GitHub App permissions, and integration tests against a disposable repository.

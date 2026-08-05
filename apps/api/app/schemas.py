@@ -130,6 +130,20 @@ class PatchProposal(BaseModel):
     summary: str = Field(min_length=8, max_length=2000)
     files: list[PatchFile] = Field(min_length=1, max_length=50)
 
+class TestResponse(BaseModel):
+    passed: bool
+    output: str
+
+class PullRequestRequest(BaseModel):
+    title: str = Field(min_length=5, max_length=255)
+    body: str = Field(min_length=1, max_length=10000)
+    base: str = "main"
+
+class PullRequestResponse(BaseModel):
+    url: str
+    number: int
+    branch: str
+
 class MemoryCreate(BaseModel):
     kind: Literal["decision", "convention", "note"] = "note"
     title: str = Field(min_length=2, max_length=255)
