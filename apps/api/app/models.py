@@ -73,3 +73,24 @@ class RepositoryGraph(Base):
     nodes: Mapped[str] = mapped_column(Text, default="[]")
     edges: Mapped[str] = mapped_column(Text, default="[]")
     generated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class MemoryEntry(Base):
+    __tablename__ = "memory_entries"
+    id: Mapped[str] = mapped_column(String(32), primary_key=True)
+    repository_id: Mapped[str] = mapped_column(String(32), ForeignKey("repositories.id", ondelete="CASCADE"), index=True)
+    user_id: Mapped[str] = mapped_column(String(32), ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    kind: Mapped[str] = mapped_column(String(32), default="note")
+    title: Mapped[str] = mapped_column(String(255))
+    content: Mapped[str] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+class GeneratedDocument(Base):
+    __tablename__ = "generated_documents"
+    id: Mapped[str] = mapped_column(String(32), primary_key=True)
+    repository_id: Mapped[str] = mapped_column(String(32), ForeignKey("repositories.id", ondelete="CASCADE"), index=True)
+    user_id: Mapped[str] = mapped_column(String(32), ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    kind: Mapped[str] = mapped_column(String(32), default="overview")
+    title: Mapped[str] = mapped_column(String(255))
+    content: Mapped[str] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

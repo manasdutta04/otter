@@ -81,6 +81,48 @@ class ArchitectureGraphResponse(BaseModel):
     edges: list[GraphEdge]
     generated_at: datetime
 
+class MemoryCreate(BaseModel):
+    kind: Literal["decision", "convention", "note"] = "note"
+    title: str = Field(min_length=2, max_length=255)
+    content: str = Field(min_length=2, max_length=5000)
+
+class MemoryResponse(BaseModel):
+    id: str
+    repository_id: str
+    kind: str
+    title: str
+    content: str
+    created_at: datetime
+
+class DocumentResponse(BaseModel):
+    id: str
+    repository_id: str
+    kind: str
+    title: str
+    content: str
+    created_at: datetime
+
+class MemoryCreate(BaseModel):
+    kind: Literal["decision", "convention", "note"] = "note"
+    title: str = Field(min_length=2, max_length=255)
+    content: str = Field(min_length=2, max_length=5000)
+
+class MemoryResponse(BaseModel):
+    id: str
+    repository_id: str
+    kind: str
+    title: str
+    content: str
+    created_at: datetime
+
+class DocumentResponse(BaseModel):
+    id: str
+    repository_id: str
+    kind: str
+    title: str
+    content: str
+    created_at: datetime
+
 class GraphNode(BaseModel):
     id: str
     label: str

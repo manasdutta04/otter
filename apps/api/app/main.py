@@ -11,9 +11,10 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from .config import get_settings
 from .database import get_db
-from .models import AuthSession, Repository, RepositoryGraph, RepositoryImportJob, RepositoryIntelligence, RepositoryPlan, User
+from .models import AuthSession, GeneratedDocument, MemoryEntry, Repository, RepositoryGraph, RepositoryImportJob, RepositoryIntelligence, RepositoryPlan, User
+from .knowledge import add_memory, generate_overview
 from .planner import build_plan, save_plan
-from .schemas import ArchitectureGraphResponse, ChatRequest, ChatResponse, HealthResponse, ImportStatus, IntelligenceResponse, PlanRequest, PlanResponse, RepositoryCreate, RepositoryListResponse, RepositorySummary
+from .schemas import ArchitectureGraphResponse, ChatRequest, ChatResponse, DocumentResponse, HealthResponse, ImportStatus, IntelligenceResponse, MemoryCreate, MemoryResponse, PlanRequest, PlanResponse, RepositoryCreate, RepositoryListResponse, RepositorySummary
 from .store import RepositoryStore
 from .worker import import_repository_task
 
@@ -162,6 +163,38 @@ async def architecture(repository_id: str, session: AuthSession = Depends(curren
     if not repository or not graph:
         raise HTTPException(status_code=404, detail="Architecture graph is not ready")
     return ArchitectureGraphResponse(repository_id=repository_id, nodes=json.loads(graph.nodes), edges=json.loads(graph.edges), generated_at=graph.generated_at)
+
+@app.post("/repositories/{repository_id}/memory", response_model=MemoryResponse, status_code=201)
+async def create_memory(repository_id: str, payload: MemoryCreate, session: AuthSession = Depends(current_session), db: AsyncSession = Depends(get_db)) -> MemoryResponse:
+    repository = await store.get(db, session.user_id, repository_id)
+    if not repository:
+        raise HTTPException(status_code=404, detail="Repository not found")
+    entry = await add_memory(db, repository_id, session.user_id, payload.kind, payload.title, payload.content)
+    return MemoryResponse.model_validate(entry, from_attributes=True)
+
+@app.get("/repositories/{repository_id}/memory", response_model=list[MemoryResponse])
+async def list_memory(repository_id: str, session: AuthSession = Depends(current_session), db: AsyncSession = Depends(get_db)) -> list[MemoryResponse]:
+    repository = await store.get(db, session.user_id, repository_id)
+    if not repository:
+        raise HTTPException(status_code=404, detail="Repository not found")
+    entries = await db.scalars(select(MemoryEntry).where(MemoryEntry.repository_id == repository_id, MemoryEntry.user_id == session.user_id).order_by(MemoryEntry.created_at.desc()))
+    return [MemoryResponse.model_validate(entry, from_attributes=True) for entry in entries]
+
+@app.post("/repositories/{repository_id}/documents/overview", response_model=DocumentResponse, status_code=201)
+async def create_overview(repository_id: str, session: AuthSession = Depends(current_session), db: AsyncSession = Depends(get_db)) -> DocumentResponse:
+    repository = await store.get(db, session.user_id, repository_id)
+    if not repository or repository.status != "ready":
+        raise HTTPException(status_code=409, detail="Repository must be ready before documentation is generated")
+    document = await generate_overview(db, repository_id, session.user_id, repository.name)
+    return DocumentResponse.model_validate(document, from_attributes=True)
+
+@app.get("/repositories/{repository_id}/documents", response_model=list[DocumentResponse])
+async def list_documents(repository_id: str, session: AuthSession = Depends(current_session), db: AsyncSession = Depends(get_db)) -> list[DocumentResponse]:
+    repository = await store.get(db, session.user_id, repository_id)
+    if not repository:
+        raise HTTPException(status_code=404, detail="Repository not found")
+    documents = await db.scalars(select(GeneratedDocument).where(GeneratedDocument.repository_id == repository_id, GeneratedDocument.user_id == session.user_id).order_by(GeneratedDocument.created_at.desc()))
+    return [DocumentResponse.model_validate(document, from_attributes=True) for document in documents]
 
 @app.get("/repositories/{repository_id}/import-status", response_model=ImportStatus)
 async def import_status(repository_id: str, session: AuthSession = Depends(current_session), db: AsyncSession = Depends(get_db)) -> ImportStatus:

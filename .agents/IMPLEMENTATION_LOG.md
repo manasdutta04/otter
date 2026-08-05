@@ -299,3 +299,31 @@ The planner currently reasons from filenames and heuristics. A graph adds relati
 ### Boundary
 
 This is a lightweight language-agnostic graph extractor. It does not claim compiler-grade semantic analysis. Tree-sitter parsing, symbol resolution, service-boundary inference, and interactive visualization are later hardening steps.
+
+## Phase 2, Steps 3–4 — Engineering memory and documentation generation
+
+### Engineering memory
+
+Added persistent memory entries scoped to both repository and user. Entries support three explicit kinds: `decision`, `convention`, and `note`.
+
+Memory endpoints:
+
+- `POST /repositories/{repository_id}/memory`
+- `GET /repositories/{repository_id}/memory`
+
+This creates the storage boundary for future conversation memory and team decisions without treating arbitrary chat history as automatically reliable knowledge.
+
+### Documentation generation
+
+Added generated repository overview documents based on persisted intelligence and graph data. The generated Markdown includes the repository summary, detected technology stack, folder structure, entry points, architecture signals, and graph coverage.
+
+Documentation endpoints:
+
+- `POST /repositories/{repository_id}/documents/overview`
+- `GET /repositories/{repository_id}/documents`
+
+The generator is deterministic and source-grounded. A future model-powered documentation pass can use this stored overview as an input rather than inventing repository facts.
+
+### Phase 2 status
+
+Phase 2 now includes the PRD roadmap capabilities: planning engine, architecture graph, engineering memory, and documentation generation. The next product phase can focus on model orchestration, retrieval quality, evaluation, and AI-assisted coding.
