@@ -4,11 +4,10 @@ services:
     working_dir: /workspace
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
     volumes: ["../apps/api:/workspace", "repository_data:/data/repositories"]
+    env_file:
+      - path: ../.env
+        required: false
     environment:
-      GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID:-}
-      GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET:-}
-      GITHUB_REDIRECT_URI: ${GITHUB_REDIRECT_URI:-http://localhost:8000/auth/github/callback}
-      NEXT_PUBLIC_URL: ${NEXT_PUBLIC_URL:-http://localhost:3000}
       REPOSITORY_DATA_DIR: /data/repositories
     ports: ["8000:8000"]
     depends_on: [postgres, redis]
