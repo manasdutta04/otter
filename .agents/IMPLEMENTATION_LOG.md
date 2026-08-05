@@ -247,3 +247,39 @@ The Phase 1 PRD loop is covered:
 ### Explicit boundary
 
 Phase 1 chat is deterministic and source-grounded. LangGraph orchestration, vector embeddings, Qdrant retrieval, multi-model routing, architecture diagrams, and production code generation remain later platform phases. This boundary keeps the first release inspectable and avoids presenting a simple model wrapper as the finished veridexs product.
+
+## Phase 2, Step 1 — Planning engine
+
+### What changed
+
+Phase 2 begins with a planning engine because planning is the safety boundary between understanding a repository and changing it. The new planner:
+
+- Accepts a requested engineering change.
+- Inspects the imported repository’s files and existing intelligence.
+- Identifies likely affected files.
+- Lists dependencies and coordination points.
+- Estimates low, medium, or high complexity.
+- Lists implementation risks.
+- Produces a verification checklist.
+- Persists the plan in PostgreSQL.
+
+### New endpoints
+
+- `POST /repositories/{repository_id}/plans` creates and persists a plan.
+- `GET /repositories/{repository_id}/plans` lists plans owned by the authenticated user.
+
+The API refuses to plan against a repository that has not finished importing. Plans are analysis artifacts; they do not modify source code and do not create commits or pull requests.
+
+### Why this is the first Phase 2 step
+
+The PRD requires veridexs to explain and plan before coding. A persisted plan gives future LangGraph agents a structured handoff: repository context, affected surfaces, dependencies, risks, and acceptance work are available before any code-writing capability is introduced.
+
+### Validation
+
+- Alembic upgraded the database from `0002_intelligence` to `0003_plans`.
+- API, worker, web, Redis, PostgreSQL, and migration services remain healthy.
+- Planner tests cover authentication-surface detection and risk generation.
+
+### Next Phase 2 step
+
+The next step is the architecture graph: extract imports, service boundaries, and dependency relationships into a persisted graph that can be displayed and used by the planner.

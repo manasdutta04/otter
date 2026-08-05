@@ -47,3 +47,19 @@ class ChatRequest(BaseModel):
 class ChatResponse(BaseModel):
     answer: str
     sources: list[str]
+
+class PlanRequest(BaseModel):
+    request: str = Field(min_length=8, max_length=2000)
+
+class PlanResponse(BaseModel):
+    id: str
+    repository_id: str
+    request: str
+    title: str
+    complexity: Literal["low", "medium", "high"]
+    summary: str
+    steps: list[str]
+    affected_files: list[str]
+    dependencies: list[str]
+    risks: list[str]
+    created_at: datetime

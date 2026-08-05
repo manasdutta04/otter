@@ -11,8 +11,9 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from .config import get_settings
 from .database import get_db
-from .models import AuthSession, Repository, RepositoryImportJob, RepositoryIntelligence, User
-from .schemas import ChatRequest, ChatResponse, HealthResponse, ImportStatus, IntelligenceResponse, RepositoryCreate, RepositoryListResponse, RepositorySummary
+from .models import AuthSession, Repository, RepositoryImportJob, RepositoryIntelligence, RepositoryPlan, User
+from .planner import build_plan, save_plan
+from .schemas import ChatRequest, ChatResponse, HealthResponse, ImportStatus, IntelligenceResponse, PlanRequest, PlanResponse, RepositoryCreate, RepositoryListResponse, RepositorySummary
 from .store import RepositoryStore
 from .worker import import_repository_task
 
@@ -135,6 +136,24 @@ async def repository_chat(repository_id: str, payload: ChatRequest, session: Aut
     else:
         answer = "I found these likely relevant files: " + ", ".join(matches) if matches else "I did not find a strong filename match. Ask about a concrete subsystem such as authentication, API, tests, or folder structure."
     return ChatResponse(answer=answer, sources=matches)
+
+@app.post("/repositories/{repository_id}/plans", response_model=PlanResponse, status_code=201)
+async def create_plan(repository_id: str, payload: PlanRequest, session: AuthSession = Depends(current_session), db: AsyncSession = Depends(get_db)) -> PlanResponse:
+    repository = await store.get(db, session.user_id, repository_id)
+    intelligence_record = await db.get(RepositoryIntelligence, repository_id)
+    if not repository or repository.status != "ready":
+        raise HTTPException(status_code=409, detail="Repository must finish importing before planning is available")
+    intelligence = {"entry_points": json.loads(intelligence_record.entry_points)} if intelligence_record else None
+    plan = await save_plan(db, repository_id, session.user_id, payload.request, build_plan(Path(settings.repository_data_dir) / repository_id, payload.request, intelligence))
+    return PlanResponse(id=plan.id, repository_id=plan.repository_id, request=plan.request, title=plan.title, complexity=plan.complexity, summary=plan.summary, steps=json.loads(plan.steps), affected_files=json.loads(plan.affected_files), dependencies=json.loads(plan.dependencies), risks=json.loads(plan.risks), created_at=plan.created_at)
+
+@app.get("/repositories/{repository_id}/plans", response_model=list[PlanResponse])
+async def list_plans(repository_id: str, session: AuthSession = Depends(current_session), db: AsyncSession = Depends(get_db)) -> list[PlanResponse]:
+    repository = await store.get(db, session.user_id, repository_id)
+    if not repository:
+        raise HTTPException(status_code=404, detail="Repository not found")
+    records = await db.scalars(select(RepositoryPlan).where(RepositoryPlan.repository_id == repository_id, RepositoryPlan.user_id == session.user_id).order_by(RepositoryPlan.created_at.desc()))
+    return [PlanResponse(id=plan.id, repository_id=plan.repository_id, request=plan.request, title=plan.title, complexity=plan.complexity, summary=plan.summary, steps=json.loads(plan.steps), affected_files=json.loads(plan.affected_files), dependencies=json.loads(plan.dependencies), risks=json.loads(plan.risks), created_at=plan.created_at) for plan in records]
 
 @app.get("/repositories/{repository_id}/import-status", response_model=ImportStatus)
 async def import_status(repository_id: str, session: AuthSession = Depends(current_session), db: AsyncSession = Depends(get_db)) -> ImportStatus:

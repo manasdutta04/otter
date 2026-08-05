@@ -51,3 +51,18 @@ class RepositoryIntelligence(Base):
     entry_points: Mapped[str] = mapped_column(Text, default="[]")
     architecture_signals: Mapped[str] = mapped_column(Text, default="[]")
     analyzed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+class RepositoryPlan(Base):
+    __tablename__ = "repository_plans"
+    id: Mapped[str] = mapped_column(String(32), primary_key=True)
+    repository_id: Mapped[str] = mapped_column(String(32), ForeignKey("repositories.id", ondelete="CASCADE"), index=True)
+    user_id: Mapped[str] = mapped_column(String(32), ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    request: Mapped[str] = mapped_column(Text)
+    title: Mapped[str] = mapped_column(String(255))
+    complexity: Mapped[str] = mapped_column(String(32))
+    summary: Mapped[str] = mapped_column(Text)
+    steps: Mapped[str] = mapped_column(Text, default="[]")
+    affected_files: Mapped[str] = mapped_column(Text, default="[]")
+    dependencies: Mapped[str] = mapped_column(Text, default="[]")
+    risks: Mapped[str] = mapped_column(Text, default="[]")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
