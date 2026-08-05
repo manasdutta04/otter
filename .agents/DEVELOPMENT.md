@@ -17,3 +17,6 @@
 - Never expose secrets, tokens, prompts containing private data, or repository contents in logs.
 - Make destructive or code-writing actions explicit and approval-gated.
 
+## Implementation learning log
+
+Every implementation step must be explained alongside the code. Append the intent, request flow, data flow, rationale, validation, and known limitations to `.agents/IMPLEMENTATION_LOG.md`. The explanation should teach the system boundary and trade-offs in plain language, not merely list changed files.
