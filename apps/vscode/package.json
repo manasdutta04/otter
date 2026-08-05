@@ -1,0 +1,21 @@
+{
+  "name": "veridexs-vscode",
+  "displayName": "veridexs",
+  "description": "Repository intelligence from veridexs inside VS Code.",
+  "version": "0.1.0",
+  "publisher": "veridexs",
+  "engines": { "vscode": "^1.85.0" },
+  "categories": ["Other"],
+  "activationEvents": ["onCommand:veridexs.explain", "onCommand:veridexs.review", "onCommand:veridexs.plan"],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      { "command": "veridexs.explain", "title": "veridexs: Explain Repository" },
+      { "command": "veridexs.review", "title": "veridexs: Review Repository" },
+      { "command": "veridexs.plan", "title": "veridexs: Create Implementation Plan" }
+    ],
+    "configuration": { "title": "veridexs", "properties": { "veridexs.apiUrl": { "type": "string", "default": "http://localhost:8000" } } }
+  },
+  "scripts": { "compile": "tsc -p ./", "package": "npm run compile && vsce package" },
+  "devDependencies": { "@types/node": "^22.0.0", "@types/vscode": "^1.85.0", "typescript": "^5.6.0", "@vscode/vsce": "^3.2.0" }
+}

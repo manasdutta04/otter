@@ -406,4 +406,8 @@ The pull-request endpoint uses the authenticated GitHub session, creates a `veri
 
 ### Phase 3 status
 
-Phase 3 now covers the PRD’s AI coding, approval, testing, and GitHub PR workflow. Future hardening should add diff previews, test-command allowlists, encrypted provider credentials, GitHub App permissions, and integration tests against a disposable repository.
+Phase 3 now covers the PRD's AI coding, approval, testing, and GitHub PR workflow. Future hardening should add diff previews, test-command allowlists, encrypted provider credentials, GitHub App permissions, and integration tests against a disposable repository.
+
+## Phase 5, Steps 2–4 — Integration surfaces
+
+Added a VS Code extension for repository explanation, review, and planning; a separate GitHub webhook service with optional HMAC signature validation; and a stdio JSON-RPC MCP bridge for repository intelligence. All three reuse the existing API contracts so the dashboard, CLI, editor, GitHub boundary, and MCP consumers remain consistent. Production hardening remains for GitHub installation-token management, authenticated MCP transport, and end-to-end provider tests.

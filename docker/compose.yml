@@ -43,6 +43,16 @@ services:
     depends_on:
       migration: {condition: service_completed_successfully}
       redis: {condition: service_started}
+  github-app:
+    build: {context: .., dockerfile: apps/github-app/Dockerfile}
+    working_dir: /workspace
+    volumes: ["../apps/github-app:/workspace"]
+    env_file:
+      - path: ../.env
+        required: false
+    environment: {VERIDEXS_API_URL: http://api:8000}
+    ports: ["9000:9000"]
+    depends_on: [api]
   postgres:
     image: postgres:16-alpine
     environment: {POSTGRES_USER: veridexs, POSTGRES_PASSWORD: veridexs, POSTGRES_DB: veridexs}
