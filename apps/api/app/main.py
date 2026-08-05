@@ -1,7 +1,7 @@
 from urllib.parse import urlencode
 from secrets import token_urlsafe
 import httpx
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 from .config import get_settings
@@ -45,20 +45,27 @@ async def github_callback(code: str) -> RedirectResponse:
 async def auth_me(request: Request) -> dict[str, bool]:
     return {"authenticated": request.cookies.get("veridexs_session") in sessions}
 
+def current_access_token(request: Request) -> str:
+    session_id = request.cookies.get("veridexs_session")
+    token = sessions.get(session_id or "")
+    if not token:
+        raise HTTPException(status_code=401, detail="GitHub authentication required")
+    return token
+
 @app.get("/repositories", response_model=RepositoryListResponse)
-async def repositories() -> RepositoryListResponse:
+async def repositories(_: str = Depends(current_access_token)) -> RepositoryListResponse:
     records = await store.list()
     return RepositoryListResponse(repositories=[RepositorySummary.model_validate(record, from_attributes=True) for record in records])
 
 @app.post("/repositories", response_model=RepositorySummary, status_code=202)
-async def import_repository(payload: RepositoryCreate) -> RepositorySummary:
+async def import_repository(payload: RepositoryCreate, access_token: str = Depends(current_access_token)) -> RepositorySummary:
     if "github.com/" not in payload.url.lower():
         raise HTTPException(status_code=422, detail="Only GitHub repository URLs are supported")
-    record = await store.create(payload.url)
+    record = await store.create(payload.url, access_token)
     return RepositorySummary.model_validate(record, from_attributes=True)
 
 @app.get("/repositories/{repository_id}", response_model=RepositorySummary)
-async def repository(repository_id: str) -> RepositorySummary:
+async def repository(repository_id: str, _: str = Depends(current_access_token)) -> RepositorySummary:
     record = await store.get(repository_id)
     if not record:
         raise HTTPException(status_code=404, detail="Repository not found")

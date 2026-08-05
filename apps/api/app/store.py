@@ -28,24 +28,27 @@ class RepositoryStore:
         async with self._lock:
             return list(self._records.values())
 
-    async def create(self, url: str) -> RepositoryRecord:
+    async def create(self, url: str, access_token: str | None = None) -> RepositoryRecord:
         repository_id = uuid4().hex[:12]
         name = url.rstrip("/").split("/")[-1].removesuffix(".git") or "repository"
         record = RepositoryRecord(repository_id, url, name, "queued", datetime.now(timezone.utc).isoformat())
         async with self._lock:
             self._records[repository_id] = record
-        asyncio.create_task(self._clone(record))
+        asyncio.create_task(self._clone(record, access_token))
         return record
 
     async def get(self, repository_id: str) -> RepositoryRecord | None:
         async with self._lock:
             return self._records.get(repository_id)
 
-    async def _clone(self, record: RepositoryRecord) -> None:
+    async def _clone(self, record: RepositoryRecord, access_token: str | None) -> None:
         record.status = "cloning"
         destination = self.root / record.id
         try:
-            await asyncio.to_thread(Repo.clone_from, record.url, destination, depth=1)
+            clone_url = record.url
+            if access_token and clone_url.startswith("https://github.com/"):
+                clone_url = clone_url.replace("https://github.com/", f"https://x-access-token:{access_token}@github.com/", 1)
+            await asyncio.to_thread(Repo.clone_from, clone_url, destination, depth=1)
             files = [path for path in destination.rglob("*") if path.is_file() and ".git" not in path.parts]
             repository = await asyncio.to_thread(Repo, destination)
             record.branch = repository.active_branch.name
