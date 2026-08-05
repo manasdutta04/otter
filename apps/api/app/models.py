@@ -49,6 +49,20 @@ class RepositoryReview(Base):
     findings: Mapped[str] = mapped_column(Text, default="[]")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
+class RepositoryArchitectureAnalysis(Base):
+    __tablename__ = "repository_architecture_analysis"
+    repository_id: Mapped[str] = mapped_column(String(32), ForeignKey("repositories.id", ondelete="CASCADE"), primary_key=True)
+    score: Mapped[int] = mapped_column(Integer, default=0)
+    findings: Mapped[str] = mapped_column(Text, default="[]")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+class RepositoryPerformance(Base):
+    __tablename__ = "repository_performance"
+    repository_id: Mapped[str] = mapped_column(String(32), ForeignKey("repositories.id", ondelete="CASCADE"), primary_key=True)
+    score: Mapped[int] = mapped_column(Integer, default=0)
+    hotspots: Mapped[str] = mapped_column(Text, default="[]")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
 class AuthSession(Base):
     __tablename__ = "auth_sessions"
     id: Mapped[str] = mapped_column(String(64), primary_key=True)

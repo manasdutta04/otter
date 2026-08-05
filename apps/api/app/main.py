@@ -14,11 +14,11 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from .config import get_settings
 from .database import get_db
-from .models import AuthSession, CodeChangeTask, GeneratedDocument, MemoryEntry, Repository, RepositoryGraph, RepositoryHealth, RepositoryImportJob, RepositoryIntelligence, RepositoryPlan, RepositoryReview, User
+from .models import AuthSession, CodeChangeTask, GeneratedDocument, MemoryEntry, Repository, RepositoryArchitectureAnalysis, RepositoryGraph, RepositoryHealth, RepositoryImportJob, RepositoryIntelligence, RepositoryPerformance, RepositoryPlan, RepositoryReview, User
 from .knowledge import add_memory, generate_overview
 from .llm import generate_patch
 from .planner import build_plan, save_plan
-from .schemas import ArchitectureGraphResponse, ChatRequest, ChatResponse, CodeTaskCreate, CodeTaskDecision, CodeTaskResponse, DocumentResponse, HealthResponse, HealthResponseReport, ImportStatus, IntelligenceResponse, MemoryCreate, MemoryResponse, PatchProposal, PlanRequest, PlanResponse, PullRequestRequest, PullRequestResponse, RepositoryCreate, RepositoryListResponse, RepositorySummary, ReviewResponse, TestResponse
+from .schemas import ArchitectureAnalysisResponse, ArchitectureGraphResponse, ChatRequest, ChatResponse, CodeTaskCreate, CodeTaskDecision, CodeTaskResponse, DocumentResponse, HealthResponse, HealthResponseReport, ImportStatus, IntelligenceResponse, MemoryCreate, MemoryResponse, PatchProposal, PerformanceResponse, PlanRequest, PlanResponse, PullRequestRequest, PullRequestResponse, RepositoryCreate, RepositoryListResponse, RepositorySummary, ReviewResponse, TestResponse
 from .health import analyze_health
 from .store import RepositoryStore
 from .worker import import_repository_task
@@ -329,6 +329,20 @@ async def repository_review(repository_id: str, session: AuthSession = Depends(c
     report = await db.scalar(select(RepositoryReview).where(RepositoryReview.repository_id == repository_id, RepositoryReview.user_id == session.user_id).order_by(RepositoryReview.created_at.desc()))
     if not repository or not report: raise HTTPException(status_code=404, detail="Repository review is not ready")
     return ReviewResponse(id=report.id, repository_id=report.repository_id, findings=json.loads(report.findings), created_at=report.created_at)
+
+@app.get("/repositories/{repository_id}/architecture-analysis", response_model=ArchitectureAnalysisResponse)
+async def architecture_analysis(repository_id: str, session: AuthSession = Depends(current_session), db: AsyncSession = Depends(get_db)) -> ArchitectureAnalysisResponse:
+    if not await store.get(db, session.user_id, repository_id): raise HTTPException(status_code=404, detail="Repository not found")
+    report = await db.get(RepositoryArchitectureAnalysis, repository_id)
+    if not report: raise HTTPException(status_code=404, detail="Architecture analysis is not ready")
+    return ArchitectureAnalysisResponse(repository_id=repository_id, score=report.score, findings=json.loads(report.findings), created_at=report.created_at)
+
+@app.get("/repositories/{repository_id}/performance", response_model=PerformanceResponse)
+async def performance(repository_id: str, session: AuthSession = Depends(current_session), db: AsyncSession = Depends(get_db)) -> PerformanceResponse:
+    if not await store.get(db, session.user_id, repository_id): raise HTTPException(status_code=404, detail="Repository not found")
+    report = await db.get(RepositoryPerformance, repository_id)
+    if not report: raise HTTPException(status_code=404, detail="Performance analysis is not ready")
+    return PerformanceResponse(repository_id=repository_id, score=report.score, hotspots=json.loads(report.hotspots), created_at=report.created_at)
 
 @app.get("/repositories/{repository_id}/import-status", response_model=ImportStatus)
 async def import_status(repository_id: str, session: AuthSession = Depends(current_session), db: AsyncSession = Depends(get_db)) -> ImportStatus:

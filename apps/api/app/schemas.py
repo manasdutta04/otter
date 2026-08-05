@@ -170,6 +170,18 @@ class ReviewResponse(BaseModel):
     findings: list[ReviewFinding]
     created_at: datetime
 
+class ArchitectureAnalysisResponse(BaseModel):
+    repository_id: str
+    score: int
+    findings: list[dict[str, object]]
+    created_at: datetime
+
+class PerformanceResponse(BaseModel):
+    repository_id: str
+    score: int
+    hotspots: list[dict[str, object]]
+    created_at: datetime
+
 class MemoryCreate(BaseModel):
     kind: Literal["decision", "convention", "note"] = "note"
     title: str = Field(min_length=2, max_length=255)
