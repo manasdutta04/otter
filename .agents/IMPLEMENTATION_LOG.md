@@ -327,3 +327,16 @@ The generator is deterministic and source-grounded. A future model-powered docum
 ### Phase 2 status
 
 Phase 2 now includes the PRD roadmap capabilities: planning engine, architecture graph, engineering memory, and documentation generation. The next product phase can focus on model orchestration, retrieval quality, evaluation, and AI-assisted coding.
+
+## Phase 3, Step 1 — Approval-gated coding control plane
+
+Phase 3 starts with the safety boundary for AI coding. A `code_change_tasks` record now captures a requested change, its optional plan, ownership, proposed summary, and explicit lifecycle state.
+
+New endpoints:
+
+- `POST /repositories/{repository_id}/code-tasks`
+- `GET /repositories/{repository_id}/code-tasks`
+- `POST /repositories/{repository_id}/code-tasks/{task_id}/approve`
+- `POST /repositories/{repository_id}/code-tasks/{task_id}/reject`
+
+Creating a task produces `ready_for_approval`. Approval changes it to `approved`; rejection changes it to `rejected`. No endpoint in this step edits a source file. That is intentional: model-generated patches will be added only after this durable approval contract exists.

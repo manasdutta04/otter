@@ -102,6 +102,24 @@ class DocumentResponse(BaseModel):
     content: str
     created_at: datetime
 
+class CodeTaskCreate(BaseModel):
+    request: str = Field(min_length=8, max_length=2000)
+    plan_id: str | None = None
+
+class CodeTaskDecision(BaseModel):
+    note: str | None = Field(default=None, max_length=2000)
+
+class CodeTaskResponse(BaseModel):
+    id: str
+    repository_id: str
+    plan_id: str | None
+    request: str
+    status: Literal["draft", "ready_for_approval", "approved", "rejected"]
+    proposed_summary: str
+    approval_note: str | None
+    created_at: datetime
+    approved_at: datetime | None
+
 class MemoryCreate(BaseModel):
     kind: Literal["decision", "convention", "note"] = "note"
     title: str = Field(min_length=2, max_length=255)

@@ -11,10 +11,10 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from .config import get_settings
 from .database import get_db
-from .models import AuthSession, GeneratedDocument, MemoryEntry, Repository, RepositoryGraph, RepositoryImportJob, RepositoryIntelligence, RepositoryPlan, User
+from .models import AuthSession, CodeChangeTask, GeneratedDocument, MemoryEntry, Repository, RepositoryGraph, RepositoryImportJob, RepositoryIntelligence, RepositoryPlan, User
 from .knowledge import add_memory, generate_overview
 from .planner import build_plan, save_plan
-from .schemas import ArchitectureGraphResponse, ChatRequest, ChatResponse, DocumentResponse, HealthResponse, ImportStatus, IntelligenceResponse, MemoryCreate, MemoryResponse, PlanRequest, PlanResponse, RepositoryCreate, RepositoryListResponse, RepositorySummary
+from .schemas import ArchitectureGraphResponse, ChatRequest, ChatResponse, CodeTaskCreate, CodeTaskDecision, CodeTaskResponse, DocumentResponse, HealthResponse, ImportStatus, IntelligenceResponse, MemoryCreate, MemoryResponse, PlanRequest, PlanResponse, RepositoryCreate, RepositoryListResponse, RepositorySummary
 from .store import RepositoryStore
 from .worker import import_repository_task
 
@@ -195,6 +195,36 @@ async def list_documents(repository_id: str, session: AuthSession = Depends(curr
         raise HTTPException(status_code=404, detail="Repository not found")
     documents = await db.scalars(select(GeneratedDocument).where(GeneratedDocument.repository_id == repository_id, GeneratedDocument.user_id == session.user_id).order_by(GeneratedDocument.created_at.desc()))
     return [DocumentResponse.model_validate(document, from_attributes=True) for document in documents]
+
+@app.post("/repositories/{repository_id}/code-tasks", response_model=CodeTaskResponse, status_code=201)
+async def create_code_task(repository_id: str, payload: CodeTaskCreate, session: AuthSession = Depends(current_session), db: AsyncSession = Depends(get_db)) -> CodeTaskResponse:
+    repository = await store.get(db, session.user_id, repository_id)
+    if not repository or repository.status != "ready":
+        raise HTTPException(status_code=409, detail="Repository must be ready before creating a coding task")
+    if payload.plan_id and not await db.scalar(select(RepositoryPlan).where(RepositoryPlan.id == payload.plan_id, RepositoryPlan.repository_id == repository_id, RepositoryPlan.user_id == session.user_id)):
+        raise HTTPException(status_code=404, detail="Plan not found")
+    task = CodeChangeTask(id=token_urlsafe(9), repository_id=repository_id, user_id=session.user_id, plan_id=payload.plan_id, request=payload.request, status="ready_for_approval", proposed_summary="The requested change is captured and awaits human approval before any source file can be modified.")
+    db.add(task); await db.commit(); await db.refresh(task)
+    return CodeTaskResponse.model_validate(task, from_attributes=True)
+
+@app.get("/repositories/{repository_id}/code-tasks", response_model=list[CodeTaskResponse])
+async def list_code_tasks(repository_id: str, session: AuthSession = Depends(current_session), db: AsyncSession = Depends(get_db)) -> list[CodeTaskResponse]:
+    tasks = await db.scalars(select(CodeChangeTask).where(CodeChangeTask.repository_id == repository_id, CodeChangeTask.user_id == session.user_id).order_by(CodeChangeTask.created_at.desc()))
+    return [CodeTaskResponse.model_validate(task, from_attributes=True) for task in tasks]
+
+@app.post("/repositories/{repository_id}/code-tasks/{task_id}/approve", response_model=CodeTaskResponse)
+async def approve_code_task(repository_id: str, task_id: str, payload: CodeTaskDecision, session: AuthSession = Depends(current_session), db: AsyncSession = Depends(get_db)) -> CodeTaskResponse:
+    task = await db.scalar(select(CodeChangeTask).where(CodeChangeTask.id == task_id, CodeChangeTask.repository_id == repository_id, CodeChangeTask.user_id == session.user_id))
+    if not task or task.status != "ready_for_approval": raise HTTPException(status_code=409, detail="Task is not awaiting approval")
+    task.status = "approved"; task.approval_note = payload.note; task.approved_at = datetime.now(timezone.utc); await db.commit(); await db.refresh(task)
+    return CodeTaskResponse.model_validate(task, from_attributes=True)
+
+@app.post("/repositories/{repository_id}/code-tasks/{task_id}/reject", response_model=CodeTaskResponse)
+async def reject_code_task(repository_id: str, task_id: str, payload: CodeTaskDecision, session: AuthSession = Depends(current_session), db: AsyncSession = Depends(get_db)) -> CodeTaskResponse:
+    task = await db.scalar(select(CodeChangeTask).where(CodeChangeTask.id == task_id, CodeChangeTask.repository_id == repository_id, CodeChangeTask.user_id == session.user_id))
+    if not task or task.status != "ready_for_approval": raise HTTPException(status_code=409, detail="Task is not awaiting approval")
+    task.status = "rejected"; task.approval_note = payload.note; await db.commit(); await db.refresh(task)
+    return CodeTaskResponse.model_validate(task, from_attributes=True)
 
 @app.get("/repositories/{repository_id}/import-status", response_model=ImportStatus)
 async def import_status(repository_id: str, session: AuthSession = Depends(current_session), db: AsyncSession = Depends(get_db)) -> ImportStatus:
