@@ -27,6 +27,20 @@ class CodeChangeTask(Base):
     approved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     applied_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
+class RepositoryHealth(Base):
+    __tablename__ = "repository_health"
+    repository_id: Mapped[str] = mapped_column(String(32), ForeignKey("repositories.id", ondelete="CASCADE"), primary_key=True)
+    architecture_score: Mapped[int] = mapped_column(Integer, default=0)
+    security_score: Mapped[int] = mapped_column(Integer, default=0)
+    maintainability_score: Mapped[int] = mapped_column(Integer, default=0)
+    performance_score: Mapped[int] = mapped_column(Integer, default=0)
+    debt_score: Mapped[int] = mapped_column(Integer, default=0)
+    documentation_score: Mapped[int] = mapped_column(Integer, default=0)
+    dependency_score: Mapped[int] = mapped_column(Integer, default=0)
+    complexity_score: Mapped[int] = mapped_column(Integer, default=0)
+    findings: Mapped[str] = mapped_column(Text, default="[]")
+    analyzed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
 class AuthSession(Base):
     __tablename__ = "auth_sessions"
     id: Mapped[str] = mapped_column(String(64), primary_key=True)

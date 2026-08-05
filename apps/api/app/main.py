@@ -14,11 +14,12 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from .config import get_settings
 from .database import get_db
-from .models import AuthSession, CodeChangeTask, GeneratedDocument, MemoryEntry, Repository, RepositoryGraph, RepositoryImportJob, RepositoryIntelligence, RepositoryPlan, User
+from .models import AuthSession, CodeChangeTask, GeneratedDocument, MemoryEntry, Repository, RepositoryGraph, RepositoryHealth, RepositoryImportJob, RepositoryIntelligence, RepositoryPlan, User
 from .knowledge import add_memory, generate_overview
 from .llm import generate_patch
 from .planner import build_plan, save_plan
-from .schemas import ArchitectureGraphResponse, ChatRequest, ChatResponse, CodeTaskCreate, CodeTaskDecision, CodeTaskResponse, DocumentResponse, HealthResponse, ImportStatus, IntelligenceResponse, MemoryCreate, MemoryResponse, PatchProposal, PlanRequest, PlanResponse, PullRequestRequest, PullRequestResponse, RepositoryCreate, RepositoryListResponse, RepositorySummary, TestResponse
+from .schemas import ArchitectureGraphResponse, ChatRequest, ChatResponse, CodeTaskCreate, CodeTaskDecision, CodeTaskResponse, DocumentResponse, HealthResponse, HealthResponseReport, ImportStatus, IntelligenceResponse, MemoryCreate, MemoryResponse, PatchProposal, PlanRequest, PlanResponse, PullRequestRequest, PullRequestResponse, RepositoryCreate, RepositoryListResponse, RepositorySummary, TestResponse
+from .health import analyze_health
 from .store import RepositoryStore
 from .worker import import_repository_task
 
@@ -313,6 +314,14 @@ async def create_pull_request(repository_id: str, task_id: str, payload: PullReq
     if response.status_code >= 400: raise HTTPException(status_code=502, detail="GitHub rejected pull request creation")
     data = response.json()
     return PullRequestResponse(url=data["html_url"], number=data["number"], branch=branch)
+
+@app.get("/repositories/{repository_id}/health", response_model=HealthResponseReport)
+async def repository_health(repository_id: str, session: AuthSession = Depends(current_session), db: AsyncSession = Depends(get_db)) -> HealthResponseReport:
+    repository = await store.get(db, session.user_id, repository_id)
+    report = await db.get(RepositoryHealth, repository_id)
+    if not repository or not report:
+        raise HTTPException(status_code=404, detail="Repository health report is not ready")
+    return HealthResponseReport(repository_id=repository_id, architecture_score=report.architecture_score, security_score=report.security_score, maintainability_score=report.maintainability_score, performance_score=report.performance_score, debt_score=report.debt_score, documentation_score=report.documentation_score, dependency_score=report.dependency_score, complexity_score=report.complexity_score, findings=json.loads(report.findings), analyzed_at=report.analyzed_at)
 
 @app.get("/repositories/{repository_id}/import-status", response_model=ImportStatus)
 async def import_status(repository_id: str, session: AuthSession = Depends(current_session), db: AsyncSession = Depends(get_db)) -> ImportStatus:

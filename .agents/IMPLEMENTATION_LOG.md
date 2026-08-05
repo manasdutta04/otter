@@ -354,6 +354,12 @@ Patch paths are restricted to relative paths inside the imported repository work
 
 This is the execution contract for future model-generated patches. The next step can connect a model/provider adapter that produces these structured proposals, followed by Git diff verification before application.
 
+## Phase 4, Step 1 — Repository health analysis
+
+The first Phase 4 capability is implemented. Health reports persist architecture, security, maintainability, performance, technical debt, documentation, dependency, and complexity scores, plus actionable findings.
+
+The worker generates a report after repository analysis, and the API exposes it through `GET /repositories/{repository_id}/health`. The current checks are transparent heuristics based on repository structure and file signals; they are not presented as a substitute for static analysis or security tooling.
+
 ## Phase 3, Steps 3–4 — Model generation, tests, and GitHub pull requests
 
 Phase 3 now has the complete coding loop:

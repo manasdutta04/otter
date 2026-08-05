@@ -144,6 +144,19 @@ class PullRequestResponse(BaseModel):
     number: int
     branch: str
 
+class HealthResponseReport(BaseModel):
+    repository_id: str
+    architecture_score: int
+    security_score: int
+    maintainability_score: int
+    performance_score: int
+    debt_score: int
+    documentation_score: int
+    dependency_score: int
+    complexity_score: int
+    findings: list[str]
+    analyzed_at: datetime
+
 class MemoryCreate(BaseModel):
     kind: Literal["decision", "convention", "note"] = "note"
     title: str = Field(min_length=2, max_length=255)
