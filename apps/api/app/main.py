@@ -14,11 +14,11 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from .config import get_settings
 from .database import get_db
-from .models import AuthSession, CodeChangeTask, GeneratedDocument, MemoryEntry, Repository, RepositoryGraph, RepositoryHealth, RepositoryImportJob, RepositoryIntelligence, RepositoryPlan, User
+from .models import AuthSession, CodeChangeTask, GeneratedDocument, MemoryEntry, Repository, RepositoryGraph, RepositoryHealth, RepositoryImportJob, RepositoryIntelligence, RepositoryPlan, RepositoryReview, User
 from .knowledge import add_memory, generate_overview
 from .llm import generate_patch
 from .planner import build_plan, save_plan
-from .schemas import ArchitectureGraphResponse, ChatRequest, ChatResponse, CodeTaskCreate, CodeTaskDecision, CodeTaskResponse, DocumentResponse, HealthResponse, HealthResponseReport, ImportStatus, IntelligenceResponse, MemoryCreate, MemoryResponse, PatchProposal, PlanRequest, PlanResponse, PullRequestRequest, PullRequestResponse, RepositoryCreate, RepositoryListResponse, RepositorySummary, TestResponse
+from .schemas import ArchitectureGraphResponse, ChatRequest, ChatResponse, CodeTaskCreate, CodeTaskDecision, CodeTaskResponse, DocumentResponse, HealthResponse, HealthResponseReport, ImportStatus, IntelligenceResponse, MemoryCreate, MemoryResponse, PatchProposal, PlanRequest, PlanResponse, PullRequestRequest, PullRequestResponse, RepositoryCreate, RepositoryListResponse, RepositorySummary, ReviewResponse, TestResponse
 from .health import analyze_health
 from .store import RepositoryStore
 from .worker import import_repository_task
@@ -322,6 +322,13 @@ async def repository_health(repository_id: str, session: AuthSession = Depends(c
     if not repository or not report:
         raise HTTPException(status_code=404, detail="Repository health report is not ready")
     return HealthResponseReport(repository_id=repository_id, architecture_score=report.architecture_score, security_score=report.security_score, maintainability_score=report.maintainability_score, performance_score=report.performance_score, debt_score=report.debt_score, documentation_score=report.documentation_score, dependency_score=report.dependency_score, complexity_score=report.complexity_score, findings=json.loads(report.findings), analyzed_at=report.analyzed_at)
+
+@app.get("/repositories/{repository_id}/review", response_model=ReviewResponse)
+async def repository_review(repository_id: str, session: AuthSession = Depends(current_session), db: AsyncSession = Depends(get_db)) -> ReviewResponse:
+    repository = await store.get(db, session.user_id, repository_id)
+    report = await db.scalar(select(RepositoryReview).where(RepositoryReview.repository_id == repository_id, RepositoryReview.user_id == session.user_id).order_by(RepositoryReview.created_at.desc()))
+    if not repository or not report: raise HTTPException(status_code=404, detail="Repository review is not ready")
+    return ReviewResponse(id=report.id, repository_id=report.repository_id, findings=json.loads(report.findings), created_at=report.created_at)
 
 @app.get("/repositories/{repository_id}/import-status", response_model=ImportStatus)
 async def import_status(repository_id: str, session: AuthSession = Depends(current_session), db: AsyncSession = Depends(get_db)) -> ImportStatus:

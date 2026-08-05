@@ -157,6 +157,19 @@ class HealthResponseReport(BaseModel):
     findings: list[str]
     analyzed_at: datetime
 
+class ReviewFinding(BaseModel):
+    category: str
+    severity: Literal["low", "medium", "high"]
+    title: str
+    file: str
+    line: int
+
+class ReviewResponse(BaseModel):
+    id: str
+    repository_id: str
+    findings: list[ReviewFinding]
+    created_at: datetime
+
 class MemoryCreate(BaseModel):
     kind: Literal["decision", "convention", "note"] = "note"
     title: str = Field(min_length=2, max_length=255)

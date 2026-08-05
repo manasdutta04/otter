@@ -10,6 +10,7 @@ from .models import AuthSession, Repository, RepositoryImportJob
 from .analyzer import inspect_repository, save_intelligence
 from .graph import build_graph, save_graph
 from .health import analyze_health
+from .review import review_repository, save_review
 
 settings = get_settings()
 celery_app = Celery("veridexs", broker=settings.redis_url, backend=settings.redis_url)
@@ -47,6 +48,7 @@ async def process_import(job_id: str, repository_id: str) -> None:
             nodes, edges = await asyncio.to_thread(build_graph, destination)
             await save_graph(db, repository_id, nodes, edges)
             await analyze_health(db, repository_id, destination, len(files))
+            await save_review(db, repository_id, repository.user_id, await asyncio.to_thread(review_repository, destination))
             job.status = "succeeded"; job.finished_at = datetime.now(timezone.utc); repository.status = "ready"; repository.branch = git_repository.active_branch.name; repository.file_count = len(files); await db.commit()
     except Exception as error:
         async with SessionLocal() as db:
