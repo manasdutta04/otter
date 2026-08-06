@@ -15,4 +15,8 @@ async def analyze_performance(db: AsyncSession, repository_id: str, root: Path) 
             match = pattern.search(content)
             if match: hotspots.append({"file": str(path.relative_to(root)).replace("\\", "/"), "line": content[:match.start()].count("\n") + 1, "title": title, "severity": severity})
     score = max(30, 100 - len(hotspots) * 12)
-    record = RepositoryPerformance(repository_id=repository_id, score=score, hotspots=json.dumps(hotspots[:100]), created_at=datetime.now(timezone.utc)); await db.merge(record); await db.commit(); await db.refresh(record); return record
+    record = RepositoryPerformance(repository_id=repository_id, score=score, hotspots=json.dumps(hotspots[:100]), created_at=datetime.now(timezone.utc))
+    merged_record = await db.merge(record)
+    await db.commit()
+    await db.refresh(merged_record)
+    return merged_record

@@ -5,7 +5,7 @@ from celery import Celery
 from git import Repo
 from sqlalchemy import select
 from .config import get_settings
-from .database import SessionLocal
+from .database import get_session_factory
 from .models import AuthSession, Repository, RepositoryImportJob
 from .analyzer import inspect_repository, save_intelligence
 from .graph import build_graph, save_graph
@@ -25,6 +25,7 @@ def clean_error(error: Exception) -> str:
     return message[:1000]
 
 async def process_import(job_id: str, repository_id: str) -> None:
+    SessionLocal = get_session_factory()
     async with SessionLocal() as db:
         job = await db.get(RepositoryImportJob, job_id)
         repository = await db.get(Repository, repository_id)

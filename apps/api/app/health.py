@@ -20,4 +20,7 @@ async def analyze_health(db: AsyncSession, repository_id: str, root: Path, file_
     performance = 70 if file_count < 500 else 55
     debt = max(30, 100 - len(findings) * 20)
     record = RepositoryHealth(repository_id=repository_id, architecture_score=architecture, security_score=security, maintainability_score=maintainability, performance_score=performance, debt_score=debt, documentation_score=documentation, dependency_score=dependency, complexity_score=complexity, findings=json.dumps(findings), analyzed_at=datetime.now(timezone.utc))
-    await db.merge(record); await db.commit(); await db.refresh(record); return record
+    merged_record = await db.merge(record)
+    await db.commit()
+    await db.refresh(merged_record)
+    return merged_record
