@@ -35,13 +35,36 @@ export type ImportStatus = {
   finished_at?: string | null;
 };
 
+export type FolderIntelligence = {
+  path: string;
+  role: string;
+  file_count: number;
+  explanation?: string | null;
+};
+
+export type IntelligenceAnalysis = {
+  summary_facts: string[];
+  languages: string[];
+  package_managers: string[];
+  frameworks: string[];
+  api_routes: { method: string; path: string; file: string; line?: number | null }[];
+  databases: { orm: string; evidence: string; files: string[] }[];
+  auth: { mechanism: string; files: string[]; notes: string }[];
+  config_files: string[];
+  ci: string[];
+  docker: string[];
+  testing: string[];
+  folder_explanations: Record<string, string>;
+};
+
 export type Intelligence = {
   repository_id: string;
   summary: string;
   tech_stack: string[];
-  folders: string[];
+  folders: Array<FolderIntelligence | string>;
   entry_points: string[];
   architecture_signals: string[];
+  analysis?: IntelligenceAnalysis | null;
   analyzed_at: string;
 };
 

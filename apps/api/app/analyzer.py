@@ -1,31 +1,35 @@
+"""Legacy analyzer entry — delegates to Phase 1 intelligence package."""
+from __future__ import annotations
+
 import json
-from pathlib import Path
 from datetime import datetime, timezone
+from pathlib import Path
+
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from .intelligence import analyze_repository, analysis_to_legacy_dict
 from .models import RepositoryIntelligence
 
-IGNORED = {".git", "node_modules", ".next", "dist", "build", "__pycache__", ".venv"}
-MANIFESTS = {"package.json": "Node.js", "requirements.txt": "Python", "pyproject.toml": "Python", "go.mod": "Go", "Cargo.toml": "Rust", "pom.xml": "Java", "docker-compose.yml": "Docker"}
 
 def inspect_repository(root: Path) -> dict[str, object]:
-    files = [path for path in root.rglob("*") if path.is_file() and not any(part in IGNORED for part in path.parts)]
-    names = {path.name for path in files}
-    tech_stack = sorted({value for key, value in MANIFESTS.items() if key in names})
-    if any(path.suffix in {".tsx", ".ts"} for path in files): tech_stack.append("TypeScript")
-    if any(path.suffix == ".py" for path in files): tech_stack.append("Python")
-    if any(path.name.lower() in {"dockerfile", "compose.yml", "docker-compose.yml"} for path in files): tech_stack.append("Docker")
-    folders = sorted({str(path.parent.relative_to(root)).replace("\\", "/") for path in files if path.parent != root})[:80]
-    entry_points = [str(path.relative_to(root)).replace("\\", "/") for path in files if path.name.lower() in {"main.py", "app.py", "server.py", "index.ts", "index.tsx", "main.ts", "main.tsx", "manage.py"}][:30]
-    signals = []
-    if any("api" in part.lower() for path in files for part in path.parts): signals.append("API surface detected")
-    if any("test" in part.lower() for path in files for part in path.parts): signals.append("Automated tests detected")
-    if any(path.name.lower() in {"dockerfile", "compose.yml", "docker-compose.yml"} for path in files): signals.append("Containerized runtime detected")
-    readme = next((path for path in files if path.name.lower() in {"readme.md", "readme"}), None)
-    readme_text = readme.read_text(encoding="utf-8", errors="ignore")[:4000] if readme else ""
-    summary = readme_text.strip().split("\n\n")[0][:600] if readme_text.strip() else f"Repository contains {len(files)} files across {len(folders)} folders."
-    return {"summary": summary, "tech_stack": sorted(set(tech_stack)), "folders": folders, "entry_points": entry_points, "architecture_signals": signals}
+    analysis = analyze_repository(Path(root))
+    return analysis_to_legacy_dict(analysis)
+
 
 async def save_intelligence(db: AsyncSession, repository_id: str, data: dict[str, object]) -> None:
-    record = RepositoryIntelligence(repository_id=repository_id, summary=str(data["summary"]), tech_stack=json.dumps(data["tech_stack"]), folders=json.dumps(data["folders"]), entry_points=json.dumps(data["entry_points"]), architecture_signals=json.dumps(data["architecture_signals"]), analyzed_at=datetime.now(timezone.utc))
+    analysis_blob = data.get("analysis")
+    if analysis_blob is None:
+        analysis_blob = {}
+    folders = data.get("folders_rich") or data.get("folders") or []
+    record = RepositoryIntelligence(
+        repository_id=repository_id,
+        summary=str(data.get("summary") or ""),
+        tech_stack=json.dumps(data.get("tech_stack") or []),
+        folders=json.dumps(folders),
+        entry_points=json.dumps(data.get("entry_points") or []),
+        architecture_signals=json.dumps(data.get("architecture_signals") or []),
+        analysis_json=json.dumps(analysis_blob),
+        analyzed_at=datetime.now(timezone.utc),
+    )
     await db.merge(record)
     await db.commit()

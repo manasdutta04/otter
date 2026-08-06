@@ -1,4 +1,5 @@
 from logging.config import fileConfig
+import os
 from alembic import context
 from sqlalchemy import pool
 from sqlalchemy.ext.asyncio import async_engine_from_config
@@ -9,6 +10,19 @@ config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 target_metadata = Base.metadata
+
+# Prefer DATABASE_URL from the environment / .env for native runs.
+db_url = os.environ.get("DATABASE_URL")
+if not db_url:
+    try:
+        from app.config import get_settings
+
+        db_url = get_settings().database_url
+    except Exception:
+        db_url = None
+if db_url:
+    config.set_main_option("sqlalchemy.url", db_url)
+
 
 def run_migrations_offline() -> None:
     context.configure(url=config.get_main_option("sqlalchemy.url"), target_metadata=target_metadata, literal_binds=True, dialect_opts={"paramstyle": "named"})

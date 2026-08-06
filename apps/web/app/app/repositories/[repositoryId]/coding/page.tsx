@@ -6,6 +6,10 @@ import { useRepository } from "../../../../../components/RepositoryProvider";
 import { StatusBadge } from "../../../../../components/StatusBadge";
 import { api, type CodeTask, type PullRequestResult, type TestResult } from "../../../../../lib/api";
 
+function stripLlmSummaryPrefix(text: string): string {
+  return text.replace(/^(\[llm:[^\]]+\]\s*)+/i, "").trim();
+}
+
 export default function CodingPage() {
   const { repositoryId, isReady, getTabCache, setTabCache } = useRepository();
   const cached = getTabCache<CodeTask[]>("tasks");
@@ -157,7 +161,12 @@ export default function CodingPage() {
         </form>
       </section>
 
-      {error ? <p className="error-text">{error}</p> : null}
+      {error ? (
+        <div className="panel" style={{ borderColor: "rgba(196, 92, 69, 0.35)" }}>
+          <h2 style={{ color: "var(--bad)" }}>Action failed</h2>
+          <p className="error-text" style={{ margin: 0, whiteSpace: "pre-wrap" }}>{error}</p>
+        </div>
+      ) : null}
 
       <section className="panel">
         <h2>Tasks</h2>
@@ -168,13 +177,35 @@ export default function CodingPage() {
         ) : (
           tasks.map((task) => {
             const busy = busyId === task.id;
+            const summary = task.proposed_summary || "";
+            const isStubPatch =
+              /implementation TODO/i.test(summary) ||
+              (/TODO\(Otter\)/i.test(summary) && /implement carefully/i.test(summary)) ||
+              (/Adds an implementation TODO/i.test(summary));
             return (
               <article className="task-card" key={task.id}>
                 <div style={{ display: "flex", justifyContent: "space-between", gap: "0.75rem", flexWrap: "wrap" }}>
                   <strong style={{ maxWidth: "42rem" }}>{task.request}</strong>
                   <StatusBadge status={task.status} />
                 </div>
-                <p className="muted" style={{ margin: "0.55rem 0 0", whiteSpace: "pre-wrap" }}>{task.proposed_summary}</p>
+                {isStubPatch ? (
+                  <p className="error-text" style={{ marginTop: "0.55rem" }}>
+                    Stub patch — this only added a TODO marker. Fix LLM_MODEL / LLM_API_KEY, then create a new task and regenerate.
+                  </p>
+                ) : null}
+                {task.status === "rejected" ? (
+                  <p className="muted" style={{ marginTop: "0.55rem" }}>
+                    Rejected — nothing was written to the repository.
+                  </p>
+                ) : null}
+                {task.status === "applied" ? (
+                  <p className="muted" style={{ marginTop: "0.55rem" }}>
+                    Applied locally. Run tests before opening a PR.
+                  </p>
+                ) : null}
+                <p className="muted" style={{ margin: "0.55rem 0 0", whiteSpace: "pre-wrap" }}>
+                  {stripLlmSummaryPrefix(summary)}
+                </p>
                 {task.changed_files?.length ? (
                   <p className="muted" style={{ margin: "0.55rem 0 0", fontFamily: "var(--font-mono)", fontSize: "0.8rem" }}>
                     {task.changed_files.join(" · ")}
@@ -190,7 +221,7 @@ export default function CodingPage() {
                         disabled={busy}
                         onClick={() => void runAction(task.id, () => api.generateCodeTask(repositoryId, task.id))}
                       >
-                        {busy ? "Working…" : "Generate patch"}
+                        {busy ? "Generating…" : "Generate patch"}
                       </button>
                       <button
                         className="btn btn-danger btn-sm"
@@ -208,7 +239,7 @@ export default function CodingPage() {
                       <button
                         className="btn btn-primary btn-sm"
                         type="button"
-                        disabled={busy}
+                        disabled={busy || isStubPatch}
                         onClick={() => void runAction(task.id, () => api.approveCodeTask(repositoryId, task.id, "Approved in Otter"))}
                       >
                         Approve
@@ -228,7 +259,7 @@ export default function CodingPage() {
                     <button
                       className="btn btn-primary btn-sm"
                       type="button"
-                      disabled={busy}
+                      disabled={busy || isStubPatch}
                       onClick={() => void runAction(task.id, () => api.applyCodeTask(repositoryId, task.id))}
                     >
                       Apply patch
@@ -243,16 +274,16 @@ export default function CodingPage() {
                         disabled={busy}
                         onClick={() => void handleTest(task.id)}
                       >
-                        Run tests
+                        {busy ? "Running…" : "Run tests"}
                       </button>
                       <button
                         className="btn btn-primary btn-sm"
                         type="button"
-                        disabled={busy}
+                        disabled={busy || isStubPatch}
                         onClick={() => {
                           setPrTaskId(task.id);
                           setPrTitle(task.request.slice(0, 72));
-                          setPrBody(task.proposed_summary || task.request);
+                          setPrBody(stripLlmSummaryPrefix(task.proposed_summary || task.request));
                         }}
                       >
                         Open PR form

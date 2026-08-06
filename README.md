@@ -6,6 +6,43 @@ Otter is an AI software engineer for modern teams — an engineering-intelligenc
 
 ## Local development
 
+### Native (recommended when freeing RAM for Ollama)
+
+Docker off. Requires local PostgreSQL, Node, Python, and Ollama.
+
+1. Copy `.env.example` to `.env` and set GitHub OAuth credentials.
+2. Start Ollama and pull models: `ollama pull qwen2.5-coder:7b`
+3. Set your Postgres superuser password, then run:
+
+```powershell
+$env:PGPASSWORD = "YOUR_POSTGRES_PASSWORD"
+powershell -ExecutionPolicy Bypass -File scripts/dev-native.ps1
+```
+
+Or manually:
+
+```powershell
+# API
+cd apps/api
+python -m venv .venv
+.\.venv\Scripts\pip install -r requirements.txt
+$env:DATABASE_URL = "postgresql+asyncpg://otter:otter@127.0.0.1:5432/otter"
+$env:LLM_BASE_URL = "http://127.0.0.1:11434/v1"
+$env:REPOSITORY_DATA_DIR = "c:\Coding Workspace\veridexs\data\repositories"
+$env:PYTHONPATH = (Get-Location).Path
+.\.venv\Scripts\alembic.exe upgrade head
+.\.venv\Scripts\uvicorn.exe app.main:app --reload --host 127.0.0.1 --port 8000
+
+# Web (second terminal)
+cd apps/web
+npm install
+npm run dev
+```
+
+4. Open [http://localhost:3000](http://localhost:3000).
+
+### Docker
+
 1. Copy `.env.example` to `.env`.
 2. Create a GitHub OAuth App with callback `http://localhost:8000/auth/github/callback` and fill in credentials.
 3. Run `docker compose -f docker/compose.yml up --build`.

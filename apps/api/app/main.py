@@ -30,22 +30,30 @@ from app.models import (
     RepositoryImportJob, RepositoryIntelligence, RepositoryPerformance,
     RepositoryPlan, RepositoryReview, User
 )
-from packages.planner import build_plan
 from packages.retrieval import answer_repository_question
 from app.knowledge import add_memory, generate_overview
-from app.llm import generate_patch
-from app.planner import save_plan
+from app.llm import (
+    CONTEXT_CHARS_PER_FILE,
+    CONTEXT_FILE_LIMIT,
+    PatchGenerationError,
+    generate_patch,
+    is_todo_only_patch,
+    strip_llm_summary_prefix,
+    validate_patch_quality,
+)
+from app.planner import build_plan, save_plan
 from app.schemas import (
-    ArchitectureAnalysisResponse, ArchitectureGraphResponse, ChatRequest,
-    ChatResponse, CodeTaskCreate, CodeTaskDecision, CodeTaskResponse,
-    DocumentResponse, HealthResponse, HealthResponseReport, ImportStatus,
+    ArchitectureAnalysisResponse, ArchitectureGraphResponse, AuthIntelligence,
+    ApiRouteIntelligence, ChatRequest, ChatResponse, CodeTaskCreate, CodeTaskDecision,
+    CodeTaskResponse, DatabaseIntelligence, DocumentResponse, FolderIntelligence,
+    HealthResponse, HealthResponseReport, ImportStatus, IntelligenceAnalysis,
     IntelligenceResponse, MemoryCreate, MemoryResponse, PatchProposal,
     PerformanceResponse, PlanRequest, PlanResponse, PullRequestRequest,
     PullRequestResponse, RepositoryCreate, RepositoryListResponse,
     RepositorySummary, ReviewResponse, TestResponse
 )
 from app.store import RepositoryStore
-from app.worker import import_repository_task
+from app.worker import enqueue_import, import_repository_task
 
 
 settings = get_settings()
@@ -87,6 +95,15 @@ def github_push_url(remote_url: str, token: str) -> str:
     raise HTTPException(status_code=422, detail="Only GitHub remotes are supported for pull requests")
 
 
+def _package_has_test_script(package_json: Path) -> bool:
+    try:
+        data = json.loads(package_json.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return False
+    scripts = data.get("scripts") if isinstance(data, dict) else None
+    return isinstance(scripts, dict) and bool(scripts.get("test"))
+
+
 def run_repository_tests(root: Path) -> TestResponse:
     package_json = root / "package.json"
     if package_json.exists():
@@ -96,29 +113,79 @@ def run_repository_tests(root: Path) -> TestResponse:
                 passed=False,
                 output=(
                     "This repository looks like a Node project, but `npm` is not available inside the Otter API container. "
-                    "Run tests locally (`npm test`) or open the PR and let CI verify."
+                    "Rebuild the API image (Node 20 is required) or run tests locally / via CI."
                 ),
             )
+        install_log = ""
         try:
+            # Prefer reproducible install when a lockfile exists.
+            lockfile = root / "package-lock.json"
+            install_cmd = [npm, "ci"] if lockfile.exists() else [npm, "install", "--no-audit", "--no-fund"]
+            install = subprocess.run(
+                install_cmd,
+                cwd=root,
+                capture_output=True,
+                text=True,
+                timeout=240,
+            )
+            install_log = (install.stdout + "\n" + install.stderr)[-6000:]
+            if install.returncode != 0:
+                # Fall back to npm install if ci fails (common on partial clones).
+                if install_cmd[1] == "ci":
+                    install = subprocess.run(
+                        [npm, "install", "--no-audit", "--no-fund"],
+                        cwd=root,
+                        capture_output=True,
+                        text=True,
+                        timeout=240,
+                    )
+                    install_log = (install.stdout + "\n" + install.stderr)[-6000:]
+                if install.returncode != 0:
+                    return TestResponse(
+                        passed=False,
+                        output=f"npm install failed:\n{install_log}",
+                    )
+            if not _package_has_test_script(package_json):
+                return TestResponse(
+                    passed=False,
+                    output=(
+                        "Dependencies installed, but package.json has no `test` script. "
+                        "Add a test script or rely on CI for verification.\n"
+                        f"{install_log[-2000:]}"
+                    ),
+                )
             result = subprocess.run(
                 [npm, "test", "--", "--watchAll=false"],
                 cwd=root,
                 capture_output=True,
                 text=True,
                 timeout=180,
+                env={**os.environ, "CI": "true"},
             )
             output = (result.stdout + "\n" + result.stderr)[-12000:]
             return TestResponse(passed=result.returncode == 0, output=output or "npm test finished with no output")
         except (OSError, subprocess.TimeoutExpired) as error:
-            return TestResponse(passed=False, output=f"npm test could not run: {error}")
+            return TestResponse(passed=False, output=f"npm test could not run: {error}\n{install_log}")
     try:
-        probe = subprocess.run(["python", "-m", "pytest", "--version"], cwd=root, capture_output=True, text=True, timeout=20)
+        probe = subprocess.run(
+            ["python", "-m", "pytest", "--version"],
+            cwd=root,
+            capture_output=True,
+            text=True,
+            timeout=20,
+        )
         if probe.returncode != 0:
             return TestResponse(
                 passed=False,
-                output="No test runner detected in the Otter workspace clone. Use local tests or CI on the pull request.",
+                output="No test runner detected (no package.json test script / pytest unavailable). Use local tests or CI.",
             )
-        result = subprocess.run(["python", "-m", "pytest", "-q"], cwd=root, capture_output=True, text=True, timeout=120)
+        result = subprocess.run(
+            ["python", "-m", "pytest", "-q"],
+            cwd=root,
+            capture_output=True,
+            text=True,
+            timeout=120,
+        )
         output = (result.stdout + "\n" + result.stderr)[-12000:]
         return TestResponse(passed=result.returncode == 0, output=output)
     except (OSError, subprocess.TimeoutExpired) as error:
@@ -227,7 +294,7 @@ async def import_repository(payload: RepositoryCreate, session: AuthSession = De
     if "github.com/" not in payload.url.lower():
         raise HTTPException(status_code=422, detail="Only GitHub repository URLs are supported")
     record, job = await store.create(db, session.user_id, payload.url)
-    import_repository_task.delay(job.id, record.id)
+    enqueue_import(job.id, record.id)
     return RepositorySummary.model_validate(record, from_attributes=True)
 
 @app.get("/repositories/{repository_id}", response_model=RepositorySummary)
@@ -243,7 +310,91 @@ async def intelligence(repository_id: str, session: AuthSession = Depends(curren
     record = await db.get(RepositoryIntelligence, repository_id)
     if not repository or not record:
         raise HTTPException(status_code=404, detail="Repository intelligence is not ready")
-    return IntelligenceResponse(repository_id=repository_id, summary=record.summary, tech_stack=json.loads(record.tech_stack), folders=json.loads(record.folders), entry_points=json.loads(record.entry_points), architecture_signals=json.loads(record.architecture_signals), analyzed_at=record.analyzed_at)
+    return _serialize_intelligence(repository_id, record)
+
+
+def _serialize_intelligence(repository_id: str, record: RepositoryIntelligence) -> IntelligenceResponse:
+    raw_folders = json.loads(record.folders or "[]")
+    folders: list = []
+    for item in raw_folders:
+        if isinstance(item, dict) and "path" in item:
+            folders.append(
+                FolderIntelligence(
+                    path=str(item["path"]),
+                    role=str(item.get("role") or "source"),
+                    file_count=int(item.get("file_count") or 0),
+                    explanation=(item.get("explanation") or None),
+                )
+            )
+        else:
+            folders.append(str(item))
+    analysis = None
+    try:
+        blob = json.loads(getattr(record, "analysis_json", None) or "{}")
+        if isinstance(blob, dict) and blob:
+            # Attach folder explanations onto folder objects when present
+            explanations = blob.get("folder_explanations") or {}
+            if isinstance(explanations, dict):
+                for folder in folders:
+                    if isinstance(folder, FolderIntelligence) and folder.path in explanations:
+                        folder.explanation = str(explanations[folder.path])
+            def _route(r: dict) -> ApiRouteIntelligence | None:
+                try:
+                    return ApiRouteIntelligence(
+                        method=str(r.get("method") or "GET"),
+                        path=str(r.get("path") or ""),
+                        file=str(r.get("file") or ""),
+                        line=r.get("line"),
+                    )
+                except (TypeError, ValueError):
+                    return None
+
+            def _db(r: dict) -> DatabaseIntelligence | None:
+                try:
+                    return DatabaseIntelligence(
+                        orm=str(r.get("orm") or ""),
+                        evidence=str(r.get("evidence") or ""),
+                        files=[str(x) for x in (r.get("files") or [])],
+                    )
+                except (TypeError, ValueError):
+                    return None
+
+            def _auth(r: dict) -> AuthIntelligence | None:
+                try:
+                    return AuthIntelligence(
+                        mechanism=str(r.get("mechanism") or ""),
+                        files=[str(x) for x in (r.get("files") or [])],
+                        notes=str(r.get("notes") or ""),
+                    )
+                except (TypeError, ValueError):
+                    return None
+
+            analysis = IntelligenceAnalysis(
+                summary_facts=list(blob.get("summary_facts") or []),
+                languages=list(blob.get("languages") or []),
+                package_managers=list(blob.get("package_managers") or []),
+                frameworks=list(blob.get("frameworks") or []),
+                api_routes=[m for r in (blob.get("api_routes") or []) if isinstance(r, dict) for m in [_route(r)] if m],
+                databases=[m for r in (blob.get("databases") or []) if isinstance(r, dict) for m in [_db(r)] if m],
+                auth=[m for r in (blob.get("auth") or []) if isinstance(r, dict) for m in [_auth(r)] if m],
+                config_files=list(blob.get("config_files") or []),
+                ci=list(blob.get("ci") or []),
+                docker=list(blob.get("docker") or []),
+                testing=list(blob.get("testing") or []),
+                folder_explanations={str(k): str(v) for k, v in explanations.items()} if isinstance(explanations, dict) else {},
+            )
+    except (TypeError, ValueError, json.JSONDecodeError):
+        analysis = None
+    return IntelligenceResponse(
+        repository_id=repository_id,
+        summary=record.summary,
+        tech_stack=json.loads(record.tech_stack or "[]"),
+        folders=folders,
+        entry_points=json.loads(record.entry_points or "[]"),
+        architecture_signals=json.loads(record.architecture_signals or "[]"),
+        analysis=analysis,
+        analyzed_at=record.analyzed_at,
+    )
 
 @app.post("/repositories/{repository_id}/chat", response_model=ChatResponse)
 async def repository_chat(repository_id: str, payload: ChatRequest, session: AuthSession = Depends(current_session), db: AsyncSession = Depends(get_db)) -> ChatResponse:
@@ -251,6 +402,25 @@ async def repository_chat(repository_id: str, payload: ChatRequest, session: Aut
     if not repository or repository.status != "ready":
         raise HTTPException(status_code=409, detail="Repository must finish importing before chat is available")
     root = Path(settings.repository_data_dir) / repository_id
+    intel = await db.get(RepositoryIntelligence, repository_id)
+    from app.intelligence.explain import explain_analysis, is_meta_architecture_question
+
+    if intel and is_meta_architecture_question(payload.question):
+        try:
+            analysis = json.loads(getattr(intel, "analysis_json", None) or "{}")
+            if isinstance(analysis, dict) and analysis:
+                explanation = await explain_analysis(analysis, question=payload.question)
+                parts = [explanation["summary"]]
+                if explanation.get("auth_explanation"):
+                    parts.append("Auth: " + explanation["auth_explanation"])
+                if explanation.get("api_explanation"):
+                    parts.append("API: " + explanation["api_explanation"])
+                if explanation.get("folder_explanations"):
+                    folder_bits = ", ".join(f"{k}: {v}" for k, v in list(explanation["folder_explanations"].items())[:8])
+                    parts.append("Folders: " + folder_bits)
+                return ChatResponse(answer="\n\n".join(parts), sources=["repository intelligence"], primary_file=None, primary_lines=None, excerpt=None)
+        except Exception:  # noqa: BLE001 — fall through to retrieval
+            pass
     result = answer_repository_question(root, payload.question)
     sources = [str(item["path"]) for item in result.get("sources", [])]
     return ChatResponse(
@@ -340,7 +510,15 @@ async def create_code_task(repository_id: str, payload: CodeTaskCreate, session:
             status_code=409,
             detail=f"An open task for this request already exists ({duplicate.id}, status={duplicate.status}). Reject or finish it before creating another.",
         )
-    task = CodeChangeTask(id=token_urlsafe(9), repository_id=repository_id, user_id=session.user_id, plan_id=payload.plan_id, request=payload.request, status="ready_for_approval", proposed_summary="The requested change is captured and awaits human approval before any source file can be modified.")
+    task = CodeChangeTask(
+        id=token_urlsafe(9),
+        repository_id=repository_id,
+        user_id=session.user_id,
+        plan_id=payload.plan_id,
+        request=payload.request,
+        status="ready_for_approval",
+        proposed_summary="Ready — click Generate patch to create a proposal (no files changed yet).",
+    )
     db.add(task); await db.commit(); await db.refresh(task)
     return CodeTaskResponse.from_task(task)
 
@@ -360,7 +538,10 @@ async def approve_code_task(repository_id: str, task_id: str, payload: CodeTaskD
 async def reject_code_task(repository_id: str, task_id: str, payload: CodeTaskDecision, session: AuthSession = Depends(current_session), db: AsyncSession = Depends(get_db)) -> CodeTaskResponse:
     task = await db.scalar(select(CodeChangeTask).where(CodeChangeTask.id == task_id, CodeChangeTask.repository_id == repository_id, CodeChangeTask.user_id == session.user_id))
     if not task or task.status not in {"ready_for_approval", "patch_ready"}: raise HTTPException(status_code=409, detail="Task is not awaiting decision")
-    task.status = "rejected"; task.approval_note = payload.note; await db.commit(); await db.refresh(task)
+    task.status = "rejected"
+    task.approval_note = payload.note
+    task.proposed_summary = "Rejected — no repository files were changed."
+    await db.commit(); await db.refresh(task)
     return CodeTaskResponse.from_task(task)
 
 @app.post("/repositories/{repository_id}/code-tasks/{task_id}/proposal", response_model=CodeTaskResponse)
@@ -373,7 +554,7 @@ async def propose_patch(repository_id: str, task_id: str, payload: PatchProposal
         if candidate.is_absolute() or ".." in candidate.parts or candidate.name in {"", ".", ".."}:
             raise HTTPException(status_code=422, detail=f"Unsafe patch path: {file.path}")
         safe_files.append({"path": candidate.as_posix(), "content": file.content})
-    task.patch_json = json.dumps(safe_files); task.changed_files = json.dumps([file["path"] for file in safe_files]); task.proposed_summary = payload.summary; task.status = "patch_ready"; await db.commit(); await db.refresh(task)
+    task.patch_json = json.dumps(safe_files); task.changed_files = json.dumps([file["path"] for file in safe_files]); task.proposed_summary = strip_llm_summary_prefix(payload.summary); task.status = "patch_ready"; await db.commit(); await db.refresh(task)
     return CodeTaskResponse.from_task(task)
 
 @app.post("/repositories/{repository_id}/code-tasks/{task_id}/apply", response_model=CodeTaskResponse)
@@ -385,22 +566,51 @@ async def apply_patch(repository_id: str, task_id: str, session: AuthSession = D
     patch_items = json.loads(task.patch_json or "[]")
     if not patch_items:
         raise HTTPException(status_code=409, detail="This task has no patch content to apply")
-    conflicts: list[str] = []
-    writes: list[tuple[Path, str]] = []
+    originals: dict[str, str] = {}
     for item in patch_items:
         target = (root / item["path"]).resolve()
         if root not in target.parents and target != root:
             raise HTTPException(status_code=422, detail="Patch path escapes repository workspace")
+        if target.exists():
+            originals[str(item["path"])] = target.read_text(encoding="utf-8", errors="ignore")
+    # Include manifests so quality checks can verify imports against declared deps
+    for manifest_name in ("package.json", "pyproject.toml", "requirements.txt"):
+        manifest = root / manifest_name
+        if manifest_name not in originals and manifest.exists():
+            try:
+                originals[manifest_name] = manifest.read_text(encoding="utf-8", errors="ignore")
+            except OSError:
+                pass
+    if is_todo_only_patch(
+        [{"path": str(item["path"]), "content": str(item["content"])} for item in patch_items],
+        originals,
+    ) or (
+        task.proposed_summary
+        and "implementation TODO" in task.proposed_summary.lower()
+        and "TODO(Otter)" in json.dumps(patch_items)
+    ):
+        raise HTTPException(
+            status_code=409,
+            detail="Refusing to apply a TODO-only stub patch. Regenerate with a working LLM to get a real implementation.",
+        )
+    try:
+        validate_patch_quality(
+            task.request,
+            [{"path": str(item["path"]), "content": str(item["content"])} for item in patch_items],
+            originals,
+        )
+    except ValueError as error:
+        raise HTTPException(status_code=409, detail=str(error)) from error
+    writes: list[tuple[Path, str]] = []
+    for item in patch_items:
+        target = (root / item["path"]).resolve()
         new_content = str(item["content"])
         if target.exists():
             current = target.read_text(encoding="utf-8", errors="ignore")
             if current == new_content:
-                continue  # already applied / noop
-            # Soft conflict: file changed since generation only if marker says noop duplicate health
-            # Always allow overwrite of Otter-generated paths; flag unexpected large drift via summary only.
+                continue
         writes.append((target, new_content))
-    if not writes and not conflicts:
-        # Fully noop patch (already present) — still mark applied for PR workflow continuity.
+    if not writes:
         task.status = "applied"
         task.applied_at = datetime.now(timezone.utc)
         await db.commit()
@@ -422,6 +632,7 @@ async def generate_code_task_patch(repository_id: str, task_id: str, session: Au
         raise HTTPException(status_code=409, detail="Task is not ready for patch generation")
     root = Path(settings.repository_data_dir) / repository_id
     words = set(re.findall(r"[a-z0-9_]+", task.request.lower()))
+    auth_boost = bool(words & {"auth", "login", "password", "session", "oauth", "signup", "signin", "authentication", "credential"})
     scored_files: list[tuple[float, Path]] = []
     for path in root.rglob("*"):
         if not path.is_file() or ".git" in path.parts:
@@ -435,37 +646,102 @@ async def generate_code_task_patch(repository_id: str, task_id: str, session: Au
                 score += 4.0
         if any(rel.endswith(name) for name in ("main.py", "app.py", "index.ts", "server.ts", "route.ts", "routes.ts")):
             score += 2.0
+        if auth_boost and any(term in rel for term in ("auth", "login", "session", "passport", "next-auth", "password", "user", "middleware", "credential")):
+            score += 8.0
         scored_files.append((score, path))
     scored_files.sort(key=lambda item: item[0], reverse=True)
-    selected = [path for score, path in scored_files if score > 0][:12] or [path for _, path in scored_files[:12]]
+    selected = [path for score, path in scored_files if score > 0][:CONTEXT_FILE_LIMIT] or [
+        path for _, path in scored_files[:CONTEXT_FILE_LIMIT]
+    ]
+
+    intelligence_row = await db.scalar(select(RepositoryIntelligence).where(RepositoryIntelligence.repository_id == repository_id))
+    intelligence = None
+    if intelligence_row:
+        intelligence = {
+            "entry_points": json.loads(intelligence_row.entry_points or "[]"),
+            "tech_stack": json.loads(intelligence_row.tech_stack or "[]"),
+        }
+    try:
+        plan_context = build_plan(root, task.request, intelligence)
+    except Exception:  # noqa: BLE001 — planning is advisory only
+        plan_context = {
+            "title": f"Plan: {task.request[:80]}",
+            "summary": task.request,
+            "steps": [],
+            "affected_files": [],
+            "risks": [],
+        }
+    for hint in plan_context.get("affected_files") or []:
+        candidate = root / str(hint)
+        if candidate.is_file() and candidate not in selected:
+            selected.insert(0, candidate)
+
     for extra_name in ("package.json", "pyproject.toml", "requirements.txt", "next.config.js", "next.config.mjs", "next.config.ts"):
         extra = root / extra_name
         if extra.exists() and extra not in selected:
             selected.insert(0, extra)
+    # Prefer schema/db/routes for auth work so the small local model sees the real stack.
+    if auth_boost:
+        for preferred in (
+            "shared/schema.ts",
+            "server/db.ts",
+            "server/routes.ts",
+            "server/index.ts",
+            "package.json",
+        ):
+            candidate = root / preferred
+            if candidate.is_file() and candidate not in selected:
+                selected.insert(0, candidate)
     files = []
-    for path in selected[:16]:
+    for path in selected[:CONTEXT_FILE_LIMIT]:
         try:
+            raw = path.read_text(encoding="utf-8", errors="ignore")
+            # Manifests must stay valid JSON/TOML for dependency merging — never truncate.
+            if path.name.lower() in {"package.json", "pyproject.toml", "requirements.txt"}:
+                content = raw
+            else:
+                content = raw[:CONTEXT_CHARS_PER_FILE]
             files.append({
                 "path": str(path.relative_to(root)).replace("\\", "/"),
-                "content": path.read_text(encoding="utf-8", errors="ignore")[:20000],
+                "content": content,
             })
         except OSError:
             continue
-    # Also include likely route entrypoints even if keyword score was low
     for path in root.rglob("*"):
-        if len(files) >= 20:
+        if len(files) >= CONTEXT_FILE_LIMIT:
             break
         if not path.is_file() or ".git" in path.parts:
             continue
         rel = str(path.relative_to(root)).replace("\\", "/")
         if rel in {item["path"] for item in files}:
             continue
-        if rel.endswith(("main.py", "app.py", "server.ts", "server.js", "route.ts")) or "/api/" in rel.replace("\\", "/"):
+        rel_l = rel.lower()
+        if (
+            rel.endswith(("main.py", "app.py", "server.ts", "server.js", "route.ts", "routes.ts", "schema.ts", "db.ts"))
+            or "/api/" in rel_l
+            or (auth_boost and any(term in rel_l for term in ("auth", "login", "session", "middleware", "passport")))
+        ):
             try:
-                files.append({"path": rel, "content": path.read_text(encoding="utf-8", errors="ignore")[:20000]})
+                raw = path.read_text(encoding="utf-8", errors="ignore")
+                content = raw if path.name.lower() in {"package.json", "pyproject.toml", "requirements.txt"} else raw[:CONTEXT_CHARS_PER_FILE]
+                files.append({"path": rel, "content": content})
             except OSError:
                 continue
-    proposal = await generate_patch(task.request, files)
+    # Guarantee package.json is present (full text) so dependency auto-merge works.
+    pkg = root / "package.json"
+    if pkg.is_file() and not any(item["path"] == "package.json" for item in files):
+        try:
+            files.insert(0, {"path": "package.json", "content": pkg.read_text(encoding="utf-8", errors="ignore")})
+            files = files[:CONTEXT_FILE_LIMIT]
+        except OSError:
+            pass
+    files = files[:CONTEXT_FILE_LIMIT]
+    try:
+        proposal = await generate_patch(task.request, files, plan_context=plan_context)
+    except PatchGenerationError as error:
+        raise HTTPException(status_code=502, detail=str(error)) from error
+    except Exception as error:  # noqa: BLE001 — surface unexpected generate failures
+        raise HTTPException(status_code=502, detail=f"Patch generation failed: {error}") from error
     safe_files = []
     for item in proposal["files"]:
         candidate = Path(str(item["path"]))
@@ -474,9 +750,19 @@ async def generate_code_task_patch(repository_id: str, task_id: str, session: Au
         safe_files.append({"path": candidate.as_posix(), "content": str(item["content"])})
     if not safe_files:
         raise HTTPException(status_code=502, detail="Patch generation produced no files")
+    originals = {item["path"]: item["content"] for item in files}
+    if is_todo_only_patch(safe_files, originals):
+        raise HTTPException(
+            status_code=502,
+            detail="Patch generation produced a TODO-only stub. Fix LLM_MODEL / LLM_API_KEY and regenerate.",
+        )
+    try:
+        validate_patch_quality(task.request, safe_files, originals)
+    except ValueError as error:
+        raise HTTPException(status_code=502, detail=str(error)) from error
     task.patch_json = json.dumps(safe_files)
     task.changed_files = json.dumps([item["path"] for item in safe_files])
-    task.proposed_summary = str(proposal["summary"])
+    task.proposed_summary = strip_llm_summary_prefix(str(proposal["summary"]))
     task.status = "patch_ready"
     await db.commit()
     await db.refresh(task)
@@ -502,6 +788,21 @@ async def create_pull_request(repository_id: str, task_id: str, payload: PullReq
             status_code=409,
             detail="This task has no changed files to push. Generate and apply a real patch before opening a PR.",
         )
+    patch_blob = task.patch_json or ""
+    summary_l = (task.proposed_summary or "").lower()
+    if "TODO(Otter)" in patch_blob and (
+        "implementation todo" in summary_l
+        or "implement carefully" in patch_blob
+        or "adds an implementation todo" in summary_l
+    ):
+        raise HTTPException(
+            status_code=409,
+            detail="Refusing to open a PR for a TODO-only stub patch. Regenerate a real implementation first.",
+        )
+    pr_title = strip_llm_summary_prefix(payload.title)
+    pr_body = strip_llm_summary_prefix(payload.body)
+    if not pr_title or not pr_body:
+        raise HTTPException(status_code=422, detail="PR title and body are required")
     parts = repository.url.rstrip("/").removesuffix(".git").split("/")
     if len(parts) < 2:
         raise HTTPException(status_code=422, detail="Repository URL cannot identify a GitHub project")
@@ -512,7 +813,7 @@ async def create_pull_request(repository_id: str, task_id: str, payload: PullReq
     await __import__("asyncio").to_thread(git_repository.git.checkout, "-B", branch)
     await __import__("asyncio").to_thread(git_repository.git.add, "--", *changed_files)
     if git_repository.is_dirty(untracked_files=True) or git_repository.index.diff("HEAD"):
-        await __import__("asyncio").to_thread(git_repository.index.commit, payload.title)
+        await __import__("asyncio").to_thread(git_repository.index.commit, pr_title)
     remote = git_repository.remote("origin")
     original_url = remote.url
     authenticated_url = github_push_url(original_url, session.github_token)
@@ -559,7 +860,7 @@ async def create_pull_request(repository_id: str, task_id: str, payload: PullReq
         response = await client.post(
             f"{settings.github_api_url}/repos/{owner}/{name}/pulls",
             headers=headers,
-            json={"title": payload.title, "body": payload.body, "head": branch, "base": payload.base},
+            json={"title": pr_title, "body": pr_body, "head": branch, "base": payload.base},
         )
     if response.status_code >= 400:
         detail = response.json().get("message") if response.headers.get("content-type", "").startswith("application/json") else response.text
@@ -625,7 +926,7 @@ async def retry_import(repository_id: str, session: AuthSession = Depends(curren
     job = RepositoryImportJob(id=token_urlsafe(9), repository_id=repository.id, user_id=session.user_id, status="queued")
     repository.status = "queued"; repository.error = None
     db.add(job); await db.commit(); await db.refresh(job)
-    import_repository_task.delay(job.id, repository.id)
+    enqueue_import(job.id, repository.id)
     return serialize_import_status(job)
 
 

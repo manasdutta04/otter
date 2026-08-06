@@ -5,6 +5,7 @@ gitpython==3.1.44
 pydantic-settings==2.7.1
 python-multipart==0.0.20
 sqlalchemy==2.0.36
+greenlet==3.1.1
 asyncpg==0.30.0
 alembic==1.14.0
 celery[redis]==5.4.0

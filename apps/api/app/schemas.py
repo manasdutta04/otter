@@ -33,13 +33,55 @@ class ImportStatus(BaseModel):
     started_at: datetime | None = None
     finished_at: datetime | None = None
 
+class FolderIntelligence(BaseModel):
+    path: str
+    role: str = "source"
+    file_count: int = 0
+    explanation: str | None = None
+
+
+class ApiRouteIntelligence(BaseModel):
+    method: str
+    path: str
+    file: str
+    line: int | None = None
+
+
+class DatabaseIntelligence(BaseModel):
+    orm: str
+    evidence: str
+    files: list[str] = []
+
+
+class AuthIntelligence(BaseModel):
+    mechanism: str
+    files: list[str] = []
+    notes: str = ""
+
+
+class IntelligenceAnalysis(BaseModel):
+    summary_facts: list[str] = []
+    languages: list[str] = []
+    package_managers: list[str] = []
+    frameworks: list[str] = []
+    api_routes: list[ApiRouteIntelligence] = []
+    databases: list[DatabaseIntelligence] = []
+    auth: list[AuthIntelligence] = []
+    config_files: list[str] = []
+    ci: list[str] = []
+    docker: list[str] = []
+    testing: list[str] = []
+    folder_explanations: dict[str, str] = {}
+
+
 class IntelligenceResponse(BaseModel):
     repository_id: str
     summary: str
     tech_stack: list[str]
-    folders: list[str]
+    folders: list[FolderIntelligence | str]
     entry_points: list[str]
     architecture_signals: list[str]
+    analysis: IntelligenceAnalysis | None = None
     analyzed_at: datetime
 
 class ChatRequest(BaseModel):

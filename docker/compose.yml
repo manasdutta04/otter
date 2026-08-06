@@ -21,6 +21,8 @@ services:
     environment:
       REPOSITORY_DATA_DIR: /data/repositories
       PYTHONPATH: /workspace
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     ports: ["8000:8000"]
     depends_on:
       migration: {condition: service_completed_successfully}

@@ -102,6 +102,7 @@ class RepositoryIntelligence(Base):
     folders: Mapped[str] = mapped_column(Text, default="[]")
     entry_points: Mapped[str] = mapped_column(Text, default="[]")
     architecture_signals: Mapped[str] = mapped_column(Text, default="[]")
+    analysis_json: Mapped[str] = mapped_column(Text, default="{}")
     analyzed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 class RepositoryPlan(Base):

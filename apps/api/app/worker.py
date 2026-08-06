@@ -18,6 +18,36 @@ settings = get_settings()
 celery_app = Celery("otter", broker=settings.redis_url, backend=settings.redis_url)
 celery_app.conf.update(task_acks_late=True, task_track_started=True, broker_connection_retry_on_startup=True)
 
+
+def redis_available(timeout: float = 0.4) -> bool:
+    """True when the Celery broker (Redis) accepts a TCP connection."""
+    from urllib.parse import urlparse
+    import socket
+
+    parsed = urlparse(settings.redis_url)
+    host = parsed.hostname or "127.0.0.1"
+    port = parsed.port or 6379
+    try:
+        with socket.create_connection((host, port), timeout=timeout):
+            return True
+    except OSError:
+        return False
+
+
+def enqueue_import(job_id: str, repository_id: str) -> str:
+    """Queue via Celery when Redis is up; otherwise run in-process (native/no-Docker)."""
+    if redis_available():
+        import_repository_task.delay(job_id, repository_id)
+        return "celery"
+    try:
+        loop = asyncio.get_running_loop()
+    except RuntimeError:
+        asyncio.run(process_import(job_id, repository_id))
+        return "inline"
+    loop.create_task(process_import(job_id, repository_id))
+    return "background"
+
+
 def clean_error(error: Exception) -> str:
     message = str(error)
     if settings.github_client_secret:
@@ -47,7 +77,18 @@ async def process_import(job_id: str, repository_id: str) -> None:
         git_repository = await asyncio.to_thread(Repo, destination)
         async with SessionLocal() as db:
             job = await db.get(RepositoryImportJob, job_id); repository = await db.get(Repository, repository_id)
-            await save_intelligence(db, repository_id, await asyncio.to_thread(inspect_repository, destination))
+            intel = await asyncio.to_thread(inspect_repository, destination)
+            try:
+                from app.intelligence.explain import explain_analysis, merge_explanation_into_legacy
+
+                analysis = intel.get("analysis") if isinstance(intel.get("analysis"), dict) else {}
+                explanation = await explain_analysis(analysis)
+                intel = merge_explanation_into_legacy(intel, explanation)
+            except Exception as explain_error:  # noqa: BLE001 — analysis still saved without LLM prose
+                import logging
+
+                logging.getLogger(__name__).warning("Intelligence explain skipped: %s", explain_error)
+            await save_intelligence(db, repository_id, intel)
             nodes, edges = await asyncio.to_thread(build_graph, destination)
             await save_graph(db, repository_id, nodes, edges)
             await analyze_health(db, repository_id, destination, len(files))
