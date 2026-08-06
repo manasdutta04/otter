@@ -1,1 +1,2 @@
-{"name":"veridexs","private":true,"scripts":{"dev":"docker compose -f docker/compose.yml up --build","web":"npm --prefix apps/web run dev","api":"python -m uvicorn app.main:app --reload --app-dir apps/api"}}
+{"name":"veridexs","private":true,"scripts":{"dev":"docker compose -f docker/compose.yml up","dev:build":"docker compose -f docker/compose.yml up --build","web":"npm --prefix apps/web run dev","api":"python -m uvicorn app.main:app --reload --app-dir apps/api","docker:clean":"docker system prune -f"}}
+

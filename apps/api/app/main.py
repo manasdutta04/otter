@@ -1,31 +1,51 @@
+import sys
+from pathlib import Path
+
+# Add project root to sys.path so packages modules load cleanly
+REPO_ROOT = Path(__file__).resolve().parents[2]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
 from datetime import datetime, timedelta, timezone
 from secrets import token_urlsafe
 from urllib.parse import urlencode
+import json
+import subprocess
 import httpx
 from fastapi import Depends, FastAPI, HTTPException, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
-import json
-import subprocess
-from pathlib import Path
-import httpx
 from git import Repo
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from .config import get_settings
-from .database import get_db
-from .models import AuthSession, CodeChangeTask, GeneratedDocument, MemoryEntry, Repository, RepositoryArchitectureAnalysis, RepositoryGraph, RepositoryHealth, RepositoryImportJob, RepositoryIntelligence, RepositoryPerformance, RepositoryPlan, RepositoryReview, User
+
+from app.config import get_settings
+from app.database import get_db
+from app.models import (
+    AuthSession, CodeChangeTask, GeneratedDocument, MemoryEntry, Repository,
+    RepositoryArchitectureAnalysis, RepositoryGraph, RepositoryHealth,
+    RepositoryImportJob, RepositoryIntelligence, RepositoryPerformance,
+    RepositoryPlan, RepositoryReview, User
+)
 from packages.analyzer import inspect_repository
-from packages.graph import build_graph
 from packages.health import analyze_health
-from packages.memory import add_memory, generate_overview
-from packages.planner import build_plan, save_plan
+from packages.memory import generate_overview
+from packages.planner import build_plan
 from packages.retrieval import answer_repository_question
-from packages.review import review_repository, save_review
-from .llm import generate_patch
-from .schemas import ArchitectureAnalysisResponse, ArchitectureGraphResponse, ChatRequest, ChatResponse, CodeTaskCreate, CodeTaskDecision, CodeTaskResponse, DocumentResponse, HealthResponse, HealthResponseReport, ImportStatus, IntelligenceResponse, MemoryCreate, MemoryResponse, PatchProposal, PerformanceResponse, PlanRequest, PlanResponse, PullRequestRequest, PullRequestResponse, RepositoryCreate, RepositoryListResponse, RepositorySummary, ReviewResponse, TestResponse
-from .store import RepositoryStore
-from .worker import import_repository_task
+from packages.review import review_repository
+from app.llm import generate_patch
+from app.schemas import (
+    ArchitectureAnalysisResponse, ArchitectureGraphResponse, ChatRequest,
+    ChatResponse, CodeTaskCreate, CodeTaskDecision, CodeTaskResponse,
+    DocumentResponse, HealthResponse, HealthResponseReport, ImportStatus,
+    IntelligenceResponse, MemoryCreate, MemoryResponse, PatchProposal,
+    PerformanceResponse, PlanRequest, PlanResponse, PullRequestRequest,
+    PullRequestResponse, RepositoryCreate, RepositoryListResponse,
+    RepositorySummary, ReviewResponse, TestResponse
+)
+from app.store import RepositoryStore
+from app.worker import import_repository_task
+
 
 settings = get_settings()
 app = FastAPI(title=settings.app_name, version="0.2.0")

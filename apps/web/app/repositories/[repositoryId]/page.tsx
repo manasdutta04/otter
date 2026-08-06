@@ -11,85 +11,58 @@ type ImportStatus = { job_id: string; repository_id: string; status: "queued" | 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 const REFRESH_INTERVAL_MS = 5000;
 
-const STATUS_LABELS: Record<Repository["status"] | ImportStatus["status"], string> = {
-  queued: "Queued",
-  cloning: "Cloning",
-  ready: "Ready",
-  failed: "Failed",
-  running: "Running",
-  succeeded: "Succeeded",
-};
-
-function formatDate(value?: string | null): string {
-  if (!value) {
-    return "—";
-  }
-  return new Date(value).toLocaleString([], { dateStyle: "medium", timeStyle: "short" });
-}
-
 export default function RepositoryDetailPage() {
   const params = useParams<{ repositoryId: string | string[] }>();
   const repositoryId = Array.isArray(params.repositoryId) ? params.repositoryId[0] : params.repositoryId;
+  
+  const [activeTab, setActiveTab] = useState<"overview" | "intelligence" | "chat" | "planner" | "memory" | "health" | "review" | "settings">("overview");
   const [repository, setRepository] = useState<Repository | null>(null);
   const [intelligence, setIntelligence] = useState<Intelligence | null>(null);
   const [importStatus, setImportStatus] = useState<ImportStatus | null>(null);
   const [authenticated, setAuthenticated] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(true);
-  const [retrying, setRetrying] = useState(false);
+  const [pageError, setPageError] = useState("");
+
+  // Tab dynamic state
   const [question, setQuestion] = useState("");
   const [answer, setAnswer] = useState("");
   const [sources, setSources] = useState<string[]>([]);
   const [chatLoading, setChatLoading] = useState(false);
-  const [pageError, setPageError] = useState("");
+
+  const [planRequest, setPlanRequest] = useState("");
+  const [planResult, setPlanResult] = useState<any>(null);
+  const [planLoading, setPlanLoading] = useState(false);
+
+  const [healthResult, setHealthResult] = useState<any>(null);
+  const [reviewResult, setReviewResult] = useState<any>(null);
+  const [memoryResult, setMemoryResult] = useState<any>(null);
 
   const isReady = repository?.status === "ready";
 
   const loadRepository = useCallback(async () => {
-    if (!repositoryId) {
-      setPageError("Repository id is missing from the route.");
-      setLoading(false);
-      return;
-    }
+    if (!repositoryId) return;
 
     try {
       const repositoryResponse = await fetch(`${API_URL}/repositories/${repositoryId}`, { credentials: "include" });
       if (repositoryResponse.status === 401) {
         setAuthenticated(false);
-        setRepository(null);
         return;
       }
-      if (repositoryResponse.status === 404) {
-        setPageError("Repository not found.");
-        setRepository(null);
-        return;
-      }
-      if (!repositoryResponse.ok) {
-        throw new Error("Unable to load repository");
-      }
+      if (!repositoryResponse.ok) throw new Error("Unable to load repository");
 
       const repositoryData = (await repositoryResponse.json()) as Repository;
       setRepository(repositoryData);
       setAuthenticated(true);
-      setPageError("");
 
-      const [importStatusResponse, intelligenceResponse] = await Promise.all([
+      const [importRes, intelRes] = await Promise.all([
         fetch(`${API_URL}/repositories/${repositoryId}/import-status`, { credentials: "include" }),
         fetch(`${API_URL}/repositories/${repositoryId}/intelligence`, { credentials: "include" }),
       ]);
 
-      if (importStatusResponse.ok) {
-        setImportStatus((await importStatusResponse.json()) as ImportStatus);
-      } else if (importStatusResponse.status === 404) {
-        setImportStatus(null);
-      }
-
-      if (intelligenceResponse.ok) {
-        setIntelligence((await intelligenceResponse.json()) as Intelligence);
-      } else if (repositoryData.status !== "ready") {
-        setIntelligence(null);
-      }
-    } catch (error) {
-      setPageError(error instanceof Error ? error.message : "Unable to load repository workspace.");
+      if (importRes.ok) setImportStatus(await importRes.json());
+      if (intelRes.ok) setIntelligence(await intelRes.json());
+    } catch (err) {
+      setPageError(err instanceof Error ? err.message : "Error loading repository workspace.");
     } finally {
       setLoading(false);
     }
@@ -97,132 +70,264 @@ export default function RepositoryDetailPage() {
 
   useEffect(() => {
     void loadRepository();
-    const interval = window.setInterval(() => {
-      void loadRepository();
-    }, REFRESH_INTERVAL_MS);
+    const interval = window.setInterval(() => void loadRepository(), REFRESH_INTERVAL_MS);
     return () => window.clearInterval(interval);
   }, [loadRepository]);
 
-  const statusRows = useMemo(() => [
-    { label: "Repository", value: repository ? STATUS_LABELS[repository.status] : "Loading" },
-    { label: "Import job", value: importStatus ? STATUS_LABELS[importStatus.status] : "Waiting" },
-    { label: "Branch", value: repository?.branch ?? "Pending" },
-    { label: "Files", value: repository?.file_count ? `${repository.file_count}` : "Analyzing" },
-  ], [importStatus, repository]);
-
-  async function retryImport() {
-    if (!repositoryId) {
-      return;
-    }
-    setRetrying(true);
-    try {
-      const response = await fetch(`${API_URL}/repositories/${repositoryId}/retry-import`, { method: "POST", credentials: "include" });
-      if (!response.ok) {
-        throw new Error("Retry import failed");
-      }
-      await loadRepository();
-    } finally {
-      setRetrying(false);
-    }
-  }
-
-  async function askRepository(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (!repositoryId || !question.trim()) {
-      return;
-    }
+  // Tab action handlers
+  async function askRepository(e: FormEvent) {
+    e.preventDefault();
+    if (!repositoryId || !question.trim()) return;
     setChatLoading(true);
     try {
-      const response = await fetch(`${API_URL}/repositories/${repositoryId}/chat`, {
+      const res = await fetch(`${API_URL}/repositories/${repositoryId}/chat`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ question }),
       });
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.detail ?? "Chat request failed");
-      }
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail ?? "Chat failed");
       setAnswer(data.answer);
       setSources(data.sources ?? []);
-      setQuestion("");
-    } catch (error) {
-      setAnswer(error instanceof Error ? error.message : "Unable to answer the question.");
-      setSources([]);
+    } catch (err: any) {
+      setAnswer(err.message || "Failed to get answer");
     } finally {
       setChatLoading(false);
     }
   }
 
-  if (authenticated === false) {
-    return <main className="detail-shell"><div className="topbar"><Link className="brand" href="/"><span className="brand-mark">◈</span><span>veridexs</span></Link></div><section className="empty-state"><span>◎</span><p>You need to connect GitHub first.</p><small><a className="login-link" href={`${API_URL}/auth/github/login`}>Connect GitHub ↗</a></small></section></main>;
+  async function generatePlan(e: FormEvent) {
+    e.preventDefault();
+    if (!repositoryId || !planRequest.trim()) return;
+    setPlanLoading(true);
+    try {
+      const res = await fetch(`${API_URL}/repositories/${repositoryId}/plans`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ request: planRequest }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail ?? "Planning failed");
+      setPlanResult(data);
+    } catch (err: any) {
+      setPageError(err.message);
+    } finally {
+      setPlanLoading(false);
+    }
   }
 
-  return <main className="detail-shell">
-    <header className="topbar">
-      <Link className="brand" href="/">
-        <span className="brand-mark">◈</span>
-        <span>veridexs</span>
-      </Link>
-      <div className="topbar-links">
-        <span className={`status-pill ${repository?.status ?? "queued"}`}>{repository ? STATUS_LABELS[repository.status] : "Loading"}</span>
-        <span className="muted-topline">Repository workspace</span>
-      </div>
-    </header>
+  const fetchHealth = async () => {
+    const res = await fetch(`${API_URL}/repositories/${repositoryId}/health`, { credentials: "include" });
+    if (res.ok) setHealthResult(await res.json());
+  };
 
-    <section className="detail-hero">
-      <div>
-        <p className="eyebrow">REPOSITORY READ</p>
-        <h1>{repository?.name ?? "Loading repository…"}</h1>
-        <p className="intro">This workspace combines repository status, intelligence, and repository chat in one dedicated view.</p>
-      </div>
-      <div className="detail-actions">
-        <Link className="ghost-button" href="/">Back to workspace</Link>
-        {repository?.status === "failed" && <button type="button" onClick={() => void retryImport()} disabled={retrying}>{retrying ? "Retrying" : "Retry import"}</button>}
-      </div>
-    </section>
+  const fetchReview = async () => {
+    const res = await fetch(`${API_URL}/repositories/${repositoryId}/review`, { credentials: "include" });
+    if (res.ok) setReviewResult(await res.json());
+  };
 
-    <section className="detail-grid">
-      <article className="panel-card">
-        <p className="card-kicker">IMPORT STATE</p>
-        <div className="status-stack">
-          {statusRows.map((row) => <div className="status-row" key={row.label}><span>{row.label}</span><strong>{row.value}</strong></div>)}
+  const fetchMemory = async () => {
+    const res = await fetch(`${API_URL}/repositories/${repositoryId}/memory`, { credentials: "include" });
+    if (res.ok) setMemoryResult(await res.json());
+  };
+
+  useEffect(() => {
+    if (!isReady) return;
+    if (activeTab === "health" && !healthResult) void fetchHealth();
+    if (activeTab === "review" && !reviewResult) void fetchReview();
+    if (activeTab === "memory" && !memoryResult) void fetchMemory();
+  }, [activeTab, isReady]);
+
+  if (authenticated === false) {
+    return (
+      <main className="detail-shell">
+        <div className="topbar">
+          <Link className="brand" href="/"><span className="brand-mark">◈</span><span>veridexs</span></Link>
         </div>
-        <p className="repo-error">{repository?.error ?? importStatus?.error ?? ""}</p>
-        <div className="timeline">
-          <div className="timeline-item"><span>Created</span><strong>{formatDate(repository ? repository.created_at : importStatus?.created_at)}</strong></div>
-          <div className="timeline-item"><span>Started</span><strong>{formatDate(importStatus?.started_at)}</strong></div>
-          <div className="timeline-item"><span>Finished</span><strong>{formatDate(importStatus?.finished_at)}</strong></div>
-          <div className="timeline-item"><span>Attempts</span><strong>{importStatus?.attempt_count ?? 0}</strong></div>
+        <section className="empty-state">
+          <p>Please connect GitHub to access workspace.</p>
+          <a className="login-link" href={`${API_URL}/auth/github/login`}>Connect GitHub ↗</a>
+        </section>
+      </main>
+    );
+  }
+
+  return (
+    <main className="detail-shell">
+      <header className="topbar">
+        <Link className="brand" href="/">
+          <span className="brand-mark">◈</span>
+          <span>veridexs</span>
+        </Link>
+        <div className="topbar-links">
+          <span className={`status-pill ${repository?.status ?? "queued"}`}>{repository?.status ?? "Loading"}</span>
+          <span className="muted-topline">Workspace</span>
         </div>
-      </article>
+      </header>
 
-      <article className="panel-card wide-panel">
-        <p className="card-kicker">INTELLIGENCE</p>
-        {loading && !repository ? <p className="muted">Loading repository intelligence…</p> : intelligence ? <div className="intelligence-layout"><div><p className="muted">{intelligence.summary}</p><p className="card-kicker">TECH STACK</p><div className="chip-list">{intelligence.tech_stack.map((item) => <span className="chip" key={item}>{item}</span>)}</div><p className="card-kicker">FOLDERS</p><div className="chip-list">{intelligence.folders.slice(0, 10).map((item) => <span className="chip" key={item}>{item}</span>)}</div></div><div><p className="card-kicker">ENTRY POINTS</p><ul className="bullet-list">{intelligence.entry_points.slice(0, 8).map((item) => <li key={item}>{item}</li>)}</ul><p className="card-kicker">SIGNALS</p><ul className="bullet-list">{intelligence.architecture_signals.map((item) => <li key={item}>{item}</li>)}</ul></div></div> : <p className="muted">Analysis is not ready yet. The worker is still preparing the repository.</p>}
-      </article>
-    </section>
+      <section className="detail-hero">
+        <div>
+          <p className="eyebrow">REPOSITORY WORKSPACE</p>
+          <h1>{repository?.name ?? "Loading repository…"}</h1>
+        </div>
+        <div className="detail-actions">
+          <Link className="ghost-button" href="/">Back to Dashboard</Link>
+        </div>
+      </section>
 
-    <section className="detail-grid lower-grid">
-      <article className="panel-card wide-panel">
-        <p className="card-kicker">ASK THE REPOSITORY</p>
-        <form onSubmit={askRepository}>
-          <label htmlFor="repository-question">Question</label>
-          <div className="input-row">
-            <input id="repository-question" value={question} onChange={(event) => setQuestion(event.target.value)} placeholder="Where is authentication implemented?" required disabled={chatLoading || !isReady} />
-            <button disabled={chatLoading || !isReady}>{chatLoading ? "Asking" : "Ask"} <span>→</span></button>
-          </div>
-        </form>
-        {answer && <div className="answer"><span>veridexs / read</span><p>{answer}</p></div>}
-        {sources.length > 0 && <div className="source-list"><p className="card-kicker">SOURCES</p><div className="chip-list">{sources.map((source) => <span className="chip" key={source}>{source}</span>)}</div></div>}
-        {!isReady && <p className="muted">Chat is enabled once the repository reaches the ready state.</p>}
-      </article>
+      {/* Workspace Navigation Bar */}
+      <nav className="workspace-tabs" style={{ display: "flex", gap: "8px", borderBottom: "1px solid rgba(255,255,255,0.1)", marginBottom: "20px" }}>
+        {(["overview", "intelligence", "chat", "planner", "memory", "health", "review", "settings"] as const).map((tab) => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            style={{
+              padding: "10px 16px",
+              background: activeTab === tab ? "rgba(255,255,255,0.1)" : "transparent",
+              color: activeTab === tab ? "#fff" : "rgba(255,255,255,0.6)",
+              border: "none",
+              borderBottom: activeTab === tab ? "2px solid #3b82f6" : "none",
+              cursor: "pointer",
+              textTransform: "capitalize",
+              fontWeight: 500
+            }}
+          >
+            {tab}
+          </button>
+        ))}
+      </nav>
 
-      <article className="panel-card">
-        <p className="card-kicker">WORKSPACE STATUS</p>
-        <p className="muted">Repository details and job status refresh automatically every few seconds so the queue state does not depend on a manual browser refresh.</p>
-        {pageError && <p className="repo-error">{pageError}</p>}
-      </article>
-    </section>
-  </main>;
+      {/* Tab Content Views */}
+      {activeTab === "overview" && (
+        <section className="detail-grid">
+          <article className="panel-card">
+            <p className="card-kicker">STATUS</p>
+            <div className="status-stack">
+              <div className="status-row"><span>Status</span><strong>{repository?.status}</strong></div>
+              <div className="status-row"><span>Branch</span><strong>{repository?.branch ?? "Default"}</strong></div>
+              <div className="status-row"><span>Files</span><strong>{repository?.file_count ?? 0}</strong></div>
+            </div>
+          </article>
+          <article className="panel-card wide-panel">
+            <p className="card-kicker">SUMMARY</p>
+            <p className="muted">{intelligence?.summary ?? "Repository indexing in progress..."}</p>
+          </article>
+        </section>
+      )}
+
+      {activeTab === "intelligence" && (
+        <section className="panel-card wide-panel">
+          <p className="card-kicker">REPOSITORY INTELLIGENCE</p>
+          {intelligence ? (
+            <div className="intelligence-layout">
+              <div>
+                <p className="card-kicker">TECH STACK</p>
+                <div className="chip-list">{intelligence.tech_stack.map((item) => <span className="chip" key={item}>{item}</span>)}</div>
+                <p className="card-kicker">TOP FOLDERS</p>
+                <div className="chip-list">{intelligence.folders.slice(0, 10).map((item) => <span className="chip" key={item}>{item}</span>)}</div>
+              </div>
+              <div>
+                <p className="card-kicker">ENTRY POINTS</p>
+                <ul className="bullet-list">{intelligence.entry_points.map((ep) => <li key={ep}>{ep}</li>)}</ul>
+                <p className="card-kicker">SIGNALS</p>
+                <ul className="bullet-list">{intelligence.architecture_signals.map((sig) => <li key={sig}>{sig}</li>)}</ul>
+              </div>
+            </div>
+          ) : <p className="muted">Intelligence is preparing...</p>}
+        </section>
+      )}
+
+      {activeTab === "chat" && (
+        <section className="panel-card wide-panel">
+          <p className="card-kicker">GROUNDED SEMANTIC REPOSITORY CHAT</p>
+          <form onSubmit={askRepository}>
+            <div className="input-row">
+              <input value={question} onChange={(e) => setQuestion(e.target.value)} placeholder="Ask grounded question about repository source code..." required disabled={!isReady} />
+              <button disabled={chatLoading || !isReady}>{chatLoading ? "Searching..." : "Ask"}</button>
+            </div>
+          </form>
+          {answer && (
+            <div className="answer" style={{ marginTop: "20px" }}>
+              <p style={{ whiteSpace: "pre-wrap" }}>{answer}</p>
+            </div>
+          )}
+          {sources.length > 0 && (
+            <div className="source-list" style={{ marginTop: "15px" }}>
+              <p className="card-kicker">CITATIONS / SOURCE FILES</p>
+              <div className="chip-list">{sources.map((s) => <span className="chip" key={s}>{s}</span>)}</div>
+            </div>
+          )}
+        </section>
+      )}
+
+      {activeTab === "planner" && (
+        <section className="panel-card wide-panel">
+          <p className="card-kicker">AI IMPLEMENTATION PLANNER</p>
+          <form onSubmit={generatePlan}>
+            <div className="input-row">
+              <input value={planRequest} onChange={(e) => setPlanRequest(e.target.value)} placeholder="Describe a feature or change e.g., 'Add OAuth login'..." required disabled={!isReady} />
+              <button disabled={planLoading || !isReady}>{planLoading ? "Planning..." : "Generate Plan"}</button>
+            </div>
+          </form>
+          {planResult && (
+            <div className="answer" style={{ marginTop: "20px" }}>
+              <h3>{planResult.title}</h3>
+              <p><strong>Complexity:</strong> {planResult.complexity}</p>
+              <p className="card-kicker">STEPS</p>
+              <ul className="bullet-list">{planResult.steps.map((s: string, idx: number) => <li key={idx}>{s}</li>)}</ul>
+              <p className="card-kicker">AFFECTED FILES</p>
+              <div className="chip-list">{planResult.affected_files.map((f: string) => <span className="chip" key={f}>{f}</span>)}</div>
+            </div>
+          )}
+        </section>
+      )}
+
+      {activeTab === "memory" && (
+        <section className="panel-card wide-panel">
+          <p className="card-kicker">ENGINEERING MEMORY</p>
+          <p className="muted">{memoryResult?.overview ?? "No architectural choices or memory notes logged yet."}</p>
+        </section>
+      )}
+
+      {activeTab === "health" && (
+        <section className="panel-card wide-panel">
+          <p className="card-kicker">REPOSITORY HEALTH SCORE</p>
+          {healthResult ? (
+            <div>
+              <h2>Status: {healthResult.status} (Score: {healthResult.score}/100)</h2>
+              <p className="card-kicker">RECOMMENDATIONS</p>
+              <ul className="bullet-list">{healthResult.recommendations.map((r: string, i: number) => <li key={i}>{r}</li>)}</ul>
+            </div>
+          ) : <p className="muted">Fetching repository health...</p>}
+        </section>
+      )}
+
+      {activeTab === "review" && (
+        <section className="panel-card wide-panel">
+          <p className="card-kicker">CODE QUALITY & REVIEW</p>
+          {reviewResult ? (
+            <div>
+              <p className="muted">{reviewResult.summary}</p>
+              <p className="card-kicker">DETECTED ISSUES</p>
+              <ul className="bullet-list">
+                {reviewResult.issues.map((iss: any, i: number) => (
+                  <li key={i}><strong>[{iss.severity}] {iss.category}:</strong> {iss.title} ({iss.file})</li>
+                ))}
+              </ul>
+            </div>
+          ) : <p className="muted">Running code review scan...</p>}
+        </section>
+      )}
+
+      {activeTab === "settings" && (
+        <section className="panel-card">
+          <p className="card-kicker">SETTINGS</p>
+          <p className="muted">Repository ID: {repositoryId}</p>
+          <p className="muted">Source URL: {repository?.url}</p>
+        </section>
+      )}
+    </main>
+  );
 }

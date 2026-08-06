@@ -3,22 +3,23 @@ services:
     build: {context: .., dockerfile: docker/api/Dockerfile}
     working_dir: /workspace
     command: alembic upgrade head
-    volumes: ["../apps/api:/workspace", "repository_data:/data/repositories"]
+    volumes: ["../apps/api:/workspace", "../packages:/workspace/packages", "repository_data:/data/repositories"]
     env_file:
       - path: ../.env
         required: false
-    environment: {REPOSITORY_DATA_DIR: /data/repositories}
+    environment: {REPOSITORY_DATA_DIR: /data/repositories, PYTHONPATH: /workspace}
     depends_on: [postgres]
   api:
     build: {context: .., dockerfile: docker/api/Dockerfile}
     working_dir: /workspace
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
-    volumes: ["../apps/api:/workspace", "repository_data:/data/repositories"]
+    volumes: ["../apps/api:/workspace", "../packages:/workspace/packages", "repository_data:/data/repositories"]
     env_file:
       - path: ../.env
         required: false
     environment:
       REPOSITORY_DATA_DIR: /data/repositories
+      PYTHONPATH: /workspace
     ports: ["8000:8000"]
     depends_on:
       migration: {condition: service_completed_successfully}
@@ -35,11 +36,12 @@ services:
     build: {context: .., dockerfile: docker/api/Dockerfile}
     working_dir: /workspace
     command: celery -A app.worker.celery_app worker --loglevel=INFO
-    volumes: ["../apps/api:/workspace", "repository_data:/data/repositories"]
+    volumes: ["../apps/api:/workspace", "../packages:/workspace/packages", "repository_data:/data/repositories"]
     env_file:
       - path: ../.env
         required: false
-    environment: {REPOSITORY_DATA_DIR: /data/repositories}
+    environment: {REPOSITORY_DATA_DIR: /data/repositories, PYTHONPATH: /workspace}
+
     depends_on:
       migration: {condition: service_completed_successfully}
       redis: {condition: service_started}
