@@ -258,6 +258,97 @@ Phase 2 begins with a planning engine because planning is the safety boundary be
 - Inspects the imported repository’s files and existing intelligence.
 - Identifies likely affected files.
 - Lists dependencies and coordination points.
+
+## Phase 2, Step 2 — Product shell and live repository refresh
+
+### What changed
+
+The dashboard was split into a real workspace shell and a repository detail route instead of a single long page. The home screen now shows:
+
+- live repository counts and status metrics,
+- automatic repository polling so queued imports can become ready without a full browser refresh,
+- explicit repository cards that link into a dedicated repository workspace,
+- a clearer distinction between authenticated and unauthenticated states.
+
+The repository detail route now shows:
+
+- repository status,
+- durable import job status,
+- repository intelligence,
+- repository chat,
+- retry import for failed imports.
+
+The new workspace styling keeps the editorial visual direction but gives the product clearer structure, hierarchy, and dedicated areas for future planning and health surfaces.
+
+### Request flow
+
+1. The browser checks whether the user has a valid session.
+2. The dashboard polls the repository list at a fixed interval while the user is authenticated.
+3. Repository cards update from PostgreSQL-backed API state instead of waiting for a manual refresh.
+4. Selecting a repository opens a dedicated workspace route.
+5. The detail route loads repository state, import status, and intelligence from the existing API contract.
+6. If the repository is ready, the user can ask grounded questions against repository intelligence.
+7. If an import failed, the user can retry from the repository detail page.
+
+### Data flow
+
+- PostgreSQL remains the source of truth for repository and import state.
+- The web app only renders the API state and never invents its own import lifecycle.
+- The dashboard refresh loop reads `GET /repositories`.
+- The repository detail route reads `GET /repositories/{repository_id}`, `GET /repositories/{repository_id}/import-status`, and `GET /repositories/{repository_id}/intelligence`.
+- The retry action calls `POST /repositories/{repository_id}/retry-import`.
+
+### Rationale
+
+The main defect reported by the user was a stale queue state that only became correct after a full page refresh. Polling solves that directly, and the dedicated repository route starts turning the product into a workspace instead of a single demo screen.
+
+This is intentionally still Phase 0/1 work: the goal is to make the current workflow trustworthy before introducing more advanced planning, code generation, or review surfaces.
+
+### Validation
+
+- Added the new workspace route and live polling logic on the frontend.
+- Kept the implementation aligned with existing API endpoints rather than inventing new backend contracts.
+- The next validation step is a production build of the web app plus a full Compose startup check.
+
+### Known limitations
+
+- The planning, review, and health views from the PRD are still not fully surfaced as first-class routes.
+- The live polling interval is a pragmatic fix; it can later be replaced with websocket or SSE push updates.
+- The repository intelligence view is still grounded in the current backend heuristics and will need a stronger model-backed layer later.
+
+## Step 9 — Import status contract fix and live UI cleanup
+
+### What changed
+
+The repository import-status endpoint was returning HTTP 500 because the API tried to validate an ORM job using a Pydantic field name that did not exist on the model. The response was changed to serialize the job explicitly from the database object, and the retry-import path now uses the same serializer.
+
+The repository detail workspace was kept intact, and the frontend continues to poll repository state so the dashboard can reflect job completion without a full refresh.
+
+The CSS warning emitted by the dev server came from an old `align-items: end` declaration in the global stylesheet. That token was replaced so the live workspace logs stay cleaner.
+
+### Request flow
+
+1. The browser loads the repository detail page.
+2. The detail page requests repository data, import status, and intelligence.
+3. The API now returns a valid import-status payload using the persisted job id and timestamps.
+4. The UI renders the status instead of surfacing a 500 error.
+
+### Data flow
+
+- `GET /repositories/{repository_id}/import-status` now serializes `RepositoryImportJob` explicitly.
+- `POST /repositories/{repository_id}/retry-import` returns the same payload shape.
+- The frontend continues to rely on the API as the source of truth for import progress.
+
+### Validation
+
+- API regression tests passed for schema mapping and import-status serialization.
+- The web build passed after the UI and CSS cleanup.
+- The live API and worker containers were restarted with the patched code.
+
+### Known limitations
+
+- The dev server still emits some cache warnings during hot reload, but the production build is clean.
+- The next phase should continue expanding the workspace into the remaining PRD surfaces, especially planning, health, and review.
 - Estimates low, medium, or high complexity.
 - Lists implementation risks.
 - Produces a verification checklist.

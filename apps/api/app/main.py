@@ -344,12 +344,15 @@ async def performance(repository_id: str, session: AuthSession = Depends(current
     if not report: raise HTTPException(status_code=404, detail="Performance analysis is not ready")
     return PerformanceResponse(repository_id=repository_id, score=report.score, hotspots=json.loads(report.hotspots), created_at=report.created_at)
 
+def serialize_import_status(job: RepositoryImportJob) -> ImportStatus:
+    return ImportStatus(job_id=job.id, repository_id=job.repository_id, status=job.status, attempt_count=job.attempt_count, error=job.error, created_at=job.created_at, started_at=job.started_at, finished_at=job.finished_at)
+
 @app.get("/repositories/{repository_id}/import-status", response_model=ImportStatus)
 async def import_status(repository_id: str, session: AuthSession = Depends(current_session), db: AsyncSession = Depends(get_db)) -> ImportStatus:
     job = await store.get_job(db, session.user_id, repository_id)
     if not job:
         raise HTTPException(status_code=404, detail="Import job not found")
-    return ImportStatus.model_validate(job, from_attributes=True)
+    return serialize_import_status(job)
 
 @app.post("/repositories/{repository_id}/retry-import", response_model=ImportStatus, status_code=202)
 async def retry_import(repository_id: str, session: AuthSession = Depends(current_session), db: AsyncSession = Depends(get_db)) -> ImportStatus:
@@ -360,4 +363,4 @@ async def retry_import(repository_id: str, session: AuthSession = Depends(curren
     repository.status = "queued"; repository.error = None
     db.add(job); await db.commit(); await db.refresh(job)
     import_repository_task.delay(job.id, repository.id)
-    return ImportStatus.model_validate(job, from_attributes=True)
+    return serialize_import_status(job)
