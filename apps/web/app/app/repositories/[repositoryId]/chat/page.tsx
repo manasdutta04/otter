@@ -3,13 +3,12 @@
 import { FormEvent, useState } from "react";
 import { EmptyState } from "../../../../../components/EmptyState";
 import { useRepository } from "../../../../../components/RepositoryProvider";
-import { api } from "../../../../../lib/api";
+import { api, type ChatResponse } from "../../../../../lib/api";
 
 export default function ChatPage() {
   const { repositoryId, isReady } = useRepository();
   const [question, setQuestion] = useState("");
-  const [answer, setAnswer] = useState("");
-  const [sources, setSources] = useState<string[]>([]);
+  const [result, setResult] = useState<ChatResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -20,12 +19,10 @@ export default function ChatPage() {
     setError("");
     try {
       const data = await api.chat(repositoryId, question.trim());
-      setAnswer(data.answer);
-      setSources(data.sources ?? []);
+      setResult(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Chat failed");
-      setAnswer("");
-      setSources([]);
+      setResult(null);
     } finally {
       setLoading(false);
     }
@@ -35,10 +32,13 @@ export default function ChatPage() {
     return (
       <EmptyState
         title="Chat unlocks when ready"
-        detail="Grounded semantic chat needs a finished import so answers can cite real source files."
+        detail="Grounded chat needs a finished import so answers can cite real source files."
       />
     );
   }
+
+  const lead = result?.answer?.split("\n\n")[0] ?? "";
+  const related = result?.answer?.split("\n\n").slice(1).join(" ").trim() ?? "";
 
   return (
     <div className="stack">
@@ -46,6 +46,9 @@ export default function ChatPage() {
         <div>
           <p className="eyebrow">Chat</p>
           <h1>Ask the codebase</h1>
+          <p className="muted" style={{ marginTop: "0.35rem", marginBottom: 0 }}>
+            Ask like you’d ask a teammate. Otter points to the right files and shows a short grounded snippet.
+          </p>
         </div>
       </div>
 
@@ -57,7 +60,7 @@ export default function ChatPage() {
               id="chat-q"
               value={question}
               onChange={(e) => setQuestion(e.target.value)}
-              placeholder="Where is authentication handled?"
+              placeholder="Where does Solana wallet connection happen?"
               required
               disabled={loading}
               minLength={2}
@@ -70,23 +73,38 @@ export default function ChatPage() {
           </div>
         </form>
         {error ? <p className="error-text">{error}</p> : null}
-        {answer ? <div className="answer-block">{answer}</div> : null}
-        {sources.length > 0 ? (
-          <div style={{ marginTop: "1rem" }}>
-            <h3>Sources</h3>
-            <div className="chip-list">
-              {sources.map((s) => (
-                <span className="chip" key={s}>{s}</span>
-              ))}
-            </div>
-          </div>
-        ) : null}
-        {!answer && !error && !loading ? (
-          <p className="muted" style={{ marginBottom: 0, marginTop: "1rem" }}>
-            Answers include citations from repository files when available.
-          </p>
-        ) : null}
       </section>
+
+      {result ? (
+        <section className="chat-answer">
+          <p className="chat-lead">{lead.replace(/`([^`]+)`/g, "$1")}</p>
+
+          {result.primary_file ? (
+            <div className="chat-file-card">
+              <div className="chat-file-meta">
+                <span className="chat-file-path">{result.primary_file}</span>
+                {result.primary_lines ? <span className="chat-file-lines">{result.primary_lines}</span> : null}
+              </div>
+              {result.excerpt ? <p className="chat-excerpt">{result.excerpt}</p> : null}
+            </div>
+          ) : null}
+
+          {related ? <p className="chat-related">{related.replace(/`([^`]+)`/g, "$1")}</p> : null}
+
+          {(result.sources ?? []).length > 0 ? (
+            <div className="chat-sources">
+              <span className="chat-sources-label">Sources</span>
+              <div className="chip-list">
+                {result.sources.map((source) => (
+                  <span className="chip" key={source}>
+                    {source}
+                  </span>
+                ))}
+              </div>
+            </div>
+          ) : null}
+        </section>
+      ) : null}
     </div>
   );
 }

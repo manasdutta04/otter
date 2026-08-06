@@ -7,10 +7,11 @@ import { StatusBadge } from "../../../../../components/StatusBadge";
 import { api, type CodeTask, type PullRequestResult, type TestResult } from "../../../../../lib/api";
 
 export default function CodingPage() {
-  const { repositoryId, isReady } = useRepository();
-  const [tasks, setTasks] = useState<CodeTask[]>([]);
+  const { repositoryId, isReady, getTabCache, setTabCache } = useRepository();
+  const cached = getTabCache<CodeTask[]>("tasks");
+  const [tasks, setTasks] = useState<CodeTask[]>(cached ?? []);
   const [request, setRequest] = useState("");
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!cached);
   const [creating, setCreating] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [error, setError] = useState("");
@@ -20,14 +21,23 @@ export default function CodingPage() {
   const [prBody, setPrBody] = useState("");
   const [prTaskId, setPrTaskId] = useState<string | null>(null);
 
-  const loadTasks = useCallback(async () => {
+  const loadTasks = useCallback(async (opts?: { force?: boolean }) => {
     if (!isReady) {
       setLoading(false);
       return;
     }
+    if (!opts?.force) {
+      const existing = getTabCache<CodeTask[]>("tasks");
+      if (existing) {
+        setTasks(existing);
+        setLoading(false);
+        return;
+      }
+    }
     setLoading(true);
     try {
       const data = await api.listCodeTasks(repositoryId);
+      setTabCache("tasks", data);
       setTasks(data);
       setError("");
     } catch (err) {
@@ -35,7 +45,7 @@ export default function CodingPage() {
     } finally {
       setLoading(false);
     }
-  }, [isReady, repositoryId]);
+  }, [isReady, repositoryId, getTabCache, setTabCache]);
 
   useEffect(() => {
     void loadTasks();
@@ -48,7 +58,7 @@ export default function CodingPage() {
     try {
       await api.createCodeTask(repositoryId, request.trim());
       setRequest("");
-      await loadTasks();
+      await loadTasks({ force: true });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to create task");
     } finally {
@@ -61,7 +71,7 @@ export default function CodingPage() {
     setError("");
     try {
       await action();
-      await loadTasks();
+      await loadTasks({ force: true });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Action failed");
     } finally {

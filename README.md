@@ -11,6 +11,14 @@ Otter is an AI software engineer for modern teams — an engineering-intelligenc
 3. Run `docker compose -f docker/compose.yml up --build`.
 4. Open [http://localhost:3000](http://localhost:3000).
 
+If you previously ran this stack as `veridexs`, reset the Postgres volume once so the `otter` role is created:
+
+```powershell
+docker compose -f docker/compose.yml down
+docker volume rm docker_postgres_data
+docker compose -f docker/compose.yml up --build
+```
+
 ## Surfaces
 
 | Surface | How to use |

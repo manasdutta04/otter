@@ -30,7 +30,7 @@ def build_plan(repo_root: Path, request: str, intelligence: dict | None = None) 
 
     return {
         "title": f"Implementation Plan: {request[:50]}",
-        "complexity": "Medium",
+        "complexity": "medium",
         "summary": f"Detailed step-by-step implementation guide to address: '{request}'",
         "steps": steps,
         "affected_files": affected_files,

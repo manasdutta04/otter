@@ -32,7 +32,10 @@ def build_plan(root: Path, request: str, intelligence: dict[str, object] | None)
     return {"title": title, "complexity": complexity, "summary": f"This plan addresses: {request.strip()}. It begins with repository context, identifies affected surfaces, and ends with verification before implementation approval.", "steps": steps, "affected_files": affected, "dependencies": dependencies, "risks": risks}
 
 async def save_plan(db: AsyncSession, repository_id: str, user_id: str, request: str, plan: dict[str, object]) -> RepositoryPlan:
-    record = RepositoryPlan(id=uuid4().hex[:12], repository_id=repository_id, user_id=user_id, request=request, title=str(plan["title"]), complexity=str(plan["complexity"]), summary=str(plan["summary"]), steps=json.dumps(plan["steps"]), affected_files=json.dumps(plan["affected_files"]), dependencies=json.dumps(plan["dependencies"]), risks=json.dumps(plan["risks"]))
+    complexity = str(plan.get("complexity", "medium")).strip().lower()
+    if complexity not in {"low", "medium", "high"}:
+        complexity = "medium"
+    record = RepositoryPlan(id=uuid4().hex[:12], repository_id=repository_id, user_id=user_id, request=request, title=str(plan["title"]), complexity=complexity, summary=str(plan["summary"]), steps=json.dumps(plan["steps"]), affected_files=json.dumps(plan["affected_files"]), dependencies=json.dumps(plan["dependencies"]), risks=json.dumps(plan["risks"]))
     db.add(record)
     await db.commit()
     await db.refresh(record)

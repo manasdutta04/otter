@@ -48,6 +48,9 @@ export type Intelligence = {
 export type ChatResponse = {
   answer: string;
   sources: string[];
+  primary_file?: string | null;
+  primary_lines?: string | null;
+  excerpt?: string | null;
 };
 
 export type Plan = {
@@ -179,14 +182,22 @@ async function parseError(response: Response): Promise<string> {
 }
 
 async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(`${API_URL}${path}`, {
-    ...init,
-    credentials: "include",
-    headers: {
-      ...(init?.body ? { "Content-Type": "application/json" } : {}),
-      ...init?.headers,
-    },
-  });
+  let response: Response;
+  try {
+    response = await fetch(`${API_URL}${path}`, {
+      ...init,
+      credentials: "include",
+      headers: {
+        ...(init?.body ? { "Content-Type": "application/json" } : {}),
+        ...init?.headers,
+      },
+    });
+  } catch {
+    throw new ApiError(
+      "Could not reach the Otter API. If the API just restarted, wait a second and try again.",
+      0,
+    );
+  }
 
   if (response.status === 204) {
     return undefined as T;

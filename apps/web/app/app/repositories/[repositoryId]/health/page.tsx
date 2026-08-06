@@ -17,13 +17,20 @@ const SCORE_LABELS: { key: keyof HealthReport; label: string }[] = [
 ];
 
 export default function HealthPage() {
-  const { repositoryId, isReady } = useRepository();
-  const [report, setReport] = useState<HealthReport | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { repositoryId, isReady, getTabCache, setTabCache } = useRepository();
+  const cached = getTabCache<HealthReport>("health");
+  const [report, setReport] = useState<HealthReport | null>(cached ?? null);
+  const [loading, setLoading] = useState(!cached);
   const [error, setError] = useState("");
 
   useEffect(() => {
     if (!isReady) {
+      setLoading(false);
+      return;
+    }
+    const existing = getTabCache<HealthReport>("health");
+    if (existing) {
+      setReport(existing);
       setLoading(false);
       return;
     }
@@ -33,6 +40,7 @@ export default function HealthPage() {
       .getHealth(repositoryId)
       .then((data) => {
         if (!cancelled) {
+          setTabCache("health", data);
           setReport(data);
           setError("");
         }
@@ -46,7 +54,7 @@ export default function HealthPage() {
     return () => {
       cancelled = true;
     };
-  }, [isReady, repositoryId]);
+  }, [isReady, repositoryId, getTabCache, setTabCache]);
 
   if (!isReady) {
     return (

@@ -6,23 +6,33 @@ import { useRepository } from "../../../../../components/RepositoryProvider";
 import { api, type Memory, type MemoryKind } from "../../../../../lib/api";
 
 export default function MemoryPage() {
-  const { repositoryId, isReady } = useRepository();
-  const [items, setItems] = useState<Memory[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { repositoryId, isReady, getTabCache, setTabCache } = useRepository();
+  const cached = getTabCache<Memory[]>("memory");
+  const [items, setItems] = useState<Memory[]>(cached ?? []);
+  const [loading, setLoading] = useState(!cached);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [kind, setKind] = useState<MemoryKind>("note");
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
 
-  const loadMemory = useCallback(async () => {
+  const loadMemory = useCallback(async (opts?: { force?: boolean }) => {
     if (!isReady) {
       setLoading(false);
       return;
     }
+    if (!opts?.force) {
+      const existing = getTabCache<Memory[]>("memory");
+      if (existing) {
+        setItems(existing);
+        setLoading(false);
+        return;
+      }
+    }
     setLoading(true);
     try {
       const data = await api.listMemory(repositoryId);
+      setTabCache("memory", data);
       setItems(data);
       setError("");
     } catch (err) {
@@ -30,7 +40,7 @@ export default function MemoryPage() {
     } finally {
       setLoading(false);
     }
-  }, [isReady, repositoryId]);
+  }, [isReady, repositoryId, getTabCache, setTabCache]);
 
   useEffect(() => {
     void loadMemory();
@@ -45,7 +55,7 @@ export default function MemoryPage() {
       setTitle("");
       setContent("");
       setKind("note");
-      await loadMemory();
+      await loadMemory({ force: true });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to save memory");
     } finally {

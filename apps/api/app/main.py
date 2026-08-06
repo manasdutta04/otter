@@ -16,7 +16,7 @@ import httpx
 from fastapi import Depends, FastAPI, HTTPException, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
-from git import Repo
+from git import GitCommandError, Repo
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -50,6 +50,68 @@ settings = get_settings()
 app = FastAPI(title=settings.app_name, version="0.2.0")
 app.add_middleware(CORSMiddleware, allow_origins=[settings.next_public_url], allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
 store = RepositoryStore()
+
+
+def normalize_complexity(value: str) -> str:
+    lowered = (value or "medium").strip().lower()
+    return lowered if lowered in {"low", "medium", "high"} else "medium"
+
+
+def serialize_plan(plan: RepositoryPlan) -> PlanResponse:
+    return PlanResponse(
+        id=plan.id,
+        repository_id=plan.repository_id,
+        request=plan.request,
+        title=plan.title,
+        complexity=normalize_complexity(plan.complexity),  # type: ignore[arg-type]
+        summary=plan.summary,
+        steps=json.loads(plan.steps),
+        affected_files=json.loads(plan.affected_files),
+        dependencies=json.loads(plan.dependencies),
+        risks=json.loads(plan.risks),
+        created_at=plan.created_at,
+    )
+
+
+def github_push_url(remote_url: str, token: str) -> str:
+    """Build an HTTPS remote URL authenticated with the user OAuth token."""
+    cleaned = remote_url.strip()
+    if cleaned.startswith("git@github.com:"):
+        path = cleaned.removeprefix("git@github.com:").removesuffix(".git")
+        return f"https://x-access-token:{token}@github.com/{path}.git"
+    if "github.com/" in cleaned:
+        path = cleaned.split("github.com/", 1)[1].removesuffix(".git")
+        return f"https://x-access-token:{token}@github.com/{path}.git"
+    raise HTTPException(status_code=422, detail="Only GitHub remotes are supported for pull requests")
+
+
+def run_repository_tests(root: Path) -> TestResponse:
+    package_json = root / "package.json"
+    if package_json.exists():
+        try:
+            result = subprocess.run(
+                ["npm", "test", "--", "--watchAll=false"],
+                cwd=root,
+                capture_output=True,
+                text=True,
+                timeout=180,
+            )
+            output = (result.stdout + "\n" + result.stderr)[-12000:]
+            return TestResponse(passed=result.returncode == 0, output=output or "npm test finished with no output")
+        except (OSError, subprocess.TimeoutExpired) as error:
+            return TestResponse(passed=False, output=f"npm test could not run: {error}")
+    try:
+        probe = subprocess.run(["python", "-m", "pytest", "--version"], cwd=root, capture_output=True, text=True, timeout=20)
+        if probe.returncode != 0:
+            return TestResponse(
+                passed=False,
+                output="No test runner detected. This repository has neither a working `npm test` nor `pytest` installed in the Otter workspace clone.",
+            )
+        result = subprocess.run(["python", "-m", "pytest", "-q"], cwd=root, capture_output=True, text=True, timeout=120)
+        output = (result.stdout + "\n" + result.stderr)[-12000:]
+        return TestResponse(passed=result.returncode == 0, output=output)
+    except (OSError, subprocess.TimeoutExpired) as error:
+        return TestResponse(passed=False, output=str(error))
 
 @app.get("/health", response_model=HealthResponse)
 async def health() -> HealthResponse:
@@ -85,13 +147,26 @@ async def github_callback(code: str, state: str | None = None, db: AsyncSession 
     github_user = profile.json()
     user = await db.scalar(select(User).where(User.github_id == str(github_user["id"])))
     if not user:
-        user = User(id=token_urlsafe(16), github_id=str(github_user["id"]), login=github_user["login"], avatar_url=github_user.get("avatar_url"))
+        user = User(
+            id=token_urlsafe(16),
+            github_id=str(github_user["id"]),
+            login=github_user["login"],
+            avatar_url=github_user.get("avatar_url"),
+        )
         db.add(user)
+        await db.flush()  # ensure users row exists before auth_sessions FK insert
     else:
         user.login = github_user["login"]
         user.avatar_url = github_user.get("avatar_url")
     session_id = token_urlsafe(32)
-    db.add(AuthSession(id=session_id, user_id=user.id, github_token=token, expires_at=datetime.now(timezone.utc) + timedelta(days=1)))
+    db.add(
+        AuthSession(
+            id=session_id,
+            user_id=user.id,
+            github_token=token,
+            expires_at=datetime.now(timezone.utc) + timedelta(days=1),
+        )
+    )
     await db.commit()
     if state and state.startswith("cli:"):
         try:
@@ -166,8 +241,14 @@ async def repository_chat(repository_id: str, payload: ChatRequest, session: Aut
         raise HTTPException(status_code=409, detail="Repository must finish importing before chat is available")
     root = Path(settings.repository_data_dir) / repository_id
     result = answer_repository_question(root, payload.question)
-    sources = [str(item["path"]) for item in result["sources"]]
-    return ChatResponse(answer=str(result["answer"]), sources=sources)
+    sources = [str(item["path"]) for item in result.get("sources", [])]
+    return ChatResponse(
+        answer=str(result["answer"]),
+        sources=sources,
+        primary_file=result.get("primary_file"),
+        primary_lines=result.get("primary_lines"),
+        excerpt=result.get("excerpt"),
+    )
 
 @app.post("/repositories/{repository_id}/plans", response_model=PlanResponse, status_code=201)
 async def create_plan(repository_id: str, payload: PlanRequest, session: AuthSession = Depends(current_session), db: AsyncSession = Depends(get_db)) -> PlanResponse:
@@ -177,7 +258,7 @@ async def create_plan(repository_id: str, payload: PlanRequest, session: AuthSes
         raise HTTPException(status_code=409, detail="Repository must finish importing before planning is available")
     intelligence = {"entry_points": json.loads(intelligence_record.entry_points)} if intelligence_record else None
     plan = await save_plan(db, repository_id, session.user_id, payload.request, build_plan(Path(settings.repository_data_dir) / repository_id, payload.request, intelligence))
-    return PlanResponse(id=plan.id, repository_id=plan.repository_id, request=plan.request, title=plan.title, complexity=plan.complexity, summary=plan.summary, steps=json.loads(plan.steps), affected_files=json.loads(plan.affected_files), dependencies=json.loads(plan.dependencies), risks=json.loads(plan.risks), created_at=plan.created_at)
+    return serialize_plan(plan)
 
 @app.get("/repositories/{repository_id}/plans", response_model=list[PlanResponse])
 async def list_plans(repository_id: str, session: AuthSession = Depends(current_session), db: AsyncSession = Depends(get_db)) -> list[PlanResponse]:
@@ -185,7 +266,7 @@ async def list_plans(repository_id: str, session: AuthSession = Depends(current_
     if not repository:
         raise HTTPException(status_code=404, detail="Repository not found")
     records = await db.scalars(select(RepositoryPlan).where(RepositoryPlan.repository_id == repository_id, RepositoryPlan.user_id == session.user_id).order_by(RepositoryPlan.created_at.desc()))
-    return [PlanResponse(id=plan.id, repository_id=plan.repository_id, request=plan.request, title=plan.title, complexity=plan.complexity, summary=plan.summary, steps=json.loads(plan.steps), affected_files=json.loads(plan.affected_files), dependencies=json.loads(plan.dependencies), risks=json.loads(plan.risks), created_at=plan.created_at) for plan in records]
+    return [serialize_plan(plan) for plan in records]
 
 @app.get("/repositories/{repository_id}/architecture", response_model=ArchitectureGraphResponse)
 async def architecture(repository_id: str, session: AuthSession = Depends(current_session), db: AsyncSession = Depends(get_db)) -> ArchitectureGraphResponse:
@@ -304,40 +385,63 @@ async def generate_code_task_patch(repository_id: str, task_id: str, session: Au
 @app.post("/repositories/{repository_id}/code-tasks/{task_id}/test", response_model=TestResponse)
 async def test_code_task(repository_id: str, task_id: str, session: AuthSession = Depends(current_session), db: AsyncSession = Depends(get_db)) -> TestResponse:
     task = await db.scalar(select(CodeChangeTask).where(CodeChangeTask.id == task_id, CodeChangeTask.repository_id == repository_id, CodeChangeTask.user_id == session.user_id))
-    if not task or task.status != "applied": raise HTTPException(status_code=409, detail="Task must be applied before tests can run")
+    if not task or task.status != "applied":
+        raise HTTPException(status_code=409, detail="Task must be applied before tests can run")
     root = Path(settings.repository_data_dir) / repository_id
-    try:
-        result = subprocess.run(["python", "-m", "pytest", "-q"], cwd=root, capture_output=True, text=True, timeout=120)
-        output = (result.stdout + "\n" + result.stderr)[-12000:]
-        return TestResponse(passed=result.returncode == 0, output=output)
-    except (OSError, subprocess.TimeoutExpired) as error:
-        return TestResponse(passed=False, output=str(error))
+    return await __import__("asyncio").to_thread(run_repository_tests, root)
 
 @app.post("/repositories/{repository_id}/code-tasks/{task_id}/pull-request", response_model=PullRequestResponse)
 async def create_pull_request(repository_id: str, task_id: str, payload: PullRequestRequest, session: AuthSession = Depends(current_session), db: AsyncSession = Depends(get_db)) -> PullRequestResponse:
     task = await db.scalar(select(CodeChangeTask).where(CodeChangeTask.id == task_id, CodeChangeTask.repository_id == repository_id, CodeChangeTask.user_id == session.user_id))
     repository = await store.get(db, session.user_id, repository_id)
-    if not task or not repository or task.status != "applied": raise HTTPException(status_code=409, detail="Only applied tasks can create pull requests")
+    if not task or not repository or task.status != "applied":
+        raise HTTPException(status_code=409, detail="Only applied tasks can create pull requests")
+    changed_files = json.loads(task.changed_files or "[]")
+    if not changed_files:
+        raise HTTPException(
+            status_code=409,
+            detail="This task has no changed files to push. Generate and apply a real patch before opening a PR.",
+        )
     parts = repository.url.rstrip("/").removesuffix(".git").split("/")
-    if len(parts) < 2: raise HTTPException(status_code=422, detail="Repository URL cannot identify a GitHub project")
+    if len(parts) < 2:
+        raise HTTPException(status_code=422, detail="Repository URL cannot identify a GitHub project")
     owner, name = parts[-2], parts[-1]
     root = Path(settings.repository_data_dir) / repository_id
     branch = f"otter/task-{task.id}"
     git_repository = Repo(root)
     await __import__("asyncio").to_thread(git_repository.git.checkout, "-B", branch)
-    await __import__("asyncio").to_thread(git_repository.git.add, "--", *json.loads(task.changed_files))
-    await __import__("asyncio").to_thread(git_repository.index.commit, payload.title)
+    await __import__("asyncio").to_thread(git_repository.git.add, "--", *changed_files)
+    # Commit only if there is something staged; otherwise reuse existing branch tip.
+    if git_repository.is_dirty(untracked_files=True) or git_repository.index.diff("HEAD"):
+        await __import__("asyncio").to_thread(git_repository.index.commit, payload.title)
     remote = git_repository.remote("origin")
     original_url = remote.url
-    authenticated_url = original_url.replace("https://github.com/", f"https://x-access-token:{session.github_token}@github.com/", 1)
+    authenticated_url = github_push_url(original_url, session.github_token)
     try:
         remote.set_url(authenticated_url)
-        await __import__("asyncio").to_thread(remote.push, branch)
+        await __import__("asyncio").to_thread(remote.push, branch, force=False)
+    except GitCommandError as error:
+        message = str(error)
+        if "403" in message or "Authentication failed" in message or "Permission" in message:
+            raise HTTPException(
+                status_code=403,
+                detail=(
+                    "GitHub rejected the push (403). Log out and Connect GitHub again so Otter gets write access, "
+                    "and confirm you can push to this repository from your account."
+                ),
+            ) from error
+        raise HTTPException(status_code=502, detail=f"Git push failed: {message[:500]}") from error
     finally:
         remote.set_url(original_url)
     async with httpx.AsyncClient(timeout=30) as client:
-        response = await client.post(f"{settings.github_api_url}/repos/{owner}/{name}/pulls", headers={"Authorization": f"Bearer {session.github_token}", "Accept": "application/vnd.github+json"}, json={"title": payload.title, "body": payload.body, "head": branch, "base": payload.base})
-    if response.status_code >= 400: raise HTTPException(status_code=502, detail="GitHub rejected pull request creation")
+        response = await client.post(
+            f"{settings.github_api_url}/repos/{owner}/{name}/pulls",
+            headers={"Authorization": f"Bearer {session.github_token}", "Accept": "application/vnd.github+json"},
+            json={"title": payload.title, "body": payload.body, "head": branch, "base": payload.base},
+        )
+    if response.status_code >= 400:
+        detail = response.json().get("message") if response.headers.get("content-type", "").startswith("application/json") else response.text
+        raise HTTPException(status_code=502, detail=f"GitHub rejected pull request creation: {detail}")
     data = response.json()
     return PullRequestResponse(url=data["html_url"], number=data["number"], branch=branch)
 

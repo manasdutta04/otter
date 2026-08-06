@@ -6,22 +6,32 @@ import { useRepository } from "../../../../../components/RepositoryProvider";
 import { api, type Plan } from "../../../../../lib/api";
 
 export default function PlannerPage() {
-  const { repositoryId, isReady } = useRepository();
+  const { repositoryId, isReady, getTabCache, setTabCache } = useRepository();
   const [request, setRequest] = useState("");
-  const [plans, setPlans] = useState<Plan[]>([]);
-  const [loading, setLoading] = useState(true);
+  const cached = getTabCache<Plan[]>("plans");
+  const [plans, setPlans] = useState<Plan[]>(cached ?? []);
+  const [loading, setLoading] = useState(!cached);
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState("");
   const [selected, setSelected] = useState<Plan | null>(null);
 
-  const loadPlans = useCallback(async () => {
+  const loadPlans = useCallback(async (opts?: { force?: boolean }) => {
     if (!isReady) {
       setLoading(false);
       return;
     }
+    if (!opts?.force) {
+      const existing = getTabCache<Plan[]>("plans");
+      if (existing) {
+        setPlans(existing);
+        setLoading(false);
+        return;
+      }
+    }
     setLoading(true);
     try {
       const data = await api.listPlans(repositoryId);
+      setTabCache("plans", data);
       setPlans(data);
       setError("");
     } catch (err) {
@@ -29,7 +39,7 @@ export default function PlannerPage() {
     } finally {
       setLoading(false);
     }
-  }, [isReady, repositoryId]);
+  }, [isReady, repositoryId, getTabCache, setTabCache]);
 
   useEffect(() => {
     void loadPlans();
@@ -44,7 +54,7 @@ export default function PlannerPage() {
       const plan = await api.createPlan(repositoryId, request.trim());
       setSelected(plan);
       setRequest("");
-      await loadPlans();
+      await loadPlans({ force: true });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Planning failed");
     } finally {

@@ -48,6 +48,9 @@ class ChatRequest(BaseModel):
 class ChatResponse(BaseModel):
     answer: str
     sources: list[str]
+    primary_file: str | None = None
+    primary_lines: str | None = None
+    excerpt: str | None = None
 
 class PlanRequest(BaseModel):
     request: str = Field(min_length=8, max_length=2000)

@@ -6,13 +6,20 @@ import { useRepository } from "../../../../../components/RepositoryProvider";
 import { api, type ReviewResult } from "../../../../../lib/api";
 
 export default function ReviewPage() {
-  const { repositoryId, isReady } = useRepository();
-  const [review, setReview] = useState<ReviewResult | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { repositoryId, isReady, getTabCache, setTabCache } = useRepository();
+  const cached = getTabCache<ReviewResult>("review");
+  const [review, setReview] = useState<ReviewResult | null>(cached ?? null);
+  const [loading, setLoading] = useState(!cached);
   const [error, setError] = useState("");
 
   useEffect(() => {
     if (!isReady) {
+      setLoading(false);
+      return;
+    }
+    const existing = getTabCache<ReviewResult>("review");
+    if (existing) {
+      setReview(existing);
       setLoading(false);
       return;
     }
@@ -22,6 +29,7 @@ export default function ReviewPage() {
       .getReview(repositoryId)
       .then((data) => {
         if (!cancelled) {
+          setTabCache("review", data);
           setReview(data);
           setError("");
         }
@@ -35,7 +43,7 @@ export default function ReviewPage() {
     return () => {
       cancelled = true;
     };
-  }, [isReady, repositoryId]);
+  }, [isReady, repositoryId, getTabCache, setTabCache]);
 
   if (!isReady) {
     return (

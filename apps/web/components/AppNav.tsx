@@ -29,7 +29,13 @@ export function AppNav({ repositoryId }: AppNavProps) {
         const href = `${base}${link.href}`;
         const active = link.href === "" ? pathname === base : pathname.startsWith(href);
         return (
-          <Link key={link.href} className={active ? "app-nav-link active" : "app-nav-link"} href={href}>
+          <Link
+            key={link.href}
+            className={active ? "app-nav-link active" : "app-nav-link"}
+            href={href}
+            prefetch
+            scroll={false}
+          >
             {link.label}
           </Link>
         );
