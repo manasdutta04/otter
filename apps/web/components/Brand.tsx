@@ -21,7 +21,7 @@ export function Brand({ href = "/", size = "md", showWordmark = true }: BrandPro
       <span className="brand-emoji" aria-hidden="true">
         🦦
       </span>
-      {showWordmark ? <span className="brand-word">Otter</span> : null}
+      {showWordmark ? <span className="brand-word">otter</span> : null}
     </>
   );
 

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useState, type ReactNode } from "react";
 import { AppNav } from "../../../../components/AppNav";
-import { Brand } from "../../../../components/Brand";
+import { AppShell } from "../../../../components/AppShell";
 import { EmptyState } from "../../../../components/EmptyState";
 import { RepositoryProvider, useRepository } from "../../../../components/RepositoryProvider";
 import { StatusBadge } from "../../../../components/StatusBadge";
@@ -27,13 +27,16 @@ function RepoChrome({ children }: { children: ReactNode }) {
 
   if (authenticated === false) {
     return (
-      <div className="app-shell">
-        <header className="app-topbar">
-          <Brand href="/" size="md" />
-        </header>
+      <AppShell
+        right={
+          <a className="btn btn-primary btn-sm" href={GITHUB_LOGIN_URL}>
+            Connect GitHub
+          </a>
+        }
+      >
         <div className="auth-gate">
           <div className="connect-panel">
-            <Brand href={null} size="lg" />
+            <p className="eyebrow">Sign in</p>
             <h1>Connect GitHub</h1>
             <p className="muted">Sign in to open this repository workspace.</p>
             <div style={{ marginTop: "1.25rem" }}>
@@ -43,15 +46,14 @@ function RepoChrome({ children }: { children: ReactNode }) {
             </div>
           </div>
         </div>
-      </div>
+      </AppShell>
     );
   }
 
   return (
-    <div className="app-shell">
-      <header className="app-topbar">
-        <div style={{ display: "flex", alignItems: "center", gap: "1rem", flexWrap: "wrap" }}>
-          <Brand href="/" size="sm" />
+    <AppShell
+      left={
+        <>
           <Link className="btn btn-ghost btn-sm" href="/app">
             Workspace
           </Link>
@@ -59,24 +61,29 @@ function RepoChrome({ children }: { children: ReactNode }) {
             <h1>{loading && !repository ? "Loading…" : repository?.name ?? "Repository"}</h1>
             {repository ? <StatusBadge status={repository.status} /> : null}
           </div>
-        </div>
-        <div className="app-topbar-meta">
-          <button className="btn btn-secondary btn-sm" type="button" onClick={() => void handleLogout()} disabled={loggingOut}>
-            {loggingOut ? "Logging out…" : "Log out"}
-          </button>
-        </div>
-      </header>
-
-      <AppNav repositoryId={repositoryId} />
-
-      <main className="app-main">
-        {error ? (
-          <EmptyState title="Couldn’t load repository" detail={error} action={<Link className="btn btn-secondary" href="/app">Back to workspace</Link>} />
-        ) : (
-          children
-        )}
-      </main>
-    </div>
+        </>
+      }
+      right={
+        <button className="btn btn-outline btn-sm" type="button" onClick={() => void handleLogout()} disabled={loggingOut}>
+          {loggingOut ? "Logging out…" : "Log out"}
+        </button>
+      }
+      nav={<AppNav repositoryId={repositoryId} />}
+    >
+      {error ? (
+        <EmptyState
+          title="Couldn’t load repository"
+          detail={error}
+          action={
+            <Link className="btn btn-outline" href="/app">
+              Back to workspace
+            </Link>
+          }
+        />
+      ) : (
+        children
+      )}
+    </AppShell>
   );
 }
 
@@ -86,11 +93,9 @@ export default function RepositoryLayout({ children }: { children: ReactNode }) 
 
   if (!repositoryId) {
     return (
-      <div className="app-shell">
-        <main className="app-main">
-          <EmptyState title="Missing repository" detail="No repository id in the URL." />
-        </main>
-      </div>
+      <AppShell>
+        <EmptyState title="Missing repository" detail="No repository id in the URL." />
+      </AppShell>
     );
   }
 

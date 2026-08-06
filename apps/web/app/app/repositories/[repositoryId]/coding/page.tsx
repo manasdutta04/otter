@@ -238,7 +238,7 @@ export default function CodingPage() {
                   {task.status === "applied" ? (
                     <>
                       <button
-                        className="btn btn-secondary btn-sm"
+                        className="btn btn-outline btn-sm"
                         type="button"
                         disabled={busy}
                         onClick={() => void handleTest(task.id)}

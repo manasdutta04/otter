@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { FormEvent, useCallback, useEffect, useState } from "react";
-import { Brand } from "../../components/Brand";
+import { AppShell } from "../../components/AppShell";
 import { EmptyState } from "../../components/EmptyState";
 import { StatusBadge } from "../../components/StatusBadge";
 import {
@@ -101,116 +101,118 @@ export default function AppDashboardPage() {
   }
 
   return (
-    <div className="app-shell">
-      <header className="app-topbar">
-        <Brand href="/" size="md" />
-        <div className="app-topbar-meta">
-          {authenticated ? (
-            <>
-              <button className="btn btn-ghost btn-sm" type="button" onClick={() => void loadRepositories()} disabled={loadingRepositories}>
-                {loadingRepositories ? "Refreshing…" : "Refresh"}
-              </button>
-              <button className="btn btn-secondary btn-sm" type="button" onClick={() => void handleLogout()} disabled={loggingOut}>
-                {loggingOut ? "Logging out…" : "Log out"}
-              </button>
-            </>
-          ) : sessionChecked ? (
-            <a className="btn btn-primary btn-sm" href={GITHUB_LOGIN_URL}>
-              Connect GitHub
-            </a>
-          ) : (
-            <span className="muted" style={{ fontSize: "0.85rem" }}>Checking…</span>
-          )}
-        </div>
-      </header>
-
-      <main className="app-main">
-        {!sessionChecked ? (
-          <p className="loading-line">Checking your Otter session…</p>
-        ) : !authenticated ? (
-          <div className="auth-gate">
-            <div className="connect-panel">
-              <Brand href={null} size="lg" />
-              <h1>Connect to open your workspace</h1>
-              <p className="muted">Sign in with GitHub to import repositories and use Otter.</p>
-              <div style={{ marginTop: "1.25rem" }}>
-                <a className="btn btn-primary" href={GITHUB_LOGIN_URL}>
-                  Connect GitHub
-                </a>
-              </div>
-            </div>
-          </div>
+    <AppShell
+      right={
+        authenticated ? (
+          <>
+            <button className="btn btn-ghost btn-sm" type="button" onClick={() => void loadRepositories()} disabled={loadingRepositories}>
+              {loadingRepositories ? "Refreshing…" : "Refresh"}
+            </button>
+            <button className="btn btn-outline btn-sm" type="button" onClick={() => void handleLogout()} disabled={loggingOut}>
+              {loggingOut ? "Logging out…" : "Log out"}
+            </button>
+          </>
+        ) : sessionChecked ? (
+          <a className="btn btn-primary btn-sm" href={GITHUB_LOGIN_URL}>
+            Connect GitHub
+          </a>
         ) : (
-          <div className="stack">
-            <div className="page-header">
-              <div>
-                <p className="eyebrow">Workspace</p>
-                <h1>Repositories</h1>
-                <p className="muted" style={{ margin: "0.4rem 0 0" }}>
-                  {lastSyncedAt ? `Last synced ${lastSyncedAt}` : "Waiting for first sync…"}
-                </p>
-              </div>
+          <span className="muted" style={{ fontSize: "0.85rem" }}>
+            Checking…
+          </span>
+        )
+      }
+    >
+      {!sessionChecked ? (
+        <p className="loading-line">Checking your Otter session…</p>
+      ) : !authenticated ? (
+        <div className="auth-gate">
+          <div className="connect-panel">
+            <p className="eyebrow">Workspace</p>
+            <h1>Connect to open your workspace</h1>
+            <p className="muted">Sign in with GitHub to import repositories and use Otter.</p>
+            <div style={{ marginTop: "1.25rem" }}>
+              <a className="btn btn-primary" href={GITHUB_LOGIN_URL}>
+                Connect GitHub
+              </a>
             </div>
-
-            <section className="panel">
-              <h2>Import</h2>
-              <p className="muted" style={{ marginTop: 0 }}>
-                Paste a GitHub URL. Otter will clone and prepare it for intelligence, chat, and planning.
-              </p>
-              <form className="inline-form" onSubmit={(e) => void importRepository(e)}>
-                <input
-                  value={url}
-                  onChange={(e) => setUrl(e.target.value)}
-                  placeholder="https://github.com/owner/repository"
-                  required
-                  disabled={importing}
-                  aria-label="GitHub repository URL"
-                />
-                <button className="btn btn-primary" type="submit" disabled={importing}>
-                  {importing ? "Importing…" : "Import"}
-                </button>
-              </form>
-              {error ? <p className="error-text">{error}</p> : null}
-            </section>
-
-            <section>
-              {repositories.length === 0 ? (
-                <EmptyState
-                  title="No repositories yet"
-                  detail="Import a GitHub URL above. Status updates automatically every few seconds."
-                />
-              ) : (
-                <div className="repo-list">
-                  {repositories.map((repo) => (
-                    <Link className="repo-row" href={`/app/repositories/${repo.id}`} key={repo.id}>
-                      <div>
-                        <h3>{repo.name}</h3>
-                        <p>{repo.url.replace("https://github.com/", "")}</p>
-                      </div>
-                      <StatusBadge status={repo.status} />
-                      <div className="repo-row-meta">
-                        <span>
-                          {repo.branch
-                            ? `branch / ${repo.branch}`
-                            : repo.status === "queued"
-                              ? "awaiting worker"
-                              : repo.status === "cloning"
-                                ? "cloning now"
-                                : repo.status === "failed"
-                                  ? "import failed"
-                                  : "preparing"}
-                        </span>
-                        <span>{repo.file_count ? `${repo.file_count} files` : "—"}</span>
-                      </div>
-                      {repo.error ? <p className="error-text" style={{ gridColumn: "1 / -1", margin: 0 }}>{repo.error}</p> : null}
-                    </Link>
-                  ))}
-                </div>
-              )}
-            </section>
           </div>
-        )}
-      </main>
-    </div>
+        </div>
+      ) : (
+        <div className="stack">
+          <div className="page-header">
+            <div>
+              <p className="eyebrow">Workspace</p>
+              <h1>Repositories</h1>
+              <p className="muted" style={{ margin: "0.4rem 0 0" }}>
+                {lastSyncedAt ? `Last synced ${lastSyncedAt}` : "Waiting for first sync…"}
+              </p>
+            </div>
+          </div>
+
+          <section className="panel">
+            <h2>Import a repository</h2>
+            <p className="muted" style={{ marginTop: 0 }}>
+              Paste a GitHub URL. Otter will clone and prepare it for intelligence, chat, and planning.
+            </p>
+            <form className="inline-form" onSubmit={(e) => void importRepository(e)}>
+              <input
+                value={url}
+                onChange={(e) => setUrl(e.target.value)}
+                placeholder="https://github.com/owner/repository"
+                required
+                disabled={importing}
+                aria-label="GitHub repository URL"
+              />
+              <button className="btn btn-primary" type="submit" disabled={importing}>
+                {importing ? "Importing…" : "Import"}
+              </button>
+            </form>
+            {error ? <p className="error-text">{error}</p> : null}
+          </section>
+
+          <section className="panel">
+            <h2>Your repositories</h2>
+            {repositories.length === 0 ? (
+              <EmptyState
+                title="No repositories yet"
+                detail="Import a GitHub URL above. Status updates automatically every few seconds."
+              />
+            ) : (
+              <div className="repo-list">
+                {repositories.map((repo) => (
+                  <Link className="repo-row" href={`/app/repositories/${repo.id}`} key={repo.id}>
+                    <div>
+                      <h3>{repo.name}</h3>
+                      <p>{repo.url.replace("https://github.com/", "")}</p>
+                    </div>
+                    <StatusBadge status={repo.status} />
+                    <div className="repo-row-meta">
+                      <span>
+                        {repo.branch
+                          ? `branch / ${repo.branch}`
+                          : repo.status === "queued"
+                            ? "awaiting worker"
+                            : repo.status === "cloning"
+                              ? "cloning now"
+                              : repo.status === "failed"
+                                ? "import failed"
+                                : "preparing"}
+                      </span>
+                      <span>{repo.file_count ? `${repo.file_count} files` : "—"}</span>
+                    </div>
+                    {repo.error ? (
+                      <p className="error-text" style={{ gridColumn: "1 / -1", margin: 0 }}>
+                        {repo.error}
+                      </p>
+                    ) : null}
+                  </Link>
+                ))}
+              </div>
+            )}
+          </section>
+        </div>
+      )}
+    </AppShell>
   );
 }
