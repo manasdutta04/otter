@@ -15,11 +15,15 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from .config import get_settings
 from .database import get_db
 from .models import AuthSession, CodeChangeTask, GeneratedDocument, MemoryEntry, Repository, RepositoryArchitectureAnalysis, RepositoryGraph, RepositoryHealth, RepositoryImportJob, RepositoryIntelligence, RepositoryPerformance, RepositoryPlan, RepositoryReview, User
-from .knowledge import add_memory, generate_overview
+from packages.analyzer import inspect_repository
+from packages.graph import build_graph
+from packages.health import analyze_health
+from packages.memory import add_memory, generate_overview
+from packages.planner import build_plan, save_plan
+from packages.retrieval import answer_repository_question
+from packages.review import review_repository, save_review
 from .llm import generate_patch
-from .planner import build_plan, save_plan
 from .schemas import ArchitectureAnalysisResponse, ArchitectureGraphResponse, ChatRequest, ChatResponse, CodeTaskCreate, CodeTaskDecision, CodeTaskResponse, DocumentResponse, HealthResponse, HealthResponseReport, ImportStatus, IntelligenceResponse, MemoryCreate, MemoryResponse, PatchProposal, PerformanceResponse, PlanRequest, PlanResponse, PullRequestRequest, PullRequestResponse, RepositoryCreate, RepositoryListResponse, RepositorySummary, ReviewResponse, TestResponse
-from .health import analyze_health
 from .store import RepositoryStore
 from .worker import import_repository_task
 
@@ -127,21 +131,9 @@ async def repository_chat(repository_id: str, payload: ChatRequest, session: Aut
     if not repository or repository.status != "ready":
         raise HTTPException(status_code=409, detail="Repository must finish importing before chat is available")
     root = Path(settings.repository_data_dir) / repository_id
-    question = payload.question.lower()
-    matches: list[str] = []
-    for path in root.rglob("*"):
-        if path.is_file() and ".git" not in path.parts and any(term in path.name.lower() or term in str(path.parent).lower() for term in question.split() if len(term) > 3):
-            matches.append(str(path.relative_to(root)).replace("\\", "/"))
-    matches = matches[:8]
-    intelligence_record = await db.get(RepositoryIntelligence, repository_id)
-    if "auth" in question or "login" in question:
-        answer = "Authentication-related files are the strongest matches I found. Review these files first: " + ", ".join(matches) if matches else "I could not find an obvious authentication path in the indexed file names."
-    elif "folder" in question or "structure" in question or "architecture" in question:
-        folders = json.loads(intelligence_record.folders) if intelligence_record else []
-        answer = "The repository is organized around these folders: " + ", ".join(folders[:12]) if folders else "Repository structure is not indexed yet."
-    else:
-        answer = "I found these likely relevant files: " + ", ".join(matches) if matches else "I did not find a strong filename match. Ask about a concrete subsystem such as authentication, API, tests, or folder structure."
-    return ChatResponse(answer=answer, sources=matches)
+    result = answer_repository_question(root, payload.question)
+    sources = [str(item["path"]) for item in result["sources"]]
+    return ChatResponse(answer=str(result["answer"]), sources=sources)
 
 @app.post("/repositories/{repository_id}/plans", response_model=PlanResponse, status_code=201)
 async def create_plan(repository_id: str, payload: PlanRequest, session: AuthSession = Depends(current_session), db: AsyncSession = Depends(get_db)) -> PlanResponse:

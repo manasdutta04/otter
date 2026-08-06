@@ -1,0 +1,1 @@
+"""Shared veridexs domain utilities."""
