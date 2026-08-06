@@ -105,12 +105,6 @@ export default function AppDashboardPage() {
       <header className="app-topbar">
         <Brand href="/" size="md" />
         <div className="app-topbar-meta">
-          <span className={`status-badge ${authenticated ? "status-ok" : sessionChecked ? "status-bad" : "status-live"}`}>
-            {authenticated ? "Connected" : sessionChecked ? "Disconnected" : "Checking"}
-          </span>
-          <span className="muted" style={{ fontSize: "0.8rem" }}>
-            {authenticated ? "GitHub session active" : sessionChecked ? "Not connected" : "Checking session…"}
-          </span>
           {authenticated ? (
             <>
               <button className="btn btn-ghost btn-sm" type="button" onClick={() => void loadRepositories()} disabled={loadingRepositories}>
@@ -120,10 +114,12 @@ export default function AppDashboardPage() {
                 {loggingOut ? "Logging out…" : "Log out"}
               </button>
             </>
-          ) : (
+          ) : sessionChecked ? (
             <a className="btn btn-primary btn-sm" href={GITHUB_LOGIN_URL}>
               Connect GitHub
             </a>
+          ) : (
+            <span className="muted" style={{ fontSize: "0.85rem" }}>Checking…</span>
           )}
         </div>
       </header>
@@ -149,15 +145,15 @@ export default function AppDashboardPage() {
             <div className="page-header">
               <div>
                 <p className="eyebrow">Workspace</p>
-                <h1>Your repositories</h1>
+                <h1>Repositories</h1>
                 <p className="muted" style={{ margin: "0.4rem 0 0" }}>
-                  {lastSyncedAt ? `Live status · last synced ${lastSyncedAt}` : "Waiting for first sync…"}
+                  {lastSyncedAt ? `Last synced ${lastSyncedAt}` : "Waiting for first sync…"}
                 </p>
               </div>
             </div>
 
             <section className="panel">
-              <h2>Import a repository</h2>
+              <h2>Import</h2>
               <p className="muted" style={{ marginTop: 0 }}>
                 Paste a GitHub URL. Otter will clone and prepare it for intelligence, chat, and planning.
               </p>

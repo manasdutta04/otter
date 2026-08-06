@@ -9,9 +9,6 @@ type EmptyStateProps = {
 export function EmptyState({ title, detail, action }: EmptyStateProps) {
   return (
     <div className="empty-state">
-      <span className="empty-glyph" aria-hidden="true">
-        🦦
-      </span>
       <p className="empty-title">{title}</p>
       {detail ? <p className="empty-detail">{detail}</p> : null}
       {action ? <div className="empty-action">{action}</div> : null}

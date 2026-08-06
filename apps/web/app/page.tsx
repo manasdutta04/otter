@@ -45,7 +45,7 @@ export default function LandingPage() {
 
       <section className="landing-hero">
         <Brand size="hero" href={null} />
-        <h1 className="landing-headline">The AI software engineer that understands before it writes.</h1>
+        <h1 className="landing-headline">Understand the codebase before you change it.</h1>
         <p className="landing-support">
           Otter turns repositories into engineering memory — explain architecture, plan safely, review quality, and change code only with your approval.
         </p>
@@ -59,10 +59,8 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <div className="landing-wave" aria-hidden="true" />
-
       <section className="landing-usps" id="product">
-        <p className="section-kicker">WHY OTTER</p>
+        <p className="section-kicker">Why Otter</p>
         <h2 className="section-title">Built for senior-engineer workflows</h2>
         <p className="section-lead">
           Not another chatbot. Otter focuses on understanding, planning, and quality — with coding as a controlled step.

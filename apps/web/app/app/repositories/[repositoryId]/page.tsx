@@ -43,42 +43,47 @@ export default function OverviewPage() {
         <StatusBadge status={repository.status} />
       </div>
 
-      <div className="grid-2">
-        <section className="panel">
-          <h2>Status</h2>
-          <div className="kv-row"><span>State</span><strong>{repository.status}</strong></div>
-          <div className="kv-row"><span>Branch</span><strong>{repository.branch ?? "Default"}</strong></div>
-          <div className="kv-row"><span>Files</span><strong>{repository.file_count}</strong></div>
-          <div className="kv-row"><span>URL</span><strong style={{ fontSize: "0.85rem", wordBreak: "break-all" }}>{repository.url}</strong></div>
-          {repository.error ? <p className="error-text">{repository.error}</p> : null}
-          {repository.status === "failed" ? (
-            <div style={{ marginTop: "1rem" }}>
-              <button className="btn btn-primary btn-sm" type="button" onClick={() => void handleRetry()} disabled={retrying}>
-                {retrying ? "Retrying…" : "Retry import"}
-              </button>
-              {retryError ? <p className="error-text">{retryError}</p> : null}
-            </div>
-          ) : null}
-          {!isReady && repository.status !== "failed" ? (
-            <p className="muted" style={{ marginTop: "1rem", marginBottom: 0 }}>
-              Import in progress. This page refreshes automatically.
-            </p>
-          ) : null}
-        </section>
+      <section className="panel">
+        <h2>Summary</h2>
+        {isReady && intelligence ? (
+          <p className="muted" style={{ margin: 0, whiteSpace: "pre-wrap" }}>{intelligence.summary}</p>
+        ) : (
+          <p className="muted" style={{ margin: 0 }}>
+            {repository.status === "failed"
+              ? "Import failed — retry to generate a summary."
+              : "Repository indexing in progress…"}
+          </p>
+        )}
+      </section>
 
-        <section className="panel">
-          <h2>Summary</h2>
-          {isReady && intelligence ? (
-            <p className="muted" style={{ margin: 0, whiteSpace: "pre-wrap" }}>{intelligence.summary}</p>
-          ) : (
-            <p className="muted" style={{ margin: 0 }}>
-              {repository.status === "failed"
-                ? "Import failed — retry to generate a summary."
-                : "Repository indexing in progress…"}
-            </p>
-          )}
-        </section>
-      </div>
+      <section className="panel">
+        <h2>Details</h2>
+        <div className="kv-row"><span>State</span><strong>{repository.status}</strong></div>
+        <div className="kv-row"><span>Branch</span><strong>{repository.branch ?? "Default"}</strong></div>
+        <div className="kv-row"><span>Files</span><strong>{repository.file_count}</strong></div>
+        <div className="kv-row">
+          <span>URL</span>
+          <strong style={{ fontSize: "0.85rem", wordBreak: "break-all", fontWeight: 400 }}>
+            <a className="link-accent" href={repository.url} target="_blank" rel="noreferrer">
+              {repository.url.replace("https://github.com/", "")}
+            </a>
+          </strong>
+        </div>
+        {repository.error ? <p className="error-text">{repository.error}</p> : null}
+        {repository.status === "failed" ? (
+          <div style={{ marginTop: "1rem" }}>
+            <button className="btn btn-primary btn-sm" type="button" onClick={() => void handleRetry()} disabled={retrying}>
+              {retrying ? "Retrying…" : "Retry import"}
+            </button>
+            {retryError ? <p className="error-text">{retryError}</p> : null}
+          </div>
+        ) : null}
+        {!isReady && repository.status !== "failed" ? (
+          <p className="muted" style={{ marginTop: "1rem", marginBottom: 0 }}>
+            Import in progress. This page refreshes automatically.
+          </p>
+        ) : null}
+      </section>
     </div>
   );
 }

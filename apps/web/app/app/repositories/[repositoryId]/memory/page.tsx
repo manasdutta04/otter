@@ -118,9 +118,7 @@ export default function MemoryPage() {
         ) : (
           items.map((item) => (
             <article className="history-item" key={item.id}>
-              <div className="chip-list" style={{ marginBottom: "0.45rem" }}>
-                <span className="chip">{item.kind}</span>
-              </div>
+              <p className="muted" style={{ margin: "0 0 0.35rem", fontSize: "0.8rem" }}>{item.kind}</p>
               <strong>{item.title}</strong>
               <p className="muted" style={{ whiteSpace: "pre-wrap", marginBottom: "0.35rem" }}>{item.content}</p>
               <div className="muted" style={{ fontSize: "0.75rem" }}>{new Date(item.created_at).toLocaleString()}</div>

@@ -112,9 +112,7 @@ export default function SettingsPage() {
             ) : (
               documents.map((doc) => (
                 <article className="history-item" key={doc.id}>
-                  <div className="chip-list" style={{ marginBottom: "0.35rem" }}>
-                    <span className="chip">{doc.kind}</span>
-                  </div>
+                  <p className="muted" style={{ margin: "0 0 0.35rem", fontSize: "0.8rem" }}>{doc.kind}</p>
                   <strong>{doc.title}</strong>
                   <p className="muted" style={{ whiteSpace: "pre-wrap" }}>{doc.content}</p>
                   <div className="muted" style={{ fontSize: "0.75rem" }}>{new Date(doc.created_at).toLocaleString()}</div>

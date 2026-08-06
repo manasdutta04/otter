@@ -94,13 +94,11 @@ export default function ChatPage() {
           {(result.sources ?? []).length > 0 ? (
             <div className="chat-sources">
               <span className="chat-sources-label">Sources</span>
-              <div className="chip-list">
+              <ul className="plain-list">
                 {result.sources.map((source) => (
-                  <span className="chip" key={source}>
-                    {source}
-                  </span>
+                  <li key={source}>{source}</li>
                 ))}
-              </div>
+              </ul>
             </div>
           ) : null}
         </section>

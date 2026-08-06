@@ -127,7 +127,7 @@ export default function CodingPage() {
       <div className="page-header">
         <div>
           <p className="eyebrow">Coding</p>
-          <h1>Code tasks</h1>
+          <h1>Tasks</h1>
           <p className="muted" style={{ margin: "0.35rem 0 0" }}>
             Generate patches, approve before apply, then open a PR.
           </p>
@@ -176,11 +176,9 @@ export default function CodingPage() {
                 </div>
                 <p className="muted" style={{ margin: "0.55rem 0 0", whiteSpace: "pre-wrap" }}>{task.proposed_summary}</p>
                 {task.changed_files?.length ? (
-                  <div className="chip-list" style={{ marginTop: "0.65rem" }}>
-                    {task.changed_files.map((f) => (
-                      <span className="chip" key={f}>{f}</span>
-                    ))}
-                  </div>
+                  <p className="muted" style={{ margin: "0.55rem 0 0", fontFamily: "var(--font-mono)", fontSize: "0.8rem" }}>
+                    {task.changed_files.join(" · ")}
+                  </p>
                 ) : null}
 
                 <div className="task-actions">
@@ -273,7 +271,7 @@ export default function CodingPage() {
                 {prResult?.taskId === task.id ? (
                   <p style={{ marginTop: "0.75rem" }}>
                     PR #{prResult.result.number}:{" "}
-                    <a href={prResult.result.url} target="_blank" rel="noreferrer" style={{ color: "var(--teal-bright)" }}>
+                    <a className="link-accent" href={prResult.result.url} target="_blank" rel="noreferrer">
                       {prResult.result.url}
                     </a>
                   </p>

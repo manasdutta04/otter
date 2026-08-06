@@ -80,10 +80,9 @@ export default function ReviewPage() {
         ) : (
           findings.map((finding, idx) => (
             <div className="finding-row" key={`${finding.file}-${finding.line}-${idx}`}>
-              <div className="chip-list">
-                <span className="chip">{finding.severity}</span>
-                <span className="chip">{finding.category}</span>
-              </div>
+              <p className="muted" style={{ margin: 0, fontSize: "0.8rem" }}>
+                {finding.severity} · {finding.category}
+              </p>
               <strong>{finding.title}</strong>
               <span className="muted" style={{ fontFamily: "var(--font-mono)", fontSize: "0.78rem" }}>
                 {finding.file}:{finding.line}

@@ -53,7 +53,7 @@ function RepoChrome({ children }: { children: ReactNode }) {
         <div style={{ display: "flex", alignItems: "center", gap: "1rem", flexWrap: "wrap" }}>
           <Brand href="/" size="sm" />
           <Link className="btn btn-ghost btn-sm" href="/app">
-            ← Workspace
+            Workspace
           </Link>
           <div className="repo-chrome-title">
             <h1>{loading && !repository ? "Loading…" : repository?.name ?? "Repository"}</h1>

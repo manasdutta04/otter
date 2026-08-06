@@ -67,40 +67,45 @@ export default function IntelligencePage() {
         <p className="muted" style={{ margin: 0, whiteSpace: "pre-wrap" }}>{intelligence.summary}</p>
       </section>
 
+      <section className="panel">
+        <h2>Tech stack</h2>
+        {intelligence.tech_stack.length === 0 ? (
+          <p className="muted" style={{ margin: 0 }}>None detected</p>
+        ) : (
+          <p style={{ margin: 0, color: "var(--ink-soft)" }}>
+            {intelligence.tech_stack.join(" · ")}
+          </p>
+        )}
+      </section>
+
       <div className="grid-2">
         <section className="panel">
-          <h2>Tech stack</h2>
-          <div className="chip-list">
-            {intelligence.tech_stack.length === 0 ? (
-              <span className="muted">None detected</span>
-            ) : (
-              intelligence.tech_stack.map((item) => (
-                <span className="chip" key={item}>{item}</span>
-              ))
-            )}
-          </div>
-          <h3 style={{ marginTop: "1.25rem" }}>Top folders</h3>
-          <div className="chip-list">
-            {intelligence.folders.slice(0, 12).map((item) => (
-              <span className="chip" key={item}>{item}</span>
-            ))}
-          </div>
+          <h2>Top folders</h2>
+          {intelligence.folders.length === 0 ? (
+            <p className="muted" style={{ margin: 0 }}>None detected</p>
+          ) : (
+            <ul className="plain-list">
+              {intelligence.folders.slice(0, 12).map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          )}
         </section>
 
         <section className="panel">
           <h2>Entry points</h2>
           {intelligence.entry_points.length === 0 ? (
-            <p className="muted">None detected</p>
+            <p className="muted" style={{ margin: 0 }}>None detected</p>
           ) : (
-            <ul className="bullet-list">
+            <ul className="plain-list">
               {intelligence.entry_points.map((ep) => (
                 <li key={ep}>{ep}</li>
               ))}
             </ul>
           )}
-          <h3 style={{ marginTop: "1.25rem" }}>Architecture signals</h3>
+          <h3 style={{ marginTop: "1.5rem" }}>Architecture signals</h3>
           {intelligence.architecture_signals.length === 0 ? (
-            <p className="muted">None detected</p>
+            <p className="muted" style={{ margin: 0 }}>None detected</p>
           ) : (
             <ul className="bullet-list">
               {intelligence.architecture_signals.map((sig) => (

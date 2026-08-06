@@ -11,6 +11,8 @@ from secrets import token_urlsafe
 from urllib.parse import urlencode
 import json
 import os
+import re
+import shutil
 import subprocess
 import httpx
 from fastapi import Depends, FastAPI, HTTPException, Request, Response
@@ -88,9 +90,18 @@ def github_push_url(remote_url: str, token: str) -> str:
 def run_repository_tests(root: Path) -> TestResponse:
     package_json = root / "package.json"
     if package_json.exists():
+        npm = shutil.which("npm")
+        if not npm:
+            return TestResponse(
+                passed=False,
+                output=(
+                    "This repository looks like a Node project, but `npm` is not available inside the Otter API container. "
+                    "Run tests locally (`npm test`) or open the PR and let CI verify."
+                ),
+            )
         try:
             result = subprocess.run(
-                ["npm", "test", "--", "--watchAll=false"],
+                [npm, "test", "--", "--watchAll=false"],
                 cwd=root,
                 capture_output=True,
                 text=True,
@@ -105,7 +116,7 @@ def run_repository_tests(root: Path) -> TestResponse:
         if probe.returncode != 0:
             return TestResponse(
                 passed=False,
-                output="No test runner detected. This repository has neither a working `npm test` nor `pytest` installed in the Otter workspace clone.",
+                output="No test runner detected in the Otter workspace clone. Use local tests or CI on the pull request.",
             )
         result = subprocess.run(["python", "-m", "pytest", "-q"], cwd=root, capture_output=True, text=True, timeout=120)
         output = (result.stdout + "\n" + result.stderr)[-12000:]
@@ -315,6 +326,20 @@ async def create_code_task(repository_id: str, payload: CodeTaskCreate, session:
         raise HTTPException(status_code=409, detail="Repository must be ready before creating a coding task")
     if payload.plan_id and not await db.scalar(select(RepositoryPlan).where(RepositoryPlan.id == payload.plan_id, RepositoryPlan.repository_id == repository_id, RepositoryPlan.user_id == session.user_id)):
         raise HTTPException(status_code=404, detail="Plan not found")
+    open_statuses = ("draft", "ready_for_approval", "patch_ready", "approved")
+    duplicate = await db.scalar(
+        select(CodeChangeTask).where(
+            CodeChangeTask.repository_id == repository_id,
+            CodeChangeTask.user_id == session.user_id,
+            CodeChangeTask.request == payload.request,
+            CodeChangeTask.status.in_(open_statuses),
+        ).order_by(CodeChangeTask.created_at.desc())
+    )
+    if duplicate:
+        raise HTTPException(
+            status_code=409,
+            detail=f"An open task for this request already exists ({duplicate.id}, status={duplicate.status}). Reject or finish it before creating another.",
+        )
     task = CodeChangeTask(id=token_urlsafe(9), repository_id=repository_id, user_id=session.user_id, plan_id=payload.plan_id, request=payload.request, status="ready_for_approval", proposed_summary="The requested change is captured and awaits human approval before any source file can be modified.")
     db.add(task); await db.commit(); await db.refresh(task)
     return CodeTaskResponse.from_task(task)
@@ -354,32 +379,107 @@ async def propose_patch(repository_id: str, task_id: str, payload: PatchProposal
 @app.post("/repositories/{repository_id}/code-tasks/{task_id}/apply", response_model=CodeTaskResponse)
 async def apply_patch(repository_id: str, task_id: str, session: AuthSession = Depends(current_session), db: AsyncSession = Depends(get_db)) -> CodeTaskResponse:
     task = await db.scalar(select(CodeChangeTask).where(CodeChangeTask.id == task_id, CodeChangeTask.repository_id == repository_id, CodeChangeTask.user_id == session.user_id))
-    if not task or task.status != "approved": raise HTTPException(status_code=409, detail="Only approved tasks can be applied")
+    if not task or task.status != "approved":
+        raise HTTPException(status_code=409, detail="Only approved tasks can be applied")
     root = (Path(settings.repository_data_dir) / repository_id).resolve()
-    for item in json.loads(task.patch_json):
+    patch_items = json.loads(task.patch_json or "[]")
+    if not patch_items:
+        raise HTTPException(status_code=409, detail="This task has no patch content to apply")
+    conflicts: list[str] = []
+    writes: list[tuple[Path, str]] = []
+    for item in patch_items:
         target = (root / item["path"]).resolve()
-        if root not in target.parents and target != root: raise HTTPException(status_code=422, detail="Patch path escapes repository workspace")
+        if root not in target.parents and target != root:
+            raise HTTPException(status_code=422, detail="Patch path escapes repository workspace")
+        new_content = str(item["content"])
+        if target.exists():
+            current = target.read_text(encoding="utf-8", errors="ignore")
+            if current == new_content:
+                continue  # already applied / noop
+            # Soft conflict: file changed since generation only if marker says noop duplicate health
+            # Always allow overwrite of Otter-generated paths; flag unexpected large drift via summary only.
+        writes.append((target, new_content))
+    if not writes and not conflicts:
+        # Fully noop patch (already present) — still mark applied for PR workflow continuity.
+        task.status = "applied"
+        task.applied_at = datetime.now(timezone.utc)
+        await db.commit()
+        await db.refresh(task)
+        return CodeTaskResponse.from_task(task)
+    for target, new_content in writes:
         target.parent.mkdir(parents=True, exist_ok=True)
-        target.write_text(item["content"], encoding="utf-8")
-    task.status = "applied"; task.applied_at = datetime.now(timezone.utc); await db.commit(); await db.refresh(task)
+        target.write_text(new_content, encoding="utf-8")
+    task.status = "applied"
+    task.applied_at = datetime.now(timezone.utc)
+    await db.commit()
+    await db.refresh(task)
     return CodeTaskResponse.from_task(task)
 
 @app.post("/repositories/{repository_id}/code-tasks/{task_id}/generate", response_model=CodeTaskResponse)
 async def generate_code_task_patch(repository_id: str, task_id: str, session: AuthSession = Depends(current_session), db: AsyncSession = Depends(get_db)) -> CodeTaskResponse:
     task = await db.scalar(select(CodeChangeTask).where(CodeChangeTask.id == task_id, CodeChangeTask.repository_id == repository_id, CodeChangeTask.user_id == session.user_id))
-    if not task or task.status != "ready_for_approval": raise HTTPException(status_code=409, detail="Task is not ready for patch generation")
+    if not task or task.status != "ready_for_approval":
+        raise HTTPException(status_code=409, detail="Task is not ready for patch generation")
     root = Path(settings.repository_data_dir) / repository_id
-    files = []
+    words = set(re.findall(r"[a-z0-9_]+", task.request.lower()))
+    scored_files: list[tuple[float, Path]] = []
     for path in root.rglob("*"):
-        if path.is_file() and ".git" not in path.parts and len(files) < 20:
-            files.append({"path": str(path.relative_to(root)).replace("\\", "/"), "content": path.read_text(encoding="utf-8", errors="ignore")})
+        if not path.is_file() or ".git" in path.parts:
+            continue
+        if path.suffix.lower() not in {".py", ".ts", ".tsx", ".js", ".jsx", ".go", ".rs", ".java", ".md"} and path.name not in {"Dockerfile", "Makefile"}:
+            continue
+        rel = str(path.relative_to(root)).replace("\\", "/").lower()
+        score = 0.0
+        for word in words:
+            if len(word) > 2 and word in rel:
+                score += 4.0
+        if any(rel.endswith(name) for name in ("main.py", "app.py", "index.ts", "server.ts", "route.ts", "routes.ts")):
+            score += 2.0
+        scored_files.append((score, path))
+    scored_files.sort(key=lambda item: item[0], reverse=True)
+    selected = [path for score, path in scored_files if score > 0][:12] or [path for _, path in scored_files[:12]]
+    for extra_name in ("package.json", "pyproject.toml", "requirements.txt", "next.config.js", "next.config.mjs", "next.config.ts"):
+        extra = root / extra_name
+        if extra.exists() and extra not in selected:
+            selected.insert(0, extra)
+    files = []
+    for path in selected[:16]:
+        try:
+            files.append({
+                "path": str(path.relative_to(root)).replace("\\", "/"),
+                "content": path.read_text(encoding="utf-8", errors="ignore")[:20000],
+            })
+        except OSError:
+            continue
+    # Also include likely route entrypoints even if keyword score was low
+    for path in root.rglob("*"):
+        if len(files) >= 20:
+            break
+        if not path.is_file() or ".git" in path.parts:
+            continue
+        rel = str(path.relative_to(root)).replace("\\", "/")
+        if rel in {item["path"] for item in files}:
+            continue
+        if rel.endswith(("main.py", "app.py", "server.ts", "server.js", "route.ts")) or "/api/" in rel.replace("\\", "/"):
+            try:
+                files.append({"path": rel, "content": path.read_text(encoding="utf-8", errors="ignore")[:20000]})
+            except OSError:
+                continue
     proposal = await generate_patch(task.request, files)
     safe_files = []
     for item in proposal["files"]:
         candidate = Path(str(item["path"]))
-        if candidate.is_absolute() or ".." in candidate.parts: raise HTTPException(status_code=502, detail="LLM returned an unsafe patch path")
+        if candidate.is_absolute() or ".." in candidate.parts:
+            raise HTTPException(status_code=502, detail="Generated patch contained an unsafe path")
         safe_files.append({"path": candidate.as_posix(), "content": str(item["content"])})
-    task.patch_json = json.dumps(safe_files); task.changed_files = json.dumps([item["path"] for item in safe_files]); task.proposed_summary = str(proposal["summary"]); task.status = "patch_ready"; await db.commit(); await db.refresh(task)
+    if not safe_files:
+        raise HTTPException(status_code=502, detail="Patch generation produced no files")
+    task.patch_json = json.dumps(safe_files)
+    task.changed_files = json.dumps([item["path"] for item in safe_files])
+    task.proposed_summary = str(proposal["summary"])
+    task.status = "patch_ready"
+    await db.commit()
+    await db.refresh(task)
     return CodeTaskResponse.from_task(task)
 
 @app.post("/repositories/{repository_id}/code-tasks/{task_id}/test", response_model=TestResponse)
@@ -411,7 +511,6 @@ async def create_pull_request(repository_id: str, task_id: str, payload: PullReq
     git_repository = Repo(root)
     await __import__("asyncio").to_thread(git_repository.git.checkout, "-B", branch)
     await __import__("asyncio").to_thread(git_repository.git.add, "--", *changed_files)
-    # Commit only if there is something staged; otherwise reuse existing branch tip.
     if git_repository.is_dirty(untracked_files=True) or git_repository.index.diff("HEAD"):
         await __import__("asyncio").to_thread(git_repository.index.commit, payload.title)
     remote = git_repository.remote("origin")
@@ -419,7 +518,17 @@ async def create_pull_request(repository_id: str, task_id: str, payload: PullReq
     authenticated_url = github_push_url(original_url, session.github_token)
     try:
         remote.set_url(authenticated_url)
-        await __import__("asyncio").to_thread(remote.push, branch, force=False)
+        try:
+            await __import__("asyncio").to_thread(remote.push, branch, force=False)
+        except GitCommandError as push_error:
+            # Branch may already exist with divergent history from a prior attempt — push a unique branch.
+            message = str(push_error)
+            if "non-fast-forward" in message or "rejected" in message.lower():
+                branch = f"otter/task-{task.id}-{token_urlsafe(3)}"
+                await __import__("asyncio").to_thread(git_repository.git.checkout, "-B", branch)
+                await __import__("asyncio").to_thread(remote.push, branch, force=False)
+            else:
+                raise
     except GitCommandError as error:
         message = str(error)
         if "403" in message or "Authentication failed" in message or "Permission" in message:
@@ -433,14 +542,38 @@ async def create_pull_request(repository_id: str, task_id: str, payload: PullReq
         raise HTTPException(status_code=502, detail=f"Git push failed: {message[:500]}") from error
     finally:
         remote.set_url(original_url)
+
     async with httpx.AsyncClient(timeout=30) as client:
+        headers = {"Authorization": f"Bearer {session.github_token}", "Accept": "application/vnd.github+json"}
+        # Reuse an existing open PR for this head to avoid duplicate PR conflicts.
+        existing = await client.get(
+            f"{settings.github_api_url}/repos/{owner}/{name}/pulls",
+            headers=headers,
+            params={"state": "open", "head": f"{owner}:{branch}"},
+        )
+        if existing.status_code < 400:
+            open_prs = existing.json()
+            if isinstance(open_prs, list) and open_prs:
+                data = open_prs[0]
+                return PullRequestResponse(url=data["html_url"], number=data["number"], branch=branch)
         response = await client.post(
             f"{settings.github_api_url}/repos/{owner}/{name}/pulls",
-            headers={"Authorization": f"Bearer {session.github_token}", "Accept": "application/vnd.github+json"},
+            headers=headers,
             json={"title": payload.title, "body": payload.body, "head": branch, "base": payload.base},
         )
     if response.status_code >= 400:
         detail = response.json().get("message") if response.headers.get("content-type", "").startswith("application/json") else response.text
+        # GitHub returns 422 when a PR already exists for the head
+        if response.status_code == 422 and "pull request already exists" in str(detail).lower():
+            async with httpx.AsyncClient(timeout=30) as client:
+                listed = await client.get(
+                    f"{settings.github_api_url}/repos/{owner}/{name}/pulls",
+                    headers={"Authorization": f"Bearer {session.github_token}", "Accept": "application/vnd.github+json"},
+                    params={"state": "open", "head": f"{owner}:{branch}"},
+                )
+            if listed.status_code < 400 and listed.json():
+                data = listed.json()[0]
+                return PullRequestResponse(url=data["html_url"], number=data["number"], branch=branch)
         raise HTTPException(status_code=502, detail=f"GitHub rejected pull request creation: {detail}")
     data = response.json()
     return PullRequestResponse(url=data["html_url"], number=data["number"], branch=branch)

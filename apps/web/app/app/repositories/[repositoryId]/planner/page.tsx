@@ -116,11 +116,15 @@ export default function PlannerPage() {
             ))}
           </ul>
           <h3>Affected files</h3>
-          <div className="chip-list">
-            {selected.affected_files.map((f) => (
-              <span className="chip" key={f}>{f}</span>
-            ))}
-          </div>
+          {selected.affected_files.length === 0 ? (
+            <p className="muted" style={{ margin: 0 }}>None listed</p>
+          ) : (
+            <ul className="plain-list">
+              {selected.affected_files.map((f) => (
+                <li key={f}>{f}</li>
+              ))}
+            </ul>
+          )}
           {selected.risks.length > 0 ? (
             <>
               <h3>Risks</h3>
