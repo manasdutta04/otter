@@ -15,7 +15,7 @@ from .architecture_analysis import analyze_architecture
 from .performance import analyze_performance
 
 settings = get_settings()
-celery_app = Celery("veridexs", broker=settings.redis_url, backend=settings.redis_url)
+celery_app = Celery("otter", broker=settings.redis_url, backend=settings.redis_url)
 celery_app.conf.update(task_acks_late=True, task_track_started=True, broker_connection_retry_on_startup=True)
 
 def clean_error(error: Exception) -> str:

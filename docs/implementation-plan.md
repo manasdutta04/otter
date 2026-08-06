@@ -1,10 +1,10 @@
-# veridexs Implementation Plan
+# OTTER Implementation Plan
 
-This document turns the current product direction into a phased execution plan. The goal is not to polish the existing demo into a larger demo. The goal is to make veridexs production-ready as an engineering-intelligence platform that a real team can trust.
+This document turns the current product direction into a phased execution plan. The goal is not to polish the existing demo into a larger demo. The goal is to make OTTER production-ready as an engineering-intelligence platform that a real team can trust.
 
 ## Product goals
 
-veridexs should:
+OTTER should:
 
 - Understand repositories deeply.
 - Explain architecture clearly.
@@ -100,7 +100,7 @@ Make repository import, analysis, and search the durable foundation of the platf
 ## Phase 3. Add engineering memory and planning
 
 ### Goal
-Turn veridexs into a tool that remembers the project and can plan work before code is written.
+Turn OTTER into a tool that remembers the project and can plan work before code is written.
 
 ### Work items
 
@@ -139,7 +139,7 @@ Allow code generation, patching, and review without losing human control.
 ## Phase 5. Expand review and health analysis
 
 ### Goal
-Make veridexs useful as a senior-engineer review assistant, not just a repository browser.
+Make OTTER useful as a senior-engineer review assistant, not just a repository browser.
 
 ### Work items
 
@@ -166,7 +166,7 @@ Expose the same engine through the other product surfaces from the PRD.
 - Build the CLI around the same backend contract as the web app.
 - Expand the VS Code extension with explain, review, plan, architect, and fix commands.
 - Harden the GitHub App so it can comment on pull requests and repository events.
-- Stabilize the MCP server so external tools can query veridexs consistently.
+- Stabilize the MCP server so external tools can query OTTER consistently.
 - Keep all companion surfaces thin and opinionated, not duplicate implementations.
 
 ### Exit criteria
@@ -208,7 +208,7 @@ Make the system safe to run for real teams.
 
 ## Definition of done
 
-veridexs is in good shape when a developer can:
+OTTER is in good shape when a developer can:
 
 - Connect GitHub.
 - Import a repository.

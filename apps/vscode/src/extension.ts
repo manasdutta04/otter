@@ -1,39 +1,79 @@
 import * as vscode from "vscode";
 
 function apiUrl(): string {
-  return vscode.workspace.getConfiguration("veridexs").get<string>("apiUrl", "http://localhost:8000").replace(/\/$/, "");
+  return vscode.workspace.getConfiguration("otter").get<string>("apiUrl", "http://localhost:8000").replace(/\/$/, "");
 }
 
-async function call(path: string, method = "GET", body?: unknown): Promise<void> {
-  const response = await fetch(`${apiUrl()}${path}`, {
-    method,
-    headers: body ? { "Content-Type": "application/json" } : undefined,
-    body: body ? JSON.stringify(body) : undefined,
+function session(): string {
+  return vscode.workspace.getConfiguration("otter").get<string>("session", "") || process.env.OTTER_SESSION || "";
+}
+
+async function call(path: string, init?: RequestInit): Promise<void> {
+  const headers: Record<string, string> = {
+    Accept: "application/json",
+    ...(init?.headers as Record<string, string> | undefined),
+  };
+  const token = session();
+  if (token) {
+    headers.Cookie = `otter_session=${token}`;
+    headers["X-Otter-Session"] = token;
+  }
+  const response = await fetch(`${apiUrl()}${path}`, { ...init, headers });
+  const text = await response.text();
+  const doc = await vscode.workspace.openTextDocument({
+    content: text,
+    language: "json",
   });
-  const payload = await response.text();
-  const document = await vscode.workspace.openTextDocument({ language: "json", content: payload });
-  await vscode.window.showTextDocument(document, { preview: false });
+  await vscode.window.showTextDocument(doc, { preview: false });
+  if (!response.ok) {
+    throw new Error(`Otter API ${response.status}`);
+  }
 }
 
 export function activate(context: vscode.ExtensionContext): void {
-  const repositoryId = async (): Promise<string | undefined> => vscode.window.showInputBox({ prompt: "veridexs repository ID" });
+  const repositoryId = async (): Promise<string | undefined> =>
+    vscode.window.showInputBox({ prompt: "Otter repository ID" });
+
   context.subscriptions.push(
-    vscode.commands.registerCommand("veridexs.explain", async () => { const id = await repositoryId(); if (id) await call(`/repositories/${id}/intelligence`); }),
-    vscode.commands.registerCommand("veridexs.chat", async () => {
+    vscode.commands.registerCommand("otter.explain", async () => {
       const id = await repositoryId();
-      const question = id ? await vscode.window.showInputBox({ prompt: "Ask grounded question about codebase" }) : undefined;
-      if (id && question) await call(`/repositories/${id}/chat`, "POST", { question });
+      if (id) await call(`/repositories/${id}/intelligence`);
     }),
-    vscode.commands.registerCommand("veridexs.review", async () => { const id = await repositoryId(); if (id) await call(`/repositories/${id}/review`); }),
-    vscode.commands.registerCommand("veridexs.health", async () => { const id = await repositoryId(); if (id) await call(`/repositories/${id}/health`); }),
-    vscode.commands.registerCommand("veridexs.plan", async () => {
+    vscode.commands.registerCommand("otter.chat", async () => {
       const id = await repositoryId();
-      const request = id ? await vscode.window.showInputBox({ prompt: "What should veridexs plan?" }) : undefined;
-      if (id && request) await call(`/repositories/${id}/plans`, "POST", { request });
+      const question = id ? await vscode.window.showInputBox({ prompt: "Ask Otter about this repository" }) : undefined;
+      if (id && question) {
+        await call(`/repositories/${id}/chat`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ question }),
+        });
+      }
     }),
-    vscode.commands.registerCommand("veridexs.memory", async () => { const id = await repositoryId(); if (id) await call(`/repositories/${id}/memory`); }),
+    vscode.commands.registerCommand("otter.review", async () => {
+      const id = await repositoryId();
+      if (id) await call(`/repositories/${id}/review`);
+    }),
+    vscode.commands.registerCommand("otter.health", async () => {
+      const id = await repositoryId();
+      if (id) await call(`/repositories/${id}/health`);
+    }),
+    vscode.commands.registerCommand("otter.plan", async () => {
+      const id = await repositoryId();
+      const request = id ? await vscode.window.showInputBox({ prompt: "What should Otter plan?" }) : undefined;
+      if (id && request) {
+        await call(`/repositories/${id}/plans`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ request }),
+        });
+      }
+    }),
+    vscode.commands.registerCommand("otter.memory", async () => {
+      const id = await repositoryId();
+      if (id) await call(`/repositories/${id}/memory`);
+    }),
   );
 }
-
 
 export function deactivate(): void {}

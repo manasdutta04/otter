@@ -1,25 +1,23 @@
-# veridexs Implementation Log
+# Otter Implementation Log
 
-This document tracks implementation progression and architectural decisions for veridexs.
+This document tracks implementation progression and architectural decisions for Otter.
+
+## Step 12 — Otter Product Rebuild (Web-First) (2026-08-06)
+
+### What was implemented
+
+1. **Rebrand**: Product renamed from veridexs to **Otter** across API cookies (`otter_session`), env vars (`OTTER_*`), Docker DB credentials (`otter`), docs, and UI (🦦).
+2. **API wiring**: Fixed planner/memory/docs imports (`save_plan`, `add_memory`, `generate_overview`); CLI OAuth via `cli_port` + local callback; `X-Otter-Session` header; `/internal/github-events` sink; `CodeTaskResponse.from_task` for JSON `changed_files`.
+3. **Web product**: Marketing landing at `/` with USP sections; authenticated workspace at `/app`; multi-route repository shell (intelligence, chat, planner, memory, health, review, coding tasks, settings).
+4. **TypeScript CLI**: `apps/cli` publishable as `otter` with `npx`/`bunx` bin — login, repos, analyze, chat, plan, review, etc. Legacy Python moved to `apps/cli-py`.
+5. **MCP / VS Code / GitHub App**: Expanded MCP tools + initialize; Otter VS Code commands; GitHub App event forwarding to API.
+6. **Production baseline**: GitHub Actions CI workflow; deployment guide updated.
 
 ## Step 11 — Domain Packages, Grounded Retrieval & Web Shell Expansion (2026-08-06)
 
 ### What was implemented
 
-1. **Shared Domain Packages (`packages/`)**:
-   - populated `packages/retrieval`, `packages/analyzer`, `packages/planner`, `packages/memory`, `packages/review`, `packages/health`, and `packages/shared`.
-   - Decoupled domain business logic from single `apps/api` endpoints into reusable packages.
-
-2. **Semantic Retrieval & Grounded Citation Engine**:
-   - Replaced simple filename regex matching with line-aware chunking and hybrid TF-IDF/keyword semantic index in `packages/retrieval`.
-   - Upgraded repository chat to return grounded source code citations with line ranges (e.g. `src/auth.py:L1-L15`).
-
-3. **Web Shell Expansion (`apps/web`)**:
-   - Expanded [apps/web/app/repositories/[repositoryId]/page.tsx](file:///c:/Coding%20Workspace/veridexs/apps/web/app/repositories/%5BrepositoryId%5D/page.tsx) into a multi-tab web shell covering Overview, Intelligence, Grounded Chat, Planner, Memory, Health, Review, and Settings.
-
-4. **Companion Surfaces Alignment**:
-   - Extended MCP server tools in [apps/mcp/server.py](file:///c:/Coding%20Workspace/veridexs/apps/mcp/server.py) to support `repository_chat`, `repository_plan`, and `repository_review`.
-   - Registered `veridexs.chat`, `veridexs.health`, `veridexs.plan`, and `veridexs.memory` commands in VS Code extension [apps/vscode/src/extension.ts](file:///c:/Coding%20Workspace/veridexs/apps/vscode/src/extension.ts).
-
-5. **Integration Test Suite**:
-   - Added [apps/api/tests/test_e2e_flow.py](file:///c:/Coding%20Workspace/veridexs/apps/api/tests/test_e2e_flow.py) covering import analysis, semantic indexing, grounded retrieval, planning, health, and review execution.
+1. Shared domain packages under `packages/` for retrieval, analyzer, planner, memory, review, health.
+2. Hybrid TF-IDF/keyword grounded retrieval with line citations.
+3. Companion surface alignment for MCP and VS Code.
+4. E2E analysis/planner/review test coverage.

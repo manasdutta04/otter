@@ -1,79 +1,165 @@
+"""Otter MCP server — stdio JSON-RPC bridge to the Otter API."""
+from __future__ import annotations
+
 import json
 import os
 import sys
+from typing import Any
+from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
 
-def api_call(path: str, payload: dict | None = None) -> dict:
-    url = os.getenv("VERIDEXS_API_URL", "http://localhost:8000").rstrip("/")
-    session = os.getenv("VERIDEXS_SESSION")
+def api_call(path: str, payload: dict[str, Any] | None = None) -> Any:
+    url = os.getenv("OTTER_API_URL", "http://localhost:8000").rstrip("/")
+    session = os.getenv("OTTER_SESSION")
     headers = {"Accept": "application/json"}
     if session:
-        headers["Cookie"] = f"veridexs_session={session}"
-    
-    body = json.dumps(payload).encode("utf-8") if payload else None
-    if body:
+        headers["Cookie"] = f"otter_session={session}"
+        headers["X-Otter-Session"] = session
+    body = json.dumps(payload).encode("utf-8") if payload is not None else None
+    if body is not None:
         headers["Content-Type"] = "application/json"
-
-    request = Request(f"{url}{path}", data=body, headers=headers)
-    with urlopen(request, timeout=30) as response:
+    request = Request(f"{url}{path}", data=body, headers=headers, method="POST" if body is not None else "GET")
+    with urlopen(request, timeout=60) as response:
         return json.loads(response.read())
 
-def handle(message: dict) -> dict:
+
+TOOLS = [
+    {
+        "name": "repository_intelligence",
+        "description": "Get Otter intelligence for a repository",
+        "inputSchema": {
+            "type": "object",
+            "properties": {"repository_id": {"type": "string"}},
+            "required": ["repository_id"],
+        },
+    },
+    {
+        "name": "repository_chat",
+        "description": "Ask grounded questions about repository code",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "repository_id": {"type": "string"},
+                "question": {"type": "string"},
+            },
+            "required": ["repository_id", "question"],
+        },
+    },
+    {
+        "name": "repository_plan",
+        "description": "Generate an implementation plan",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "repository_id": {"type": "string"},
+                "request": {"type": "string"},
+            },
+            "required": ["repository_id", "request"],
+        },
+    },
+    {
+        "name": "repository_review",
+        "description": "Get code review findings for a repository",
+        "inputSchema": {
+            "type": "object",
+            "properties": {"repository_id": {"type": "string"}},
+            "required": ["repository_id"],
+        },
+    },
+    {
+        "name": "repository_health",
+        "description": "Get repository health scores",
+        "inputSchema": {
+            "type": "object",
+            "properties": {"repository_id": {"type": "string"}},
+            "required": ["repository_id"],
+        },
+    },
+    {
+        "name": "repository_memory",
+        "description": "List engineering memory entries for a repository",
+        "inputSchema": {
+            "type": "object",
+            "properties": {"repository_id": {"type": "string"}},
+            "required": ["repository_id"],
+        },
+    },
+]
+
+
+def handle(message: dict[str, Any]) -> dict[str, Any]:
     method = message.get("method")
-    if method == "tools/list":
+    msg_id = message.get("id")
+
+    if method == "initialize":
         return {
             "jsonrpc": "2.0",
-            "id": message.get("id"),
+            "id": msg_id,
             "result": {
-                "tools": [
-                    {
-                        "name": "repository_intelligence",
-                        "description": "Get veridexs intelligence for a repository",
-                        "inputSchema": {"type": "object", "properties": {"repository_id": {"type": "string"}}, "required": ["repository_id"]}
-                    },
-                    {
-                        "name": "repository_chat",
-                        "description": "Ask grounded semantic questions about repository code",
-                        "inputSchema": {"type": "object", "properties": {"repository_id": {"type": "string"}, "question": {"type": "string"}}, "required": ["repository_id", "question"]}
-                    },
-                    {
-                        "name": "repository_plan",
-                        "description": "Generate implementation plan for feature change",
-                        "inputSchema": {"type": "object", "properties": {"repository_id": {"type": "string"}, "request": {"type": "string"}}, "required": ["repository_id", "request"]}
-                    },
-                    {
-                        "name": "repository_review",
-                        "description": "Get code review and health analysis for repository",
-                        "inputSchema": {"type": "object", "properties": {"repository_id": {"type": "string"}}, "required": ["repository_id"]}
-                    }
-                ]
-            }
+                "protocolVersion": "2024-11-05",
+                "capabilities": {"tools": {}},
+                "serverInfo": {"name": "otter", "version": "0.1.0"},
+            },
         }
+
+    if method == "notifications/initialized":
+        return {"jsonrpc": "2.0", "id": msg_id, "result": {}}
+
+    if method == "tools/list":
+        return {"jsonrpc": "2.0", "id": msg_id, "result": {"tools": TOOLS}}
+
     if method == "tools/call":
-        params = message.get("params", {})
+        params = message.get("params") or {}
         tool_name = params.get("name")
-        args = params.get("arguments", {})
+        args = params.get("arguments") or {}
         repo_id = args.get("repository_id")
+        try:
+            if tool_name == "repository_intelligence":
+                res = api_call(f"/repositories/{repo_id}/intelligence")
+            elif tool_name == "repository_chat":
+                res = api_call(f"/repositories/{repo_id}/chat", {"question": args.get("question")})
+            elif tool_name == "repository_plan":
+                res = api_call(f"/repositories/{repo_id}/plans", {"request": args.get("request")})
+            elif tool_name == "repository_review":
+                res = api_call(f"/repositories/{repo_id}/review")
+            elif tool_name == "repository_health":
+                res = api_call(f"/repositories/{repo_id}/health")
+            elif tool_name == "repository_memory":
+                res = api_call(f"/repositories/{repo_id}/memory")
+            else:
+                return {
+                    "jsonrpc": "2.0",
+                    "id": msg_id,
+                    "error": {"code": -32601, "message": f"Tool {tool_name} not found"},
+                }
+        except (HTTPError, URLError, TimeoutError, json.JSONDecodeError) as error:
+            return {
+                "jsonrpc": "2.0",
+                "id": msg_id,
+                "error": {"code": -32000, "message": str(error)},
+            }
+        return {
+            "jsonrpc": "2.0",
+            "id": msg_id,
+            "result": {"content": [{"type": "text", "text": json.dumps(res, default=str)}]},
+        }
 
-        if tool_name == "repository_intelligence":
-            res = api_call(f"/repositories/{repo_id}/intelligence")
-        elif tool_name == "repository_chat":
-            res = api_call(f"/repositories/{repo_id}/chat", {"question": args.get("question")})
-        elif tool_name == "repository_plan":
-            res = api_call(f"/repositories/{repo_id}/plans", {"request": args.get("request")})
-        elif tool_name == "repository_review":
-            res = api_call(f"/repositories/{repo_id}/review")
-        else:
-            return {"jsonrpc": "2.0", "id": message.get("id"), "error": {"code": -32601, "message": f"Tool {tool_name} not found"}}
-
-        return {"jsonrpc": "2.0", "id": message.get("id"), "result": {"content": [{"type": "text", "text": json.dumps(res)}]}}
-
-    return {"jsonrpc": "2.0", "id": message.get("id"), "error": {"code": -32601, "message": "Method not found"}}
+    if msg_id is None:
+        return {"jsonrpc": "2.0", "result": {}}
+    return {"jsonrpc": "2.0", "id": msg_id, "error": {"code": -32601, "message": f"Method {method} not found"}}
 
 
-for line in sys.stdin:
-    try:
-        print(json.dumps(handle(json.loads(line))), flush=True)
-    except Exception as error:
-        print(json.dumps({"jsonrpc": "2.0", "error": {"code": -32000, "message": str(error)}}), flush=True)
+def main() -> None:
+    for line in sys.stdin:
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            print(json.dumps(handle(json.loads(line))), flush=True)
+        except Exception as error:  # noqa: BLE001 — surface any protocol error to client
+            print(json.dumps({"jsonrpc": "2.0", "error": {"code": -32000, "message": str(error)}}), flush=True)
+
+
+if __name__ == "__main__":
+    main()

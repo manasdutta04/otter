@@ -1,0 +1,17 @@
+[project]
+name = "otter-cli-py"
+version = "0.1.0"
+description = "Legacy Python CLI for Otter (prefer apps/cli TypeScript package)"
+requires-python = ">=3.11"
+dependencies = ["httpx==0.28.1"]
+
+[project.scripts]
+otter-py = "otter_cli.main:main"
+
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["otter_cli*"]

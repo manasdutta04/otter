@@ -29,7 +29,7 @@ services:
     working_dir: /workspace
     command: npm run dev
     volumes: ["../apps/web:/workspace", "web_node_modules:/workspace/node_modules"]
-    environment: {NEXT_PUBLIC_API_URL: http://localhost:8000}
+    environment: {NEXT_PUBLIC_API_URL: http://localhost:8000, NEXT_PUBLIC_URL: http://localhost:3000}
     ports: ["3000:3000"]
     depends_on: [api]
   worker:
@@ -52,12 +52,12 @@ services:
     env_file:
       - path: ../.env
         required: false
-    environment: {VERIDEXS_API_URL: http://api:8000}
+    environment: {OTTER_API_URL: http://api:8000}
     ports: ["9000:9000"]
     depends_on: [api]
   postgres:
     image: postgres:16-alpine
-    environment: {POSTGRES_USER: veridexs, POSTGRES_PASSWORD: veridexs, POSTGRES_DB: veridexs}
+    environment: {POSTGRES_USER: otter, POSTGRES_PASSWORD: otter, POSTGRES_DB: otter}
     volumes: ["postgres_data:/var/lib/postgresql/data"]
     ports: ["5432:5432"]
   redis:

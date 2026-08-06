@@ -10,6 +10,7 @@ from datetime import datetime, timedelta, timezone
 from secrets import token_urlsafe
 from urllib.parse import urlencode
 import json
+import os
 import subprocess
 import httpx
 from fastapi import Depends, FastAPI, HTTPException, Request, Response
@@ -27,13 +28,11 @@ from app.models import (
     RepositoryImportJob, RepositoryIntelligence, RepositoryPerformance,
     RepositoryPlan, RepositoryReview, User
 )
-from packages.analyzer import inspect_repository
-from packages.health import analyze_health
-from packages.memory import generate_overview
 from packages.planner import build_plan
 from packages.retrieval import answer_repository_question
-from packages.review import review_repository
+from app.knowledge import add_memory, generate_overview
 from app.llm import generate_patch
+from app.planner import save_plan
 from app.schemas import (
     ArchitectureAnalysisResponse, ArchitectureGraphResponse, ChatRequest,
     ChatResponse, CodeTaskCreate, CodeTaskDecision, CodeTaskResponse,
@@ -57,14 +56,22 @@ async def health() -> HealthResponse:
     return HealthResponse(status="ok", service="api")
 
 @app.get("/auth/github/login")
-async def github_login() -> RedirectResponse:
+async def github_login(cli_port: int | None = None) -> RedirectResponse:
     if not settings.github_client_id:
         raise HTTPException(status_code=503, detail="GitHub OAuth is not configured")
-    params = urlencode({"client_id": settings.github_client_id, "redirect_uri": settings.github_redirect_uri, "scope": "read:user repo"})
-    return RedirectResponse(f"https://github.com/login/oauth/authorize?{params}")
+    params: dict[str, str] = {
+        "client_id": settings.github_client_id,
+        "redirect_uri": settings.github_redirect_uri,
+        "scope": "read:user repo",
+    }
+    if cli_port is not None:
+        if cli_port < 1024 or cli_port > 65535:
+            raise HTTPException(status_code=422, detail="Invalid CLI callback port")
+        params["state"] = f"cli:{cli_port}"
+    return RedirectResponse(f"https://github.com/login/oauth/authorize?{urlencode(params)}")
 
 @app.get("/auth/github/callback")
-async def github_callback(code: str, db: AsyncSession = Depends(get_db)) -> RedirectResponse:
+async def github_callback(code: str, state: str | None = None, db: AsyncSession = Depends(get_db)) -> RedirectResponse:
     if not settings.github_client_id or not settings.github_client_secret:
         raise HTTPException(status_code=503, detail="GitHub OAuth is not configured")
     async with httpx.AsyncClient() as client:
@@ -86,35 +93,42 @@ async def github_callback(code: str, db: AsyncSession = Depends(get_db)) -> Redi
     session_id = token_urlsafe(32)
     db.add(AuthSession(id=session_id, user_id=user.id, github_token=token, expires_at=datetime.now(timezone.utc) + timedelta(days=1)))
     await db.commit()
-    redirect = RedirectResponse(settings.next_public_url)
-    redirect.set_cookie("veridexs_session", session_id, httponly=True, samesite="lax", secure=False, max_age=86400)
+    if state and state.startswith("cli:"):
+        try:
+            port = int(state.split(":", 1)[1])
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail="Invalid CLI state") from exc
+        return RedirectResponse(f"http://127.0.0.1:{port}/callback?session={session_id}")
+    redirect = RedirectResponse(f"{settings.next_public_url.rstrip('/')}/app")
+    redirect.set_cookie("otter_session", session_id, httponly=True, samesite="lax", secure=False, max_age=86400)
     return redirect
 
 async def current_session(request: Request, db: AsyncSession = Depends(get_db)) -> AuthSession:
-    session_id = request.cookies.get("veridexs_session")
+    session_id = request.cookies.get("otter_session") or request.headers.get("x-otter-session")
     session = await db.get(AuthSession, session_id or "")
     if not session or session.expires_at <= datetime.now(timezone.utc):
         raise HTTPException(status_code=401, detail="GitHub authentication required")
     return session
 
 @app.get("/auth/me")
-async def auth_me(request: Request, db: AsyncSession = Depends(get_db)) -> dict[str, bool]:
+async def auth_me(request: Request, db: AsyncSession = Depends(get_db)) -> dict[str, object]:
     try:
-        await current_session(request, db)
-        return {"authenticated": True}
+        session = await current_session(request, db)
+        user = await db.get(User, session.user_id)
+        return {"authenticated": True, "login": user.login if user else None}
     except HTTPException:
-        return {"authenticated": False}
+        return {"authenticated": False, "login": None}
 
 @app.post("/auth/logout", status_code=204)
 async def logout(request: Request, db: AsyncSession = Depends(get_db)) -> Response:
-    session_id = request.cookies.get("veridexs_session")
+    session_id = request.cookies.get("otter_session") or request.headers.get("x-otter-session")
     if session_id:
         session = await db.get(AuthSession, session_id)
         if session:
             await db.delete(session)
             await db.commit()
     response = Response(status_code=204)
-    response.delete_cookie("veridexs_session")
+    response.delete_cookie("otter_session")
     return response
 
 @app.get("/repositories", response_model=RepositoryListResponse)
@@ -222,26 +236,26 @@ async def create_code_task(repository_id: str, payload: CodeTaskCreate, session:
         raise HTTPException(status_code=404, detail="Plan not found")
     task = CodeChangeTask(id=token_urlsafe(9), repository_id=repository_id, user_id=session.user_id, plan_id=payload.plan_id, request=payload.request, status="ready_for_approval", proposed_summary="The requested change is captured and awaits human approval before any source file can be modified.")
     db.add(task); await db.commit(); await db.refresh(task)
-    return CodeTaskResponse.model_validate(task, from_attributes=True)
+    return CodeTaskResponse.from_task(task)
 
 @app.get("/repositories/{repository_id}/code-tasks", response_model=list[CodeTaskResponse])
 async def list_code_tasks(repository_id: str, session: AuthSession = Depends(current_session), db: AsyncSession = Depends(get_db)) -> list[CodeTaskResponse]:
     tasks = await db.scalars(select(CodeChangeTask).where(CodeChangeTask.repository_id == repository_id, CodeChangeTask.user_id == session.user_id).order_by(CodeChangeTask.created_at.desc()))
-    return [CodeTaskResponse.model_validate(task, from_attributes=True) for task in tasks]
+    return [CodeTaskResponse.from_task(task) for task in tasks]
 
 @app.post("/repositories/{repository_id}/code-tasks/{task_id}/approve", response_model=CodeTaskResponse)
 async def approve_code_task(repository_id: str, task_id: str, payload: CodeTaskDecision, session: AuthSession = Depends(current_session), db: AsyncSession = Depends(get_db)) -> CodeTaskResponse:
     task = await db.scalar(select(CodeChangeTask).where(CodeChangeTask.id == task_id, CodeChangeTask.repository_id == repository_id, CodeChangeTask.user_id == session.user_id))
     if not task or task.status != "patch_ready": raise HTTPException(status_code=409, detail="A patch proposal is required before approval")
     task.status = "approved"; task.approval_note = payload.note; task.approved_at = datetime.now(timezone.utc); await db.commit(); await db.refresh(task)
-    return CodeTaskResponse.model_validate(task, from_attributes=True)
+    return CodeTaskResponse.from_task(task)
 
 @app.post("/repositories/{repository_id}/code-tasks/{task_id}/reject", response_model=CodeTaskResponse)
 async def reject_code_task(repository_id: str, task_id: str, payload: CodeTaskDecision, session: AuthSession = Depends(current_session), db: AsyncSession = Depends(get_db)) -> CodeTaskResponse:
     task = await db.scalar(select(CodeChangeTask).where(CodeChangeTask.id == task_id, CodeChangeTask.repository_id == repository_id, CodeChangeTask.user_id == session.user_id))
     if not task or task.status not in {"ready_for_approval", "patch_ready"}: raise HTTPException(status_code=409, detail="Task is not awaiting decision")
     task.status = "rejected"; task.approval_note = payload.note; await db.commit(); await db.refresh(task)
-    return CodeTaskResponse.model_validate(task, from_attributes=True)
+    return CodeTaskResponse.from_task(task)
 
 @app.post("/repositories/{repository_id}/code-tasks/{task_id}/proposal", response_model=CodeTaskResponse)
 async def propose_patch(repository_id: str, task_id: str, payload: PatchProposal, session: AuthSession = Depends(current_session), db: AsyncSession = Depends(get_db)) -> CodeTaskResponse:
@@ -254,7 +268,7 @@ async def propose_patch(repository_id: str, task_id: str, payload: PatchProposal
             raise HTTPException(status_code=422, detail=f"Unsafe patch path: {file.path}")
         safe_files.append({"path": candidate.as_posix(), "content": file.content})
     task.patch_json = json.dumps(safe_files); task.changed_files = json.dumps([file["path"] for file in safe_files]); task.proposed_summary = payload.summary; task.status = "patch_ready"; await db.commit(); await db.refresh(task)
-    return CodeTaskResponse.model_validate(task, from_attributes=True)
+    return CodeTaskResponse.from_task(task)
 
 @app.post("/repositories/{repository_id}/code-tasks/{task_id}/apply", response_model=CodeTaskResponse)
 async def apply_patch(repository_id: str, task_id: str, session: AuthSession = Depends(current_session), db: AsyncSession = Depends(get_db)) -> CodeTaskResponse:
@@ -267,7 +281,7 @@ async def apply_patch(repository_id: str, task_id: str, session: AuthSession = D
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_text(item["content"], encoding="utf-8")
     task.status = "applied"; task.applied_at = datetime.now(timezone.utc); await db.commit(); await db.refresh(task)
-    return CodeTaskResponse.model_validate(task, from_attributes=True)
+    return CodeTaskResponse.from_task(task)
 
 @app.post("/repositories/{repository_id}/code-tasks/{task_id}/generate", response_model=CodeTaskResponse)
 async def generate_code_task_patch(repository_id: str, task_id: str, session: AuthSession = Depends(current_session), db: AsyncSession = Depends(get_db)) -> CodeTaskResponse:
@@ -285,7 +299,7 @@ async def generate_code_task_patch(repository_id: str, task_id: str, session: Au
         if candidate.is_absolute() or ".." in candidate.parts: raise HTTPException(status_code=502, detail="LLM returned an unsafe patch path")
         safe_files.append({"path": candidate.as_posix(), "content": str(item["content"])})
     task.patch_json = json.dumps(safe_files); task.changed_files = json.dumps([item["path"] for item in safe_files]); task.proposed_summary = str(proposal["summary"]); task.status = "patch_ready"; await db.commit(); await db.refresh(task)
-    return CodeTaskResponse.model_validate(task, from_attributes=True)
+    return CodeTaskResponse.from_task(task)
 
 @app.post("/repositories/{repository_id}/code-tasks/{task_id}/test", response_model=TestResponse)
 async def test_code_task(repository_id: str, task_id: str, session: AuthSession = Depends(current_session), db: AsyncSession = Depends(get_db)) -> TestResponse:
@@ -308,7 +322,7 @@ async def create_pull_request(repository_id: str, task_id: str, payload: PullReq
     if len(parts) < 2: raise HTTPException(status_code=422, detail="Repository URL cannot identify a GitHub project")
     owner, name = parts[-2], parts[-1]
     root = Path(settings.repository_data_dir) / repository_id
-    branch = f"veridexs/task-{task.id}"
+    branch = f"otter/task-{task.id}"
     git_repository = Repo(root)
     await __import__("asyncio").to_thread(git_repository.git.checkout, "-B", branch)
     await __import__("asyncio").to_thread(git_repository.git.add, "--", *json.loads(task.changed_files))
@@ -376,3 +390,26 @@ async def retry_import(repository_id: str, session: AuthSession = Depends(curren
     db.add(job); await db.commit(); await db.refresh(job)
     import_repository_task.delay(job.id, repository.id)
     return serialize_import_status(job)
+
+
+@app.post("/internal/github-events")
+async def internal_github_events(request: Request) -> dict[str, object]:
+    """Receive forwarded GitHub App events for durable processing."""
+    expected = os.getenv("OTTER_INTERNAL_TOKEN", "")
+    provided = request.headers.get("x-otter-internal-token", "")
+    if expected and provided != expected:
+        raise HTTPException(status_code=401, detail="Invalid internal token")
+    payload = await request.json()
+    event = str(payload.get("event") or "unknown")
+    action = None
+    nested = payload.get("payload")
+    if isinstance(nested, dict):
+        action = nested.get("action")
+    # Persist-ready hook: currently acknowledge and log shape for workers to extend.
+    return {
+        "status": "queued",
+        "event": event,
+        "action": action,
+        "delivery": payload.get("delivery"),
+        "accepted": True,
+    }

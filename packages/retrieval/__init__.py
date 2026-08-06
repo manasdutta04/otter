@@ -1,5 +1,5 @@
-"""
-Code chunking, TF-IDF + Keyword Hybrid Indexing, and Grounded Semantic Retrieval for veridexs repositories.
+﻿"""
+Code chunking, TF-IDF + Keyword Hybrid Indexing, and Grounded Semantic Retrieval for otter repositories.
 """
 from pathlib import Path
 import re

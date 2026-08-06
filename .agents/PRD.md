@@ -1,4 +1,4 @@
-# veridexs
+# Otter
 > The AI Software Engineer for Modern Development Teams
 
 ![Status](https://img.shields.io/badge/status-planning-blue)
@@ -8,9 +8,9 @@
 
 # Vision
 
-veridexs is **not another AI chatbot**.
+Otter is **not another AI chatbot**.
 
-veridexs is an **AI Software Engineer** that deeply understands an entire codebase,
+Otter is an **AI Software Engineer** that deeply understands an entire codebase,
 helps developers understand architecture,
 plans implementations,
 writes production-ready code,
@@ -45,7 +45,7 @@ They usually do **not**:
 - Suggest better system design
 - Act like a senior engineer
 
-veridexs fills this gap.
+OTTER fills this gap.
 
 ---
 
@@ -63,7 +63,7 @@ veridexs fills this gap.
 
 # Core Philosophy
 
-veridexs should think like a **Senior Engineer**.
+OTTER should think like a **Senior Engineer**.
 
 Not like ChatGPT.
 
@@ -87,7 +87,7 @@ It should:
 
 # Product Architecture
 
-                     veridexs Platform
+                     OTTER Platform
 
              ┌──────────────────────────┐
              │      Web Dashboard        │
@@ -96,7 +96,7 @@ It should:
       ┌───────────────────┼────────────────────┐
       │                   │                    │
       ▼                   ▼                    ▼
- veridexs API       veridexs CLI       VSCode Extension
+ OTTER API       OTTER CLI       VSCode Extension
 
                           │
                           ▼
@@ -185,7 +185,7 @@ It should:
 
 Upload a GitHub repository.
 
-veridexs automatically generates:
+OTTER automatically generates:
 
 - Project Summary
 - Folder Explanation
@@ -202,7 +202,7 @@ User:
 
 "Explain this repository."
 
-veridexs:
+OTTER:
 
 ✔ Architecture
 
@@ -242,7 +242,7 @@ Find performance bottlenecks.
 
 ## 3. Engineering Memory
 
-veridexs remembers
+OTTER remembers
 
 - previous conversations
 
@@ -268,7 +268,7 @@ User:
 
 "Add Google OAuth"
 
-veridexs
+OTTER
 
 ↓
 
@@ -300,7 +300,7 @@ Shows checklist
 
 User requests feature.
 
-veridexs
+OTTER
 
 - finds files
 
@@ -324,7 +324,7 @@ Instead of saying
 
 LGTM
 
-veridexs checks
+OTTER checks
 
 - Performance
 
@@ -380,7 +380,7 @@ User
 
 "I'm expecting 500k users."
 
-veridexs suggests
+OTTER suggests
 
 - Caching
 
@@ -460,27 +460,27 @@ Documentation review
 
 ---
 
-## veridexs CLI
+## OTTER CLI
 
-veridexs explain
+OTTER explain
 
-veridexs review
+OTTER review
 
-veridexs architect
+OTTER architect
 
-veridexs health
+OTTER health
 
-veridexs plan
+OTTER plan
 
-veridexs analyze
+OTTER analyze
 
-veridexs docs
+OTTER docs
 
 ---
 
 ## MCP Server
 
-Connect veridexs to
+Connect OTTER to
 
 GitHub
 
@@ -502,7 +502,7 @@ Google Drive
 
 # Folder Structure
 
-veridexs/
+OTTER/
 
     apps/
         web/
@@ -599,7 +599,7 @@ MCP Server
 
 # Design Principles
 
-veridexs should
+OTTER should
 
 ✅ Explain before coding
 
@@ -617,7 +617,7 @@ veridexs should
 
 # Long-Term Vision
 
-veridexs becomes the operating system for software engineering.
+OTTER becomes the operating system for software engineering.
 
 Instead of opening multiple tools:
 
@@ -628,15 +628,15 @@ Instead of opening multiple tools:
 - Jira
 - Documentation
 
-Developers interact with veridexs.
+Developers interact with OTTER.
 
-veridexs becomes the engineering brain of every project.
+OTTER becomes the engineering brain of every project.
 
 ---
 
 # Success Criteria
 
-veridexs is successful when a developer says:
+OTTER is successful when a developer says:
 
 "I understand this repository in 10 minutes."
 
@@ -670,7 +670,7 @@ This project should help master:
 
 # Non-Goals
 
-veridexs is NOT:
+OTTER is NOT:
 
 - Another ChatGPT wrapper
 - Another PDF chatbot
@@ -678,7 +678,7 @@ veridexs is NOT:
 - Another CRUD SaaS
 - Another Cursor clone
 
-veridexs is an engineering intelligence platform.
+OTTER is an engineering intelligence platform.
 
 ---
 

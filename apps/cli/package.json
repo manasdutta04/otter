@@ -1,0 +1,31 @@
+{
+  "name": "otter",
+  "version": "0.1.0",
+  "description": "Otter CLI — engineering intelligence from your terminal",
+  "type": "module",
+  "bin": {
+    "otter": "./dist/cli.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsc -p tsconfig.json --watch",
+    "start": "node dist/cli.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "otter",
+    "cli",
+    "engineering-intelligence",
+    "codebase"
+  ],
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^22.10.5",
+    "typescript": "^5.7.2"
+  }
+}

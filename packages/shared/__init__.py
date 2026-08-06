@@ -1,8 +1,5 @@
-"""
-Shared utilities, LLM integration, and configurations for veridexs packages.
-"""
-import os
+"""Shared utilities, LLM integration, and configurations for Otter packages."""
 
 def get_llm_client():
-    """Placeholder or wrapper for model interactions (LiteLLM / OpenAI / Ollama)."""
+    """Placeholder LLM client factory — wired through LiteLLM in later phases."""
     return None

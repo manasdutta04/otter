@@ -1,6 +1,6 @@
-# veridexs Agent Guide
+# Otter Agent Guide
 
-veridexs is an engineering-intelligence platform that understands repositories, explains architecture, plans changes, assists with coding, and reviews engineering quality.
+Otter is an engineering-intelligence platform that understands repositories, explains architecture, plans changes, assists with coding, and reviews engineering quality.
 
 ## Working principles
 
@@ -13,5 +13,4 @@ veridexs is an engineering-intelligence platform that understands repositories, 
 
 ## Scope
 
-The product is organized into applications under `apps/` and reusable capabilities under `packages/`. Product requirements are defined in `PRD.md`.
-
+The product is organized into applications under `apps/` and reusable capabilities under `packages/`. Product requirements are defined in `PRD.md`. Brand: **Otter** 🦦.

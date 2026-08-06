@@ -1,18 +1,30 @@
-# veridexs CLI
+# Otter CLI 🦦
 
-The CLI is a thin terminal client for the veridexs API. It does not duplicate repository analysis logic.
+Thin TypeScript client for the Otter API. Same contract as the web workspace.
 
-## Local usage
+## Install / run
 
-```powershell
-pip install -e apps/cli
-$env:VERIDEXS_SESSION = "your_session_cookie_value"
-veridexs health
-veridexs analyze <repository-id>
-veridexs review <repository-id>
-veridexs architect <repository-id>
-veridexs plan <repository-id> "Add Google OAuth"
-veridexs docs <repository-id>
+```bash
+# from repo
+cd apps/cli && npm install && npm run build
+node dist/cli.js --help
+
+# published / one-shot (after npm publish)
+npx otter login
+bunx otter repos list
 ```
 
-The session cookie is intentionally supplied through the environment rather than printed by the API or stored in the CLI source.
+## Auth
+
+`otter login` opens GitHub OAuth and writes `~/.otter/config.json`.
+
+You can also set `OTTER_SESSION` and `OTTER_API_URL`.
+
+## Commands
+
+- `login` / `logout`
+- `health`
+- `repos list|import|status`
+- `analyze` / `chat` / `plan` / `health-report` / `review` / `architect` / `docs`
+
+Legacy Python client lives in `apps/cli-py` for internal use only.

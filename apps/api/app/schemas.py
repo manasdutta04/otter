@@ -1,5 +1,6 @@
 from datetime import datetime
 from typing import Literal
+import json
 from pydantic import BaseModel, Field
 
 class HealthResponse(BaseModel):
@@ -121,6 +122,28 @@ class CodeTaskResponse(BaseModel):
     created_at: datetime
     approved_at: datetime | None
     applied_at: datetime | None
+
+    @classmethod
+    def from_task(cls, task: object) -> "CodeTaskResponse":
+        changed = getattr(task, "changed_files", "[]")
+        if isinstance(changed, str):
+            try:
+                changed = json.loads(changed)
+            except json.JSONDecodeError:
+                changed = []
+        return cls(
+            id=task.id,
+            repository_id=task.repository_id,
+            plan_id=task.plan_id,
+            request=task.request,
+            status=task.status,
+            proposed_summary=task.proposed_summary,
+            changed_files=list(changed or []),
+            approval_note=task.approval_note,
+            created_at=task.created_at,
+            approved_at=task.approved_at,
+            applied_at=task.applied_at,
+        )
 
 class PatchFile(BaseModel):
     path: str = Field(min_length=1, max_length=500)

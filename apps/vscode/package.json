@@ -1,21 +1,53 @@
 {
-  "name": "veridexs-vscode",
-  "displayName": "veridexs",
-  "description": "Repository intelligence from veridexs inside VS Code.",
+  "name": "otter-vscode",
+  "displayName": "Otter",
+  "description": "Repository intelligence from Otter inside VS Code.",
   "version": "0.1.0",
-  "publisher": "veridexs",
+  "publisher": "otter",
   "engines": { "vscode": "^1.85.0" },
   "categories": ["Other"],
-  "activationEvents": ["onCommand:veridexs.explain", "onCommand:veridexs.review", "onCommand:veridexs.plan"],
+  "activationEvents": [
+    "onCommand:otter.explain",
+    "onCommand:otter.review",
+    "onCommand:otter.plan",
+    "onCommand:otter.chat",
+    "onCommand:otter.health",
+    "onCommand:otter.memory"
+  ],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
-      { "command": "veridexs.explain", "title": "veridexs: Explain Repository" },
-      { "command": "veridexs.review", "title": "veridexs: Review Repository" },
-      { "command": "veridexs.plan", "title": "veridexs: Create Implementation Plan" }
+      { "command": "otter.explain", "title": "Otter: Explain Repository" },
+      { "command": "otter.chat", "title": "Otter: Ask Repository" },
+      { "command": "otter.review", "title": "Otter: Review Repository" },
+      { "command": "otter.health", "title": "Otter: Repository Health" },
+      { "command": "otter.plan", "title": "Otter: Create Implementation Plan" },
+      { "command": "otter.memory", "title": "Otter: Engineering Memory" }
     ],
-    "configuration": { "title": "veridexs", "properties": { "veridexs.apiUrl": { "type": "string", "default": "http://localhost:8000" } } }
+    "configuration": {
+      "title": "Otter",
+      "properties": {
+        "otter.apiUrl": {
+          "type": "string",
+          "default": "http://localhost:8000",
+          "description": "Otter API base URL"
+        },
+        "otter.session": {
+          "type": "string",
+          "default": "",
+          "description": "Otter session token (from otter login / cookie)"
+        }
+      }
+    }
   },
-  "scripts": { "compile": "tsc -p ./", "package": "npm run compile && vsce package" },
-  "devDependencies": { "@types/node": "^22.0.0", "@types/vscode": "^1.85.0", "typescript": "^5.6.0", "@vscode/vsce": "^3.2.0" }
+  "scripts": {
+    "compile": "tsc -p ./",
+    "package": "npm run compile && vsce package"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/vscode": "^1.85.0",
+    "typescript": "^5.6.0",
+    "@vscode/vsce": "^3.2.0"
+  }
 }

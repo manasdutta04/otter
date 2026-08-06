@@ -1,3 +1,5 @@
-# veridexs VS Code extension
+# Otter VS Code extension 🦦
 
-This extension adds commands for repository intelligence, review, and implementation plans. Configure `veridexs.apiUrl`; authentication is supplied by the local API session in the first release.
+Commands for repository intelligence, chat, review, health, plans, and memory.
+
+Configure `otter.apiUrl` and `otter.session` (from `otter login` / web cookie).

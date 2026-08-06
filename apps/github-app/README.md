@@ -1,3 +1,13 @@
-# veridexs GitHub App boundary
+# Otter GitHub App 🦦
 
-This service is the webhook boundary for GitHub App events. Configure `GITHUB_WEBHOOK_SECRET` to require GitHub's `X-Hub-Signature-256`; without it, local development accepts unsigned events. Event processing will be connected to durable repository jobs in the next GitHub integration hardening step.
+Webhook boundary for GitHub App events.
+
+- Verifies `X-Hub-Signature-256` when `GITHUB_WEBHOOK_SECRET` is set
+- Accepts `pull_request`, `push`, `installation`, and `ping`
+- Forwards durable events to `OTTER_API_URL/internal/github-events` when reachable
+
+```bash
+export GITHUB_WEBHOOK_SECRET=...
+export OTTER_API_URL=http://api:8000
+uvicorn app:app --host 0.0.0.0 --port 9000
+```

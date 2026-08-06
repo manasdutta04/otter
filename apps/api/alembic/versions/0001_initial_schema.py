@@ -1,4 +1,4 @@
-"""Create veridexs Phase 1 schema."""
+"""Create OTTER Phase 1 schema."""
 from alembic import op
 import sqlalchemy as sa
 
