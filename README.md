@@ -4,15 +4,32 @@ Otter is an AI software engineer for modern teams — an engineering-intelligenc
 
 **Understand → Explain → Plan → Review → Build (with approval).**
 
-## Local development
+## Quickstart (self-host)
 
-### Native (recommended when freeing RAM for Ollama)
+Same idea as platforms like [Archestra](https://archestra.ai/): pull/build with Docker, open the browser, bring your own model (Ollama on the host or any OpenAI-compatible API).
 
-Docker off. Requires local PostgreSQL, Node, Python, and Ollama.
+**Requires:** Docker Engine + Compose v2. **Recommended:** Ollama on the host (`ollama pull qwen2.5-coder:7b`).
 
-1. Copy `.env.example` to `.env` and set GitHub OAuth credentials.
-2. Start Ollama and pull models: `ollama pull qwen2.5-coder:7b`
-3. Set your Postgres superuser password, then run:
+```bash
+cp .env.example .env
+# Set GITHUB_CLIENT_ID and GITHUB_CLIENT_SECRET
+# OAuth callback: http://127.0.0.1:8000/auth/github/callback
+
+docker compose -f docker/compose.platform.yml up --build -d
+```
+
+Open [http://127.0.0.1:3000](http://127.0.0.1:3000).
+
+Default stack = **one** Otter image (`otter/platform`) + official `postgres:16-alpine` + `redis:7-alpine`. Details: [docs/self-host.md](docs/self-host.md).
+
+## Native development (no Docker)
+
+Use when freeing RAM for Ollama on the host.
+
+1. Copy `.env.example` → `.env` and set GitHub OAuth (use `localhost` URLs for native).
+2. Start Ollama and pull models.
+3. Local Postgres with user/db `otter` / `otter`.
+4. Run:
 
 ```powershell
 $env:PGPASSWORD = "YOUR_POSTGRES_PASSWORD"
@@ -22,7 +39,6 @@ powershell -ExecutionPolicy Bypass -File scripts/dev-native.ps1
 Or manually:
 
 ```powershell
-# API
 cd apps/api
 python -m venv .venv
 .\.venv\Scripts\pip install -r requirements.txt
@@ -33,38 +49,29 @@ $env:PYTHONPATH = (Get-Location).Path
 .\.venv\Scripts\alembic.exe upgrade head
 .\.venv\Scripts\uvicorn.exe app.main:app --reload --host 127.0.0.1 --port 8000
 
-# Web (second terminal)
+# second terminal
 cd apps/web
 npm install
 npm run dev
 ```
 
-4. Open [http://localhost:3000](http://localhost:3000).
+## Contributor Docker (bind mounts)
 
-### Docker
-
-1. Copy `.env.example` to `.env`.
-2. Create a GitHub OAuth App with callback `http://localhost:8000/auth/github/callback` and fill in credentials.
-3. Run `docker compose -f docker/compose.yml up --build`.
-4. Open [http://localhost:3000](http://localhost:3000).
-
-If you previously ran this stack as `veridexs`, reset the Postgres volume once so the `otter` role is created:
-
-```powershell
-docker compose -f docker/compose.yml down
-docker volume rm docker_postgres_data
-docker compose -f docker/compose.yml up --build
+```bash
+docker compose -f docker/compose.dev.yml up --build
 ```
+
+Not the product install path — use `compose.platform.yml` for self-host.
 
 ## Surfaces
 
 | Surface | How to use |
 |---------|------------|
-| Web | Marketing at `/`, workspace at `/app` |
-| CLI | `npx otter` / `bunx otter` (see `apps/cli`) |
+| Web | Self-host UI at `http://127.0.0.1:3000` (`/app` workspace) |
+| CLI | `npx otter` / `bunx otter` (same API) |
 | MCP | `python apps/mcp/server.py` with `OTTER_API_URL` / `OTTER_SESSION` |
 | VS Code | Extension in `apps/vscode` |
-| GitHub App | Webhooks on port `9000` |
+| GitHub App | Optional; `compose.dev.yml --profile github` |
 
 ## Product principles
 
@@ -72,3 +79,4 @@ docker compose -f docker/compose.yml up --build
 - Approval before any write
 - One API contract across all clients
 - Grounded answers with source citations
+- Self-host first; BYO local or remote LLM

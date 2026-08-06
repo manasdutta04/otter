@@ -1,0 +1,77 @@
+# Production / self-host stack (Archestra-style).
+# One custom image (otter/platform) + official Postgres + official Redis.
+#
+#   docker compose -f docker/compose.platform.yml up --build -d
+#   open http://127.0.0.1:3000
+
+name: otter
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: otter
+      POSTGRES_PASSWORD: otter
+      POSTGRES_DB: otter
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U otter -d otter"]
+      interval: 2s
+      timeout: 5s
+      retries: 20
+      start_period: 5s
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  platform:
+    image: otter/platform:local
+    build:
+      context: ..
+      dockerfile: docker/platform/Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://127.0.0.1:8000}
+        NEXT_PUBLIC_URL: ${NEXT_PUBLIC_URL:-http://127.0.0.1:3000}
+    ports:
+      - "127.0.0.1:3000:3000"
+      - "127.0.0.1:8000:8000"
+    env_file:
+      - path: ../.env
+        required: false
+    environment:
+      DATABASE_URL: postgresql+asyncpg://otter:otter@postgres:5432/otter
+      REDIS_URL: redis://redis:6379/0
+      REPOSITORY_DATA_DIR: /data/repositories
+      PYTHONPATH: /app/api
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: "5432"
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      NEXT_PUBLIC_URL: ${NEXT_PUBLIC_URL:-http://127.0.0.1:3000}
+      # Do not reuse native LLM_BASE_URL=127.0.0.1 from .env (that is the container loopback).
+      LLM_BASE_URL: ${PLATFORM_LLM_BASE_URL:-http://host.docker.internal:11434/v1}
+      LLM_MODEL: ${LLM_MODEL:-qwen2.5-coder:7b}
+      LLM_FREE_FAILOVER: ${LLM_FREE_FAILOVER:-true}
+      GITHUB_REDIRECT_URI: ${GITHUB_REDIRECT_URI:-http://127.0.0.1:8000/auth/github/callback}
+    volumes:
+      - repository_data:/data/repositories
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  repository_data:
