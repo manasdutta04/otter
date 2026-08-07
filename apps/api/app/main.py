@@ -10,6 +10,7 @@ from datetime import datetime, timedelta, timezone
 from secrets import token_urlsafe
 from urllib.parse import urlencode
 import json
+import logging
 import os
 import re
 import shutil
@@ -466,6 +467,7 @@ async def repository_chat(repository_id: str, payload: ChatRequest, session: Aut
     root = Path(settings.repository_data_dir) / repository_id
     intel = await db.get(RepositoryIntelligence, repository_id)
     from app.intelligence.explain import explain_analysis, is_meta_architecture_question
+    from app.intelligence.chat_answer import explain_retrieved_context
 
     if intel and is_meta_architecture_question(payload.question):
         try:
@@ -474,19 +476,26 @@ async def repository_chat(repository_id: str, payload: ChatRequest, session: Aut
                 explanation = await explain_analysis(analysis, question=payload.question)
                 parts = [explanation["summary"]]
                 if explanation.get("auth_explanation"):
-                    parts.append("Auth: " + explanation["auth_explanation"])
+                    parts.append(explanation["auth_explanation"])
                 if explanation.get("api_explanation"):
-                    parts.append("API: " + explanation["api_explanation"])
+                    parts.append(explanation["api_explanation"])
                 if explanation.get("folder_explanations"):
-                    folder_bits = ", ".join(f"{k}: {v}" for k, v in list(explanation["folder_explanations"].items())[:8])
-                    parts.append("Folders: " + folder_bits)
+                    folder_bits = "; ".join(f"{k}: {v}" for k, v in list(explanation["folder_explanations"].items())[:8])
+                    parts.append(folder_bits)
                 return ChatResponse(answer="\n\n".join(parts), sources=["repository intelligence"], primary_file=None, primary_lines=None, excerpt=None)
         except Exception:  # noqa: BLE001 — fall through to retrieval
             pass
     result = answer_repository_question(root, payload.question)
     sources = [str(item["path"]) for item in result.get("sources", [])]
+    answer = str(result.get("answer") or "")
+    contexts = result.get("contexts") or []
+    if contexts:
+        try:
+            answer = await explain_retrieved_context(payload.question, contexts)
+        except Exception as llm_error:  # noqa: BLE001 — keep grounded heuristic answer
+            logging.getLogger(__name__).warning("Chat LLM explain skipped: %s", llm_error)
     return ChatResponse(
-        answer=str(result["answer"]),
+        answer=answer,
         sources=sources,
         primary_file=result.get("primary_file"),
         primary_lines=result.get("primary_lines"),

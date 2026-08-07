@@ -172,46 +172,171 @@ def _plain_excerpt(content: str, max_lines: int = 10) -> str:
     return "\n".join(cleaned)
 
 
+_DEF_RE = re.compile(
+    r"^\s*(?:export\s+)?(?:async\s+)?(?:function|class|const|let|var|def|async def)\s+([A-Za-z0-9_]+)",
+    re.MULTILINE,
+)
+_ROUTE_RE = re.compile(
+    r"(?:router|app|Route)\s*\.\s*(get|post|put|patch|delete|use)\s*\(\s*[`'\"]([^`'\"]+)",
+    re.IGNORECASE,
+)
+_IMPORT_HINT_RE = re.compile(
+    r"(?:from\s+['\"]([^'\"]+)['\"]|require\(\s*['\"]([^'\"]+)['\"]\s*\)|import\s+.+?\s+from\s+['\"]([^'\"]+)['\"])",
+)
+
+
+def _content_signals(content: str) -> dict[str, list[str]]:
+    defs = [m.group(1) for m in _DEF_RE.finditer(content)][:8]
+    routes = [f"{m.group(1).upper()} {m.group(2)}" for m in _ROUTE_RE.finditer(content)][:6]
+    imports: list[str] = []
+    for m in _IMPORT_HINT_RE.finditer(content):
+        pkg = m.group(1) or m.group(2) or m.group(3)
+        if pkg and not pkg.startswith(".") and pkg not in imports:
+            imports.append(pkg)
+        if len(imports) >= 6:
+            break
+    keywords = []
+    lowered = content.lower()
+    for term, label in (
+        ("jwt", "JWT"),
+        ("passport", "Passport"),
+        ("bcrypt", "password hashing"),
+        ("session", "sessions"),
+        ("cookie", "cookies"),
+        ("oauth", "OAuth"),
+        ("next-auth", "NextAuth"),
+        ("middleware", "middleware"),
+        ("express", "Express"),
+        ("fastapi", "FastAPI"),
+        ("django", "Django"),
+        ("mongoose", "Mongoose"),
+        ("prisma", "Prisma"),
+        ("supabase", "Supabase"),
+        ("firebase", "Firebase"),
+        ("axios", "HTTP client"),
+        ("zustand", "Zustand store"),
+        ("redux", "Redux"),
+    ):
+        if term in lowered and label not in keywords:
+            keywords.append(label)
+    return {"defs": defs, "routes": routes, "imports": imports, "keywords": keywords}
+
+
+def _explain_from_chunk(question: str, primary: dict, others: list[dict]) -> str:
+    """Write a teammate-style explanation from retrieved source, not just a file pointer."""
+    path = primary["rel_path"]
+    start = primary["start_line"]
+    end = primary["end_line"]
+    content = primary.get("content") or ""
+    signals = _content_signals(content)
+    q = question.lower().strip().rstrip("?")
+
+    paragraphs: list[str] = []
+
+    # Lead: what this is about
+    topic = "this"
+    for term in ("auth", "authentication", "login", "session", "wallet", "api", "database", "middleware"):
+        if term in q:
+            topic = term
+            break
+
+    lead_bits: list[str] = []
+    if signals["keywords"]:
+        lead_bits.append("uses " + ", ".join(signals["keywords"][:4]))
+    if signals["defs"]:
+        lead_bits.append("defines " + ", ".join(f"`{d}`" for d in signals["defs"][:4]))
+    if signals["routes"]:
+        lead_bits.append("exposes " + ", ".join(signals["routes"][:4]))
+
+    if lead_bits:
+        paragraphs.append(
+            f"In `{path}` (lines {start}–{end}), {topic} {' and '.join(lead_bits[:2])}."
+            + (f" Also: {lead_bits[2]}." if len(lead_bits) > 2 else "")
+        )
+    else:
+        excerpt = _plain_excerpt(content, max_lines=4)
+        if excerpt:
+            paragraphs.append(
+                f"In `{path}` (lines {start}–{end}), the relevant logic looks like this: {excerpt}"
+            )
+        else:
+            paragraphs.append(f"`{path}` (lines {start}–{end}) is the strongest match for {topic} in this repo.")
+
+    # Detail from content: meaningful non-empty lines that look like logic
+    detail_lines: list[str] = []
+    for raw in content.splitlines():
+        line = raw.strip()
+        if not line or line.startswith("//") or line.startswith("#") or line.startswith("*"):
+            continue
+        if line.startswith("import ") or line.startswith("from ") or line.startswith("require("):
+            continue
+        if len(line) < 8:
+            continue
+        detail_lines.append(line)
+        if len(detail_lines) >= 5:
+            break
+    if detail_lines and not signals["defs"] and not signals["routes"]:
+        paragraphs.append("Key lines nearby: " + " · ".join(f"`{ln[:100]}`" for ln in detail_lines[:3]) + ".")
+
+    if others:
+        related_bits: list[str] = []
+        for hit in others[:3]:
+            other_signals = _content_signals(hit.get("content") or "")
+            role = ""
+            if other_signals["defs"]:
+                role = f" (`{other_signals['defs'][0]}`)"
+            elif other_signals["keywords"]:
+                role = f" ({other_signals['keywords'][0]})"
+            related_bits.append(f"`{hit['rel_path']}`{role}")
+        paragraphs.append("Related pieces: " + ", ".join(related_bits) + ".")
+
+    if any(term in q for term in ("how", "explain", "managed", "works", "flow")):
+        paragraphs.append(
+            "Flow tip: start at the entry above, then follow imports/calls into the related files — "
+            "that usually shows how the request is validated and where identity is stored."
+        )
+
+    return "\n\n".join(paragraphs)
+
+
 def _pick_primary(question: str, results: list[dict]) -> dict:
     q = question.lower()
     code_exts = {".ts", ".tsx", ".js", ".jsx", ".py", ".go", ".rs", ".java"}
     wants_implementation = any(
         term in q
-        for term in ("connection", "connect", "wallet", "auth", "api", "hook", "component", "service", "client", "provider")
+        for term in ("connection", "connect", "wallet", "auth", "api", "hook", "component", "service", "client", "provider", "managed", "how")
     )
     if wants_implementation:
         code_hits = [
             hit
             for hit in results
             if Path(hit["rel_path"]).suffix.lower() in code_exts
-            or any(term in hit["rel_path"].lower() for term in ("connect", "wallet", "solana", "auth", "provider", "client"))
+            or any(
+                term in hit["rel_path"].lower()
+                for term in ("connect", "wallet", "solana", "auth", "provider", "client", "middleware", "session")
+            )
         ]
         if code_hits:
+            def richness(hit: dict) -> float:
+                text = hit.get("content") or ""
+                sig = _content_signals(text)
+                score = len(text) / 100.0
+                score += 8 * len(sig["defs"])
+                score += 6 * len(sig["routes"])
+                score += 3 * len(sig["keywords"])
+                # Penalize near-empty export-only stubs
+                stripped = text.strip()
+                if stripped.count("\n") < 2 and "export default" in stripped:
+                    score -= 20
+                return score
+
+            code_hits.sort(key=richness, reverse=True)
             return code_hits[0]
     if "agent" in q:
         agent_hits = [hit for hit in results if "agent" in hit["rel_path"].lower()]
         if agent_hits:
             return agent_hits[0]
     return results[0]
-
-
-def _natural_answer(question: str, primary: dict, others: list[dict]) -> str:
-    path = primary["rel_path"]
-    start = primary["start_line"]
-    end = primary["end_line"]
-    q = question.lower().strip().rstrip("?")
-
-    if any(term in q for term in ("where", "which file", "what file", "find")):
-        lead = f"Look at `{path}` (around lines {start}–{end})."
-    elif any(term in q for term in ("how", "explain", "tell me", "about")):
-        lead = f"`{path}` is the best place to start for this — lines {start}–{end}."
-    else:
-        lead = f"The most relevant place in this repo is `{path}` (lines {start}–{end})."
-
-    if others:
-        related = ", ".join(f"`{hit['rel_path']}`" for hit in others[:3])
-        return f"{lead}\n\nAlso worth checking: {related}."
-    return lead
 
 
 def answer_repository_question(repo_root: Path, question: str) -> dict:
@@ -225,6 +350,7 @@ def answer_repository_question(repo_root: Path, question: str) -> dict:
                 "Try naming a file, folder, or symbol — for example “solana wallet connection” or “auth middleware”."
             ),
             "sources": [],
+            "contexts": [],
         }
 
     primary = _pick_primary(question, results)
@@ -252,9 +378,19 @@ def answer_repository_question(repo_root: Path, question: str) -> dict:
         }
         for hit in [primary, *unique_others]
     ]
+    contexts = [
+        {
+            "path": hit["rel_path"],
+            "start_line": hit["start_line"],
+            "end_line": hit["end_line"],
+            "content": (hit.get("content") or "")[:2500],
+        }
+        for hit in [primary, *unique_others[:4]]
+    ]
     return {
-        "answer": _natural_answer(question, primary, unique_others),
+        "answer": _explain_from_chunk(question, primary, unique_others),
         "sources": sources,
+        "contexts": contexts,
         "primary_file": primary["rel_path"],
         "primary_lines": f"L{primary['start_line']}-{primary['end_line']}",
         "excerpt": _plain_excerpt(primary["content"]),

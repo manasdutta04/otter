@@ -37,8 +37,12 @@ export default function ChatPage() {
     );
   }
 
-  const lead = result?.answer?.split("\n\n")[0] ?? "";
-  const related = result?.answer?.split("\n\n").slice(1).join(" ").trim() ?? "";
+  const paragraphs = (result?.answer ?? "")
+    .split(/\n\n+/)
+    .map((p) => p.trim())
+    .filter(Boolean);
+  const lead = paragraphs[0] ?? "";
+  const rest = paragraphs.slice(1);
 
   return (
     <div className="stack">
@@ -86,7 +90,11 @@ export default function ChatPage() {
             </div>
           ) : null}
 
-          {related ? <p className="chat-related">{related.replace(/`([^`]+)`/g, "$1")}</p> : null}
+          {rest.map((para) => (
+            <p className="chat-related" key={para.slice(0, 48)}>
+              {para.replace(/`([^`]+)`/g, "$1")}
+            </p>
+          ))}
 
           {(result.sources ?? []).length > 0 ? (
             <div className="chat-sources">
