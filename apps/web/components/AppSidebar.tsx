@@ -50,6 +50,29 @@ function IconDocs() {
   );
 }
 
+function IconPanelCollapse({ collapsed }: { collapsed: boolean }) {
+  return (
+    <svg
+      className={collapsed ? "studio-rail-pin-ico is-collapsed" : "studio-rail-pin-ico"}
+      width="16"
+      height="16"
+      viewBox="0 0 16 16"
+      fill="none"
+      aria-hidden
+    >
+      <rect x="1.75" y="2.5" width="12.5" height="11" rx="2" stroke="currentColor" strokeWidth="1.4" />
+      <path d="M6 2.5v11" stroke="currentColor" strokeWidth="1.4" />
+      <path
+        d={collapsed ? "M9.2 5.75 11.5 8l-2.3 2.25" : "M10.8 5.75 8.5 8l2.3 2.25"}
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 export function AppSidebar({ below, repoLabel }: AppSidebarProps) {
   const pathname = usePathname();
   const onModels = pathname.startsWith("/app/models");
@@ -99,16 +122,17 @@ export function AppSidebar({ below, repoLabel }: AppSidebarProps) {
     >
       <div className="studio-rail-top">
         <div className="studio-rail-brand">
-          <Brand href="/app" size="sm" />
+          <Brand href="/app" size="md" />
         </div>
         <button
           type="button"
           className="studio-rail-pin"
           onClick={toggleCollapsed}
           aria-pressed={!collapsed}
+          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
           title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
-          {collapsed ? "»" : "«"}
+          <IconPanelCollapse collapsed={collapsed} />
         </button>
       </div>
 
