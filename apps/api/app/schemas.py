@@ -287,3 +287,38 @@ class ArchitectureGraphResponse(BaseModel):
     nodes: list[GraphNode]
     edges: list[GraphEdge]
     generated_at: datetime
+
+class LlmSettingsResponse(BaseModel):
+    provider: Literal["ollama", "openai_compatible"]
+    base_url: str
+    model: str
+    api_key_set: bool = False
+    api_key_masked: str = ""
+    free_failover: bool = True
+    configured: bool = False
+
+
+class LlmSettingsUpdate(BaseModel):
+    provider: Literal["ollama", "openai_compatible"]
+    base_url: str = Field(min_length=8, max_length=500)
+    model: str = Field(min_length=1, max_length=255)
+    api_key: str | None = Field(default=None, max_length=500)
+    free_failover: bool = True
+    keep_existing_key: bool = False
+
+
+class LlmModelsResponse(BaseModel):
+    models: list[str]
+    provider: str
+    base_url: str
+
+
+class LlmTestResponse(BaseModel):
+    ok: bool
+    reachable: bool
+    completion_ok: bool
+    models: list[str]
+    model: str
+    provider: str
+    base_url: str
+    detail: str = ""

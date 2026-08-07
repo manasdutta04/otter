@@ -18,7 +18,8 @@ cp .env.example .env
 docker compose -f docker/compose.platform.yml up --build -d
 ```
 
-Open [http://127.0.0.1:3000](http://127.0.0.1:3000).
+1. Open [http://127.0.0.1:3000/app/models](http://127.0.0.1:3000/app/models) and connect **Local Ollama** (or another free OpenAI-compatible endpoint).
+2. Connect GitHub, then import a repository from `/app`.
 
 Default stack = **one** Otter image (`otter/platform`) + official `postgres:16-alpine` + `redis:7-alpine`. Details: [docs/self-host.md](docs/self-host.md).
 

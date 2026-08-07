@@ -1,5 +1,5 @@
 from datetime import datetime
-from sqlalchemy import DateTime, ForeignKey, Integer, String, Text, func
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column
 from .database import Base
 
@@ -147,3 +147,17 @@ class GeneratedDocument(Base):
     title: Mapped[str] = mapped_column(String(255))
     content: Mapped[str] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class LlmRuntimeSettings(Base):
+    """Singleton deployment settings for Model Providers (self-host)."""
+
+    __tablename__ = "llm_runtime_settings"
+    id: Mapped[str] = mapped_column(String(32), primary_key=True, default="default")
+    provider: Mapped[str] = mapped_column(String(32), default="ollama")
+    base_url: Mapped[str] = mapped_column(Text, default="http://127.0.0.1:11434/v1")
+    model: Mapped[str] = mapped_column(String(255), default="qwen2.5-coder:7b")
+    api_key: Mapped[str] = mapped_column(Text, default="")
+    free_failover: Mapped[bool] = mapped_column(Boolean, default=True)
+    configured: Mapped[bool] = mapped_column(Boolean, default=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())

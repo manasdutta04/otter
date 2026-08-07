@@ -818,25 +818,26 @@ def _resolve_base_url(base_url: str) -> str:
 
 
 def _validate_llm_settings() -> tuple[str, str, str]:
-    settings = get_settings()
-    key = (settings.llm_api_key or "").strip()
-    model = (settings.llm_model or "").strip()
-    base = (settings.llm_base_url or "").strip()
+    from app.llm_settings import get_effective_runtime_sync
+
+    runtime = get_effective_runtime_sync()
+    key = (runtime.api_key or "").strip()
+    model = (runtime.model or "").strip()
+    base = (runtime.base_url or "").strip()
     if not base:
         raise PatchGenerationError(
-            "LLM_BASE_URL is not set. For local Ollama use http://host.docker.internal:11434/v1"
+            "LLM base URL is not set. Open Models and choose Local Ollama "
+            "(http://host.docker.internal:11434/v1 in Docker)."
         )
     if not key and not _is_ollama_base(base):
         raise PatchGenerationError(
-            "LLM_API_KEY is not set. For local Ollama leave it empty and set "
-            "LLM_BASE_URL=http://host.docker.internal:11434/v1"
+            "LLM API key is not set. For local Ollama leave it empty; for OpenAI-compatible providers set a key in Models."
         )
     if model.lower() in PLACEHOLDER_MODELS:
         raise PatchGenerationError(
-            f"LLM_MODEL `{model or '(empty)'}` is a placeholder. "
-            "Set a local Ollama tag such as qwen2.5-coder:7b."
+            f"LLM model `{model or '(empty)'}` is a placeholder. "
+            "Open Models and pick a local Ollama tag such as qwen2.5-coder:7b."
         )
-    # Ollama accepts any bearer; use a sentinel so Authorization still parses.
     if not key and _is_ollama_base(base):
         key = "ollama"
     return key, model, base
@@ -961,6 +962,12 @@ async def generate_patch(
     )
 
     free_failover = bool(getattr(settings, "llm_free_failover", True))
+    try:
+        from app.llm_settings import get_effective_runtime_sync
+
+        free_failover = get_effective_runtime_sync().free_failover
+    except Exception:  # noqa: BLE001
+        pass
     if _is_ollama_base(base):
         free_failover = True
     candidates = _free_model_candidates(model, free_failover=free_failover)

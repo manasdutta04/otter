@@ -1,10 +1,11 @@
 "use client";
 
 import { FormEvent, useCallback, useEffect, useState } from "react";
+import Link from "next/link";
 import { EmptyState } from "../../../../../components/EmptyState";
 import { useRepository } from "../../../../../components/RepositoryProvider";
 import { StatusBadge } from "../../../../../components/StatusBadge";
-import { api, type CodeTask, type PullRequestResult, type TestResult } from "../../../../../lib/api";
+import { api, type CodeTask, type LlmTestResult, type PullRequestResult, type TestResult } from "../../../../../lib/api";
 
 function stripLlmSummaryPrefix(text: string): string {
   return text.replace(/^(\[llm:[^\]]+\]\s*)+/i, "").trim();
@@ -24,6 +25,21 @@ export default function CodingPage() {
   const [prTitle, setPrTitle] = useState("");
   const [prBody, setPrBody] = useState("");
   const [prTaskId, setPrTaskId] = useState<string | null>(null);
+  const [llmOk, setLlmOk] = useState<boolean | null>(null);
+  const [llmDetail, setLlmDetail] = useState("");
+
+  useEffect(() => {
+    void (async () => {
+      try {
+        const result: LlmTestResult = await api.testLlmSettings();
+        setLlmOk(result.ok);
+        setLlmDetail(result.detail || "");
+      } catch (err) {
+        setLlmOk(false);
+        setLlmDetail(err instanceof Error ? err.message : "Model check failed");
+      }
+    })();
+  }, []);
 
   const loadTasks = useCallback(async (opts?: { force?: boolean }) => {
     if (!isReady) {
@@ -138,6 +154,18 @@ export default function CodingPage() {
         </div>
       </div>
 
+      {llmOk === false ? (
+        <div className="model-banner">
+          <div>
+            <h2>Model not ready</h2>
+            <p className="muted">{llmDetail || "Configure Ollama (or another free endpoint) under Models before generating."}</p>
+          </div>
+          <Link className="btn btn-primary btn-sm" href="/app/models">
+            Open Models
+          </Link>
+        </div>
+      ) : null}
+
       <section className="panel">
         <h2>Create task</h2>
         <form className="form-stack" onSubmit={(e) => void createTask(e)}>
@@ -150,7 +178,7 @@ export default function CodingPage() {
               placeholder="Add a /health endpoint that returns ok…"
               required
               minLength={8}
-              disabled={creating}
+              disabled={creating || llmOk === false}
             />
           </div>
           <div>

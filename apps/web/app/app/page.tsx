@@ -4,12 +4,14 @@ import Link from "next/link";
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import { AppShell } from "../../components/AppShell";
 import { EmptyState } from "../../components/EmptyState";
+import { ModelStatusChip } from "../../components/ModelStatusChip";
 import { StatusBadge } from "../../components/StatusBadge";
 import {
   ApiError,
   api,
   GITHUB_LOGIN_URL,
   REFRESH_INTERVAL_MS,
+  type LlmTestResult,
   type Repository,
 } from "../../lib/api";
 
@@ -27,6 +29,7 @@ export default function AppDashboardPage() {
   const [lastSyncedAt, setLastSyncedAt] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [loggingOut, setLoggingOut] = useState(false);
+  const [llmTest, setLlmTest] = useState<LlmTestResult | null>(null);
 
   const loadRepositories = useCallback(async () => {
     if (!authenticated) return;
@@ -64,6 +67,16 @@ export default function AppDashboardPage() {
   }, [loadSession]);
 
   useEffect(() => {
+    void (async () => {
+      try {
+        setLlmTest(await api.testLlmSettings());
+      } catch {
+        setLlmTest(null);
+      }
+    })();
+  }, []);
+
+  useEffect(() => {
     if (!sessionChecked || !authenticated) return;
     void loadRepositories();
     const interval = window.setInterval(() => {
@@ -92,7 +105,7 @@ export default function AppDashboardPage() {
     try {
       await api.logout();
     } catch {
-      /* still clear local auth feel */
+      /* ignore */
     } finally {
       setAuthenticated(false);
       setRepositories([]);
@@ -102,9 +115,18 @@ export default function AppDashboardPage() {
 
   return (
     <AppShell
+      left={
+        <nav className="studio-links" aria-label="Studio">
+          <Link href="/app" className="active">
+            Workspace
+          </Link>
+          <Link href="/app/models">Models</Link>
+        </nav>
+      }
       right={
         authenticated ? (
           <>
+            <ModelStatusChip />
             <button className="btn btn-ghost btn-sm" type="button" onClick={() => void loadRepositories()} disabled={loadingRepositories}>
               {loadingRepositories ? "Refreshing…" : "Refresh"}
             </button>
@@ -113,9 +135,12 @@ export default function AppDashboardPage() {
             </button>
           </>
         ) : sessionChecked ? (
-          <a className="btn btn-primary btn-sm" href={GITHUB_LOGIN_URL}>
-            Connect GitHub
-          </a>
+          <>
+            <ModelStatusChip />
+            <a className="btn btn-primary btn-sm" href={GITHUB_LOGIN_URL}>
+              Connect GitHub
+            </a>
+          </>
         ) : (
           <span className="muted" style={{ fontSize: "0.85rem" }}>
             Checking…
@@ -130,8 +155,13 @@ export default function AppDashboardPage() {
           <div className="connect-panel">
             <p className="eyebrow">Workspace</p>
             <h1>Connect to open your workspace</h1>
-            <p className="muted">Sign in with GitHub to import repositories and use Otter.</p>
-            <div style={{ marginTop: "1.25rem" }}>
+            <p className="muted">
+              Set a local model under Models, then sign in with GitHub to import repositories.
+            </p>
+            <div style={{ marginTop: "1.25rem", display: "flex", gap: "0.65rem", flexWrap: "wrap" }}>
+              <Link className="btn btn-outline" href="/app/models">
+                Choose model
+              </Link>
               <a className="btn btn-primary" href={GITHUB_LOGIN_URL}>
                 Connect GitHub
               </a>
@@ -149,6 +179,20 @@ export default function AppDashboardPage() {
               </p>
             </div>
           </div>
+
+          {llmTest && !llmTest.ok ? (
+            <div className="model-banner">
+              <div>
+                <h2>Connect a model before coding</h2>
+                <p className="muted">
+                  {llmTest.detail || "Ollama is unreachable. Pull qwen2.5-coder:7b and open Models."}
+                </p>
+              </div>
+              <Link className="btn btn-primary btn-sm" href="/app/models">
+                Open Models
+              </Link>
+            </div>
+          ) : null}
 
           <section className="panel">
             <h2>Import a repository</h2>

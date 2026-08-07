@@ -2,6 +2,29 @@ export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000
 export const GITHUB_LOGIN_URL = `${API_URL}/auth/github/login`;
 export const REFRESH_INTERVAL_MS = 5000;
 
+export type LlmProvider = "ollama" | "openai_compatible";
+
+export type LlmSettings = {
+  provider: LlmProvider;
+  base_url: string;
+  model: string;
+  api_key_set: boolean;
+  api_key_masked: string;
+  free_failover: boolean;
+  configured: boolean;
+};
+
+export type LlmTestResult = {
+  ok: boolean;
+  reachable: boolean;
+  completion_ok: boolean;
+  models: string[];
+  model: string;
+  provider: string;
+  base_url: string;
+  detail: string;
+};
+
 export type RepoStatus = "queued" | "cloning" | "ready" | "failed";
 export type MemoryKind = "decision" | "convention" | "note";
 export type PlanComplexity = "low" | "medium" | "high";
@@ -313,4 +336,20 @@ export const api = {
   getImportStatus: (id: string) => apiFetch<ImportStatus>(`/repositories/${id}/import-status`),
   retryImport: (id: string) =>
     apiFetch<ImportStatus>(`/repositories/${id}/retry-import`, { method: "POST" }),
+
+  getLlmSettings: () => apiFetch<LlmSettings>("/settings/llm"),
+  saveLlmSettings: (payload: {
+    provider: LlmProvider;
+    base_url: string;
+    model: string;
+    api_key?: string | null;
+    free_failover: boolean;
+    keep_existing_key?: boolean;
+  }) =>
+    apiFetch<LlmSettings>("/settings/llm", {
+      method: "PUT",
+      body: JSON.stringify(payload),
+    }),
+  listLlmModels: () => apiFetch<{ models: string[]; provider: string; base_url: string }>("/settings/llm/models"),
+  testLlmSettings: () => apiFetch<LlmTestResult>("/settings/llm/test", { method: "POST" }),
 };

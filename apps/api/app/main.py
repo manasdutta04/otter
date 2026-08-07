@@ -47,7 +47,8 @@ from app.schemas import (
     ApiRouteIntelligence, ChatRequest, ChatResponse, CodeTaskCreate, CodeTaskDecision,
     CodeTaskResponse, DatabaseIntelligence, DocumentResponse, FolderIntelligence,
     HealthResponse, HealthResponseReport, ImportStatus, IntelligenceAnalysis,
-    IntelligenceResponse, MemoryCreate, MemoryResponse, PatchProposal,
+    IntelligenceResponse, LlmModelsResponse, LlmSettingsResponse, LlmSettingsUpdate,
+    LlmTestResponse, MemoryCreate, MemoryResponse, PatchProposal,
     PerformanceResponse, PlanRequest, PlanResponse, PullRequestRequest,
     PullRequestResponse, RepositoryCreate, RepositoryListResponse,
     RepositorySummary, ReviewResponse, TestResponse
@@ -58,7 +59,18 @@ from app.worker import enqueue_import, import_repository_task
 
 settings = get_settings()
 app = FastAPI(title=settings.app_name, version="0.2.0")
-app.add_middleware(CORSMiddleware, allow_origins=[settings.next_public_url], allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
+_cors_origins = {
+    settings.next_public_url.rstrip("/"),
+    "http://127.0.0.1:3000",
+    "http://localhost:3000",
+}
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=sorted(_cors_origins),
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 store = RepositoryStore()
 
 
@@ -194,6 +206,52 @@ def run_repository_tests(root: Path) -> TestResponse:
 @app.get("/health", response_model=HealthResponse)
 async def health() -> HealthResponse:
     return HealthResponse(status="ok", service="api")
+
+
+@app.get("/settings/llm", response_model=LlmSettingsResponse)
+async def get_llm_settings(db: AsyncSession = Depends(get_db)) -> LlmSettingsResponse:
+    from app.llm_settings import get_runtime
+
+    runtime = await get_runtime(db)
+    return LlmSettingsResponse(**runtime.to_public_dict())
+
+
+@app.put("/settings/llm", response_model=LlmSettingsResponse)
+async def put_llm_settings(payload: LlmSettingsUpdate, db: AsyncSession = Depends(get_db)) -> LlmSettingsResponse:
+    from app.llm_settings import save_runtime
+
+    if payload.provider == "ollama":
+        base = payload.base_url.strip() or "http://host.docker.internal:11434/v1"
+    else:
+        base = payload.base_url.strip()
+    runtime = await save_runtime(
+        db,
+        provider=payload.provider,
+        base_url=base,
+        model=payload.model,
+        api_key=payload.api_key,
+        free_failover=payload.free_failover,
+        keep_existing_key=payload.keep_existing_key,
+    )
+    return LlmSettingsResponse(**runtime.to_public_dict())
+
+
+@app.get("/settings/llm/models", response_model=LlmModelsResponse)
+async def list_llm_models(db: AsyncSession = Depends(get_db)) -> LlmModelsResponse:
+    from app.llm_settings import get_runtime, list_models
+
+    runtime = await get_runtime(db)
+    models = await list_models(runtime)
+    return LlmModelsResponse(models=models, provider=runtime.provider, base_url=runtime.base_url)
+
+
+@app.post("/settings/llm/test", response_model=LlmTestResponse)
+async def test_llm_settings(db: AsyncSession = Depends(get_db)) -> LlmTestResponse:
+    from app.llm_settings import get_runtime, test_runtime
+
+    runtime = await get_runtime(db)
+    result = await test_runtime(runtime)
+    return LlmTestResponse(**result)
 
 @app.get("/auth/github/login")
 async def github_login(cli_port: int | None = None) -> RedirectResponse:

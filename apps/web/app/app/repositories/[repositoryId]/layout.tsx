@@ -6,6 +6,7 @@ import { useState, type ReactNode } from "react";
 import { AppNav } from "../../../../components/AppNav";
 import { AppShell } from "../../../../components/AppShell";
 import { EmptyState } from "../../../../components/EmptyState";
+import { ModelStatusChip } from "../../../../components/ModelStatusChip";
 import { RepositoryProvider, useRepository } from "../../../../components/RepositoryProvider";
 import { StatusBadge } from "../../../../components/StatusBadge";
 import { api, GITHUB_LOGIN_URL } from "../../../../lib/api";
@@ -54,9 +55,10 @@ function RepoChrome({ children }: { children: ReactNode }) {
     <AppShell
       left={
         <>
-          <Link className="btn btn-ghost btn-sm" href="/app">
-            Workspace
-          </Link>
+          <nav className="studio-links" aria-label="Studio">
+            <Link href="/app">Workspace</Link>
+            <Link href="/app/models">Models</Link>
+          </nav>
           <div className="repo-chrome-title">
             <h1>{loading && !repository ? "Loading…" : repository?.name ?? "Repository"}</h1>
             {repository ? <StatusBadge status={repository.status} /> : null}
@@ -64,9 +66,12 @@ function RepoChrome({ children }: { children: ReactNode }) {
         </>
       }
       right={
-        <button className="btn btn-outline btn-sm" type="button" onClick={() => void handleLogout()} disabled={loggingOut}>
-          {loggingOut ? "Logging out…" : "Log out"}
-        </button>
+        <>
+          <ModelStatusChip />
+          <button className="btn btn-outline btn-sm" type="button" onClick={() => void handleLogout()} disabled={loggingOut}>
+            {loggingOut ? "Logging out…" : "Log out"}
+          </button>
+        </>
       }
       nav={<AppNav repositoryId={repositoryId} />}
     >
