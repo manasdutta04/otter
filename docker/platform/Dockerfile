@@ -23,7 +23,7 @@ ENV NEXT_TELEMETRY_DISABLED=1
 RUN npm run build
 
 # ---------------------------------------------------------------------------
-# Runtime
+# Runtime — Python + Node copied from official Node image (no NodeSource apt)
 # ---------------------------------------------------------------------------
 FROM python:3.12-slim-bookworm AS runtime
 
@@ -33,23 +33,28 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     REPOSITORY_DATA_DIR=/data/repositories \
     PORT=3000 \
     HOSTNAME=0.0.0.0 \
-    NEXT_TELEMETRY_DISABLED=1
+    NEXT_TELEMETRY_DISABLED=1 \
+    PATH="/usr/local/node/bin:${PATH}"
 
+# OS security updates + minimal packages (git for clone, supervisor/tini for process mgmt)
 RUN apt-get update \
+  && apt-get upgrade -y --no-install-recommends \
   && apt-get install -y --no-install-recommends \
        ca-certificates \
-       curl \
        git \
        supervisor \
        tini \
-  && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
-  && apt-get install -y --no-install-recommends nodejs \
   && rm -rf /var/lib/apt/lists/*
+
+# Copy Node binary only (standalone Next does not need npm at runtime)
+COPY --from=node:20-bookworm-slim /usr/local/bin/node /usr/local/node/bin/node
+RUN node -v
 
 WORKDIR /app
 
 COPY apps/api/requirements.txt /tmp/requirements.txt
-RUN pip install --no-cache-dir -r /tmp/requirements.txt \
+RUN pip install --no-cache-dir --upgrade pip \
+  && pip install --no-cache-dir -r /tmp/requirements.txt \
   && rm /tmp/requirements.txt
 
 COPY packages /app/packages

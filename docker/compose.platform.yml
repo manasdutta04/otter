@@ -1,7 +1,13 @@
 # Production / self-host stack (Archestra-style).
-# One custom image (otter/platform) + official Postgres + official Redis.
+# One custom image (manasdutta04/otter) + official Postgres + official Redis.
 #
+# Pull from Docker Hub (default):
+#   docker compose -f docker/compose.platform.yml pull
+#   docker compose -f docker/compose.platform.yml up -d
+#
+# Rebuild locally instead of pulling:
 #   docker compose -f docker/compose.platform.yml up --build -d
+#
 #   open http://127.0.0.1:3000
 
 name: otter
@@ -33,7 +39,7 @@ services:
     restart: unless-stopped
 
   platform:
-    image: otter/platform:local
+    image: manasdutta04/otter:latest
     build:
       context: ..
       dockerfile: docker/platform/Dockerfile

@@ -19,8 +19,13 @@ export default function SelfHostDocsPage() {
 # Set GITHUB_CLIENT_ID and GITHUB_CLIENT_SECRET
 # OAuth callback: http://127.0.0.1:8000/auth/github/callback
 
-docker compose -f docker/compose.platform.yml up --build -d`}</code>
+docker compose -f docker/compose.platform.yml pull
+docker compose -f docker/compose.platform.yml up -d`}</code>
       </pre>
+      <p>
+        This pulls <code>manasdutta04/otter:latest</code> from Docker Hub. To build from source instead,
+        use <code>up --build -d</code>.
+      </p>
 
       <h2>Open the product UI</h2>
       <ul>

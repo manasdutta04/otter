@@ -1,6 +1,6 @@
 # Otter Deployment Guide
 
-Self-host topology (default): **one** `otter/platform` container (API + web + worker) plus official PostgreSQL and Redis. Ollama/LLM stays on the host or a remote OpenAI-compatible endpoint.
+Self-host topology (default): **one** `manasdutta04/otter` container (API + web + worker) from Docker Hub, plus official PostgreSQL and Redis. Ollama/LLM stays on the host or a remote OpenAI-compatible endpoint.
 
 ## Requirements
 

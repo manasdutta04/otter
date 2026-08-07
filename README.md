@@ -22,8 +22,11 @@ cp .env.example .env
 # Set GITHUB_CLIENT_ID and GITHUB_CLIENT_SECRET
 # OAuth callback: http://127.0.0.1:8000/auth/github/callback
 
-docker compose -f docker/compose.platform.yml up --build -d
+docker compose -f docker/compose.platform.yml pull
+docker compose -f docker/compose.platform.yml up -d
 ```
+
+Image: [`manasdutta04/otter`](https://hub.docker.com/r/manasdutta04/otter) (`latest` / `0.1.0`). Use `up --build -d` to rebuild from source instead of pulling.
 
 1. Open [http://127.0.0.1:3000/app/models](http://127.0.0.1:3000/app/models) and connect **Local Ollama**.
 2. Connect GitHub, then import a repository from `/app`.
