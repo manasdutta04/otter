@@ -6,33 +6,42 @@ export default function SelfHostDocsPage() {
     <>
       <h1>Self-host</h1>
       <p className="lead">
-        Bring up Otter with Docker Compose, connect a local model, then import a repository.
+        No GitHub clone required. Pull the public image from Docker Hub and start the stack with one
+        command. The compose file is hosted on this site.
+      </p>
+
+      <h2>Run</h2>
+      <CopyCommand useComposeUrl variant="button" className="docs-copy-pill" />
+      <p className="muted" style={{ marginTop: "0.85rem" }}>
+        Or: <code>{DOCKER_QUICKSTART}</code>
+      </p>
+      <p>
+        Then open <code>http://127.0.0.1:3000/app</code>. Image:{" "}
+        <a href={DOCKER_HUB} target="_blank" rel="noreferrer">
+          <code>{DOCKER_IMAGE}</code>
+        </a>
+        .
       </p>
 
       <h2>Requirements</h2>
       <ul>
         <li>Docker Engine + Compose v2</li>
         <li>Ollama on the host (recommended): <code>ollama pull qwen2.5-coder:7b</code></li>
-        <li>GitHub OAuth app for import / PR flows</li>
       </ul>
 
-      <h2>Start the stack</h2>
+      <h2>Optional: GitHub OAuth (import / PRs)</h2>
       <p>
-        Copy and run this on your machine. It pulls{" "}
-        <a href={DOCKER_HUB} target="_blank" rel="noreferrer">
-          <code>{DOCKER_IMAGE}</code>
-        </a>{" "}
-        from Docker Hub.
+        The stack starts without secrets. For GitHub import and PRs, create a local{" "}
+        <code>.env</code>:
       </p>
-      <CopyCommand command={DOCKER_QUICKSTART} />
-      <p className="muted" style={{ marginTop: "0.85rem" }}>
-        Optional: copy <code>.env.example</code> to <code>.env</code> and set{" "}
-        <code>GITHUB_CLIENT_ID</code> / <code>GITHUB_CLIENT_SECRET</code>. OAuth callback:{" "}
-        <code>http://127.0.0.1:8000/auth/github/callback</code>
-      </p>
+      <pre>
+        <code>{`GITHUB_CLIENT_ID=your_id
+GITHUB_CLIENT_SECRET=your_secret
+# OAuth callback: http://127.0.0.1:8000/auth/github/callback`}</code>
+      </pre>
       <p>
-        To build from source instead of pulling:{" "}
-        <code>docker compose -f docker/compose.platform.yml up --build -d</code>
+        Then run with <code>--env-file .env</code> added to the same compose command, e.g.{" "}
+        <code>{`${DOCKER_QUICKSTART.slice(0, -5)} --env-file .env up -d`}</code>.
       </p>
 
       <h2>Open the product UI</h2>
@@ -47,15 +56,11 @@ export default function SelfHostDocsPage() {
           API: <code>http://127.0.0.1:8000</code>
         </li>
       </ul>
-      <p>
-        The marketing site (this Vercel app) is separate. Docker only serves the product UI — there is
-        no landing page inside the container.
-      </p>
 
       <h2>First-run checklist</h2>
       <ol>
         <li>Open Models and select Local Ollama (or another free endpoint).</li>
-        <li>Connect GitHub in the workspace.</li>
+        <li>Optional: connect GitHub if you set OAuth secrets.</li>
         <li>Import a repository URL.</li>
       </ol>
     </>

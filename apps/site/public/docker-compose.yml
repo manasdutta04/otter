@@ -1,0 +1,78 @@
+# Public Otter stack — no GitHub clone required.
+# Served from the marketing site: /docker-compose.yml
+#
+#   docker compose -f https://YOUR_SITE/docker-compose.yml up -d
+#   open http://127.0.0.1:3000/app
+#
+# Optional GitHub OAuth (import / PRs) — create a local .env next to where you run:
+#   GITHUB_CLIENT_ID=...
+#   GITHUB_CLIENT_SECRET=...
+# then:
+#   docker compose -f https://YOUR_SITE/docker-compose.yml --env-file .env up -d
+
+name: otter
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: otter
+      POSTGRES_PASSWORD: otter
+      POSTGRES_DB: otter
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U otter -d otter"]
+      interval: 2s
+      timeout: 5s
+      retries: 20
+      start_period: 5s
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  platform:
+    image: manasdutta04/otter:latest
+    ports:
+      - "127.0.0.1:3000:3000"
+      - "127.0.0.1:8000:8000"
+    environment:
+      DATABASE_URL: postgresql+asyncpg://otter:otter@postgres:5432/otter
+      REDIS_URL: redis://redis:6379/0
+      REPOSITORY_DATA_DIR: /data/repositories
+      PYTHONPATH: /app/api
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: "5432"
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      NEXT_PUBLIC_URL: http://127.0.0.1:3000
+      NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-http://127.0.0.1:3001}
+      LLM_BASE_URL: ${PLATFORM_LLM_BASE_URL:-http://host.docker.internal:11434/v1}
+      LLM_MODEL: ${LLM_MODEL:-qwen2.5-coder:7b}
+      LLM_FREE_FAILOVER: ${LLM_FREE_FAILOVER:-true}
+      GITHUB_REDIRECT_URI: ${GITHUB_REDIRECT_URI:-http://127.0.0.1:8000/auth/github/callback}
+      GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID:-}
+      GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET:-}
+      GITHUB_WEBHOOK_SECRET: ${GITHUB_WEBHOOK_SECRET:-}
+      OTTER_INTERNAL_TOKEN: ${OTTER_INTERNAL_TOKEN:-}
+    volumes:
+      - repository_data:/data/repositories
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  repository_data:

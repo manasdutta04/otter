@@ -1,7 +1,7 @@
 import { Brand } from "../components/Brand";
 import { CopyCommand } from "../components/CopyCommand";
 import { PressSlot } from "../components/PressSlot";
-import { DOCKER_HUB, DOCKER_QUICKSTART, GITHUB_REPO } from "../lib/urls";
+import { DOCKER_HUB, GITHUB_REPO } from "../lib/urls";
 
 function GitHubMark({ className }: { className?: string }) {
   return (
@@ -38,11 +38,7 @@ export default function LandingPage() {
           <h1 className="landing-headline">
             <span className="script">Easily</span> understand &amp; change code
           </h1>
-          <p className="landing-hero-lead">
-            Run Otter on your machine. Copy the command, open{" "}
-            <code>http://127.0.0.1:3000/app</code> when it&apos;s up.
-          </p>
-          <CopyCommand className="landing-copy-command" command={DOCKER_QUICKSTART} />
+          <CopyCommand className="landing-copy-pill" useComposeUrl variant="button" />
           <div className="landing-ctas">
             <a className="btn btn-secondary" href="/docs/self-host">
               Setup guide
@@ -199,8 +195,7 @@ export default function LandingPage() {
 
       <section className="landing-cta-band">
         <h2>Ready to run Otter?</h2>
-        <p className="landing-cta-lead">Pull the image and start the stack on your machine.</p>
-        <CopyCommand className="landing-copy-command landing-copy-command-cta" command={DOCKER_QUICKSTART} />
+        <CopyCommand className="landing-copy-pill" useComposeUrl variant="button" />
         <a className="btn btn-secondary" href="/docs/self-host">
           Full setup guide
         </a>

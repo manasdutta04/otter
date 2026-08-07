@@ -116,8 +116,8 @@ pre code {
   color: inherit;
 }
 
-.docs-article .copy-command {
-  margin: 0.85rem 0 1.1rem;
+.muted {
+  color: var(--muted);
 }
 
 .accent {
@@ -405,16 +405,6 @@ pre code {
   animation: rise 0.65s 0.15s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-.landing-hero-lead {
-  margin: 0.35rem auto 1rem;
-  max-width: 34rem;
-  color: var(--muted);
-  font-size: 1.02rem;
-  line-height: 1.5;
-  text-align: center;
-  animation: rise 0.65s 0.1s cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-
 .copy-command {
   position: relative;
   text-align: left;
@@ -453,20 +443,75 @@ pre code {
   background: rgba(255, 255, 255, 0.14);
 }
 
-.landing-copy-command {
-  width: min(560px, 100%);
-  margin: 0.85rem auto 0.9rem;
+.copy-command-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.85rem;
+  max-width: min(720px, 100%);
+  margin: 1rem auto 0.35rem;
+  padding: 0.85rem 0.85rem 0.85rem 1.15rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #121614;
+  color: #e8efec;
+  cursor: pointer;
+  text-align: left;
   animation: rise 0.65s 0.12s cubic-bezier(0.22, 1, 0.36, 1) both;
+  transition: border-color 0.15s ease, transform 0.15s ease;
 }
 
-.landing-copy-command-cta {
-  margin: 1rem auto 1.1rem;
+.copy-command-pill:hover {
+  border-color: rgba(255, 255, 255, 0.28);
+  transform: translateY(-1px);
 }
 
-.landing-cta-lead {
-  margin: 0.35rem auto 0;
-  max-width: 28rem;
-  color: var(--muted);
+.copy-command-pill-text {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-family: var(--font-mono);
+  font-size: clamp(0.72rem, 1.5vw, 0.88rem);
+  line-height: 1.35;
+  background: transparent;
+  padding: 0;
+  color: inherit;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.copy-command-pill-action {
+  flex: 0 0 auto;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+  padding: 0.4rem 0.85rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.landing-copy-pill {
+  display: flex;
+  width: min(640px, 100%);
+}
+
+.docs-copy-pill {
+  display: flex;
+  width: 100%;
+  max-width: 100%;
+  margin: 0.75rem 0 1rem;
+  border-radius: 14px;
+  animation: none;
+}
+
+.docs-article .copy-command {
+  margin: 0.85rem 0 1.1rem;
+}
+
+.docs-article .copy-command-pill-text {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: unset;
+  word-break: break-all;
 }
 
 .landing-hero-visual {

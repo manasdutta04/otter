@@ -6,56 +6,45 @@ export default function DockerDocsPage() {
     <>
       <h1>Docker</h1>
       <p className="lead">
-        Production self-host uses one custom image (
+        Users never need your GitHub repo. They pull{" "}
         <a href={DOCKER_HUB} target="_blank" rel="noreferrer">
-          <code>{DOCKER_IMAGE.replace(":latest", "")}</code>
+          <code>{DOCKER_IMAGE}</code>
         </a>{" "}
-        on Docker Hub) plus official Postgres and Redis.
+        and start via the public compose file on this site (
+        <code>/docker-compose.yml</code>).
       </p>
 
-      <h2>Image</h2>
+      <h2>One command</h2>
+      <CopyCommand useComposeUrl variant="button" className="docs-copy-pill" />
+
+      <h2>Pull only</h2>
+      <CopyCommand command={`docker pull ${DOCKER_IMAGE}`} variant="button" className="docs-copy-pill" />
+
+      <h2>What runs</h2>
       <ul>
         <li>
-          Hub:{" "}
-          <a href={DOCKER_HUB} target="_blank" rel="noreferrer">
-            manasdutta04/otter
-          </a>
+          <code>manasdutta04/otter</code> — Next.js UI (:3000), FastAPI (:8000), Celery worker
         </li>
         <li>
-          Tags: <code>latest</code>, <code>0.1.1</code>
+          Official <code>postgres:16-alpine</code> and <code>redis:7-alpine</code>
         </li>
       </ul>
-      <CopyCommand command={`docker pull ${DOCKER_IMAGE}`} />
 
-      <h2>Compose file</h2>
-      <p>
-        Use <code>docker/compose.platform.yml</code>. It publishes <code>127.0.0.1:3000</code> (web) and{" "}
-        <code>127.0.0.1:8000</code> (API).
-      </p>
-      <CopyCommand command={DOCKER_QUICKSTART} />
-      <p>
-        To rebuild from source instead of pulling:{" "}
-        <code>docker compose -f docker/compose.platform.yml up --build -d</code>
-      </p>
-
-      <h2>What runs inside the platform container</h2>
+      <h2>If the GitHub repo is private</h2>
       <ul>
-        <li>Next.js product UI (standalone) on port 3000</li>
-        <li>FastAPI on port 8000</li>
-        <li>Celery worker for import / coding jobs</li>
+        <li>Keep the Docker Hub image <strong>public</strong>.</li>
+        <li>Keep this marketing site public (hosts <code>/docker-compose.yml</code>).</li>
+        <li>Users never clone source. Optional secrets go in a local <code>.env</code> they create.</li>
       </ul>
+      <p>
+        Fallback command (uses this site&apos;s published URL): <code>{DOCKER_QUICKSTART}</code>
+      </p>
 
       <h2>Ollama from Docker</h2>
       <p>
-        Ollama stays on the host. The platform container reaches it via{" "}
-        <code>host.docker.internal:11434</code> (set as <code>PLATFORM_LLM_BASE_URL</code>). Do not point
-        the container at <code>127.0.0.1</code> for Ollama — that is the container loopback.
-      </p>
-
-      <h2>Contributor stack</h2>
-      <p>
-        Bind-mount development uses <code>docker/compose.dev.yml</code>. Prefer{" "}
-        <code>compose.platform.yml</code> for the product install path.
+        Ollama stays on the host. The platform reaches it via{" "}
+        <code>host.docker.internal:11434</code>. Do not use <code>127.0.0.1</code> inside the
+        container for Ollama.
       </p>
     </>
   );

@@ -18,15 +18,10 @@ The landing page is **not** inside Docker. After `compose up`, open `http://127.
 **Requires:** Docker Engine + Compose v2. **Recommended:** Ollama on the host (`ollama pull qwen2.5-coder:7b`).
 
 ```bash
-cp .env.example .env
-# Set GITHUB_CLIENT_ID and GITHUB_CLIENT_SECRET
-# OAuth callback: http://127.0.0.1:8000/auth/github/callback
-
-docker compose -f docker/compose.platform.yml pull
-docker compose -f docker/compose.platform.yml up -d
+docker compose -f https://YOUR_SITE/docker-compose.yml up -d
 ```
 
-Image: [`manasdutta04/otter`](https://hub.docker.com/r/manasdutta04/otter) (`latest` / `0.1.1`). Use `up --build -d` to rebuild from source instead of pulling.
+No clone required. Image: [`manasdutta04/otter`](https://hub.docker.com/r/manasdutta04/otter). Compose is public on the marketing site (`/docker-compose.yml`). Optional GitHub OAuth via a local `--env-file .env`.
 
 1. Open [http://127.0.0.1:3000/app/models](http://127.0.0.1:3000/app/models) and connect **Local Ollama**.
 2. Connect GitHub, then import a repository from `/app`.
