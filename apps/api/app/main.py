@@ -255,33 +255,42 @@ async def test_llm_settings(db: AsyncSession = Depends(get_db)) -> LlmTestRespon
     return LlmTestResponse(**result)
 
 @app.get("/auth/github/login")
-async def github_login(cli_port: int | None = None) -> RedirectResponse:
+async def github_login(request: Request, cli_port: int | None = None) -> RedirectResponse:
+    if cli_port is not None and (cli_port < 1024 or cli_port > 65535):
+        raise HTTPException(status_code=422, detail="Invalid CLI callback port")
+
+    # Preferred: Cloudflare broker holds the Otter GitHub App secret.
+    if settings.auth_broker_enabled:
+        broker = settings.otter_auth_broker_url.rstrip("/")
+        # return_origin must be the API origin the browser can reach for /auth/github/broker/callback
+        api_origin = str(request.base_url).rstrip("/")
+        params: dict[str, str] = {"return_origin": api_origin}
+        if cli_port is not None:
+            params["cli_port"] = str(cli_port)
+        return RedirectResponse(f"{broker}/login?{urlencode(params)}")
+
+    # Contributor fallback: local OAuth App credentials in .env
     if not settings.github_client_id:
-        raise HTTPException(status_code=503, detail="GitHub OAuth is not configured")
-    params: dict[str, str] = {
+        raise HTTPException(
+            status_code=503,
+            detail="GitHub auth is not configured. Set OTTER_AUTH_BROKER_URL (product) or GITHUB_CLIENT_ID/SECRET (dev).",
+        )
+    params = {
         "client_id": settings.github_client_id,
         "redirect_uri": settings.github_redirect_uri,
         "scope": "read:user repo",
     }
     if cli_port is not None:
-        if cli_port < 1024 or cli_port > 65535:
-            raise HTTPException(status_code=422, detail="Invalid CLI callback port")
         params["state"] = f"cli:{cli_port}"
     return RedirectResponse(f"https://github.com/login/oauth/authorize?{urlencode(params)}")
 
-@app.get("/auth/github/callback")
-async def github_callback(code: str, state: str | None = None, db: AsyncSession = Depends(get_db)) -> RedirectResponse:
-    if not settings.github_client_id or not settings.github_client_secret:
-        raise HTTPException(status_code=503, detail="GitHub OAuth is not configured")
-    async with httpx.AsyncClient() as client:
-        response = await client.post("https://github.com/login/oauth/access_token", data={"client_id": settings.github_client_id, "client_secret": settings.github_client_secret, "code": code}, headers={"Accept": "application/json"})
-        response.raise_for_status()
-        token = response.json().get("access_token")
-        if not token:
-            raise HTTPException(status_code=400, detail="GitHub did not return an access token")
-        profile = await client.get("https://api.github.com/user", headers={"Authorization": f"Bearer {token}", "Accept": "application/vnd.github+json"})
-        profile.raise_for_status()
-    github_user = profile.json()
+
+async def _create_session_from_github(
+    db: AsyncSession,
+    *,
+    token: str,
+    github_user: dict,
+) -> str:
     user = await db.scalar(select(User).where(User.github_id == str(github_user["id"])))
     if not user:
         user = User(
@@ -291,7 +300,7 @@ async def github_callback(code: str, state: str | None = None, db: AsyncSession 
             avatar_url=github_user.get("avatar_url"),
         )
         db.add(user)
-        await db.flush()  # ensure users row exists before auth_sessions FK insert
+        await db.flush()
     else:
         user.login = github_user["login"]
         user.avatar_url = github_user.get("avatar_url")
@@ -305,15 +314,81 @@ async def github_callback(code: str, state: str | None = None, db: AsyncSession 
         )
     )
     await db.commit()
-    if state and state.startswith("cli:"):
+    return session_id
+
+
+def _finish_login_redirect(session_id: str, cli_port: int | None = None, state: str | None = None) -> RedirectResponse:
+    port: int | None = cli_port
+    if port is None and state and state.startswith("cli:"):
         try:
             port = int(state.split(":", 1)[1])
         except ValueError as exc:
             raise HTTPException(status_code=400, detail="Invalid CLI state") from exc
+    if port is not None:
         return RedirectResponse(f"http://127.0.0.1:{port}/callback?session={session_id}")
     redirect = RedirectResponse(f"{settings.next_public_url.rstrip('/')}/app")
     redirect.set_cookie("otter_session", session_id, httponly=True, samesite="lax", secure=False, max_age=86400)
     return redirect
+
+
+@app.get("/auth/github/broker/callback")
+async def github_broker_callback(
+    code: str,
+    cli_port: int | None = None,
+    db: AsyncSession = Depends(get_db),
+) -> RedirectResponse:
+    """Redeem a one-time code from the Cloudflare auth broker."""
+    if not settings.auth_broker_enabled:
+        raise HTTPException(status_code=503, detail="Auth broker is not configured")
+    broker = settings.otter_auth_broker_url.rstrip("/")
+    body: dict[str, str] = {"code": code}
+    if settings.otter_auth_redeem_secret:
+        body["secret"] = settings.otter_auth_redeem_secret
+    async with httpx.AsyncClient(timeout=30.0) as client:
+        response = await client.post(f"{broker}/redeem", json=body)
+        if response.status_code >= 400:
+            detail = response.text
+            try:
+                detail = response.json().get("error") or detail
+            except Exception:
+                pass
+            raise HTTPException(status_code=400, detail=f"Broker redeem failed: {detail}")
+        payload = response.json()
+    token = payload.get("access_token")
+    github_user = payload.get("github_user") or {}
+    if not token or not github_user.get("id") or not github_user.get("login"):
+        raise HTTPException(status_code=400, detail="Broker did not return a usable GitHub token")
+    session_id = await _create_session_from_github(db, token=token, github_user=github_user)
+    return _finish_login_redirect(session_id, cli_port=cli_port)
+
+
+@app.get("/auth/github/callback")
+async def github_callback(code: str, state: str | None = None, db: AsyncSession = Depends(get_db)) -> RedirectResponse:
+    """Legacy local OAuth App callback (contributors). Product path uses /auth/github/broker/callback."""
+    if not settings.github_client_id or not settings.github_client_secret:
+        raise HTTPException(status_code=503, detail="GitHub OAuth is not configured")
+    async with httpx.AsyncClient() as client:
+        response = await client.post(
+            "https://github.com/login/oauth/access_token",
+            data={
+                "client_id": settings.github_client_id,
+                "client_secret": settings.github_client_secret,
+                "code": code,
+            },
+            headers={"Accept": "application/json"},
+        )
+        response.raise_for_status()
+        token = response.json().get("access_token")
+        if not token:
+            raise HTTPException(status_code=400, detail="GitHub did not return an access token")
+        profile = await client.get(
+            "https://api.github.com/user",
+            headers={"Authorization": f"Bearer {token}", "Accept": "application/vnd.github+json"},
+        )
+        profile.raise_for_status()
+        github_user = profile.json()
+    session_id = await _create_session_from_github(db, token=token, github_user=github_user)
+    return _finish_login_redirect(session_id, state=state)
 
 async def current_session(request: Request, db: AsyncSession = Depends(get_db)) -> AuthSession:
     session_id = request.cookies.get("otter_session") or request.headers.get("x-otter-session")

@@ -113,7 +113,7 @@ export function GitHubStatus({ variant = "bar" }: GitHubStatusProps) {
       </button>
       {open ? (
         <div className="gh-status-menu" role="menu">
-          <p className="gh-status-menu-meta">GitHub connected for import &amp; PRs</p>
+          <p className="gh-status-menu-meta">Otter GitHub App · import &amp; PRs</p>
           <button type="button" role="menuitem" disabled={busy} onClick={() => void disconnect()}>
             {busy ? "Disconnecting…" : "Disconnect"}
           </button>

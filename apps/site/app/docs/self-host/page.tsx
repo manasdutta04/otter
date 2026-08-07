@@ -6,8 +6,8 @@ export default function SelfHostDocsPage() {
     <>
       <h1>Self-host</h1>
       <p className="lead">
-        No GitHub clone required. Pull the public image from Docker Hub and start the stack with one
-        command. The compose file is hosted on this site.
+        No GitHub clone required. Pull the public image, start Compose (local Postgres + Redis
+        auto-created), then Connect GitHub via the Otter GitHub App.
       </p>
 
       <h2>Run</h2>
@@ -29,20 +29,26 @@ export default function SelfHostDocsPage() {
         <li>Ollama on the host (recommended): <code>ollama pull qwen2.5-coder:7b</code></li>
       </ul>
 
-      <h2>Optional: GitHub OAuth (import / PRs)</h2>
+      <h2>Connect GitHub</h2>
       <p>
-        The stack starts without secrets. For GitHub import and PRs, create a local{" "}
-        <code>.env</code>:
+        Click <strong>Connect GitHub</strong> in the UI (or <code>otter login</code>). You install the
+        Otter GitHub App — you do <strong>not</strong> paste Client secrets or create your own OAuth
+        app. Details: <a href="/docs/github">GitHub docs</a>.
+      </p>
+
+      <h2>CLI and MCP</h2>
+      <p>
+        Keep Docker running, then use the CLI/MCP against <code>http://127.0.0.1:8000</code>. The CLI
+        does not embed a database — it uses the same local API + Postgres as the web UI.
       </p>
       <pre>
-        <code>{`GITHUB_CLIENT_ID=your_id
-GITHUB_CLIENT_SECRET=your_secret
-# OAuth callback: http://127.0.0.1:8000/auth/github/callback`}</code>
+        <code>{`otter login
+otter repos list
+
+# MCP (after otter login) — example env
+# OTTER_API_URL=http://127.0.0.1:8000
+# OTTER_SESSION is optional if ~/.otter/config.json exists`}</code>
       </pre>
-      <p>
-        Then run with <code>--env-file .env</code> added to the same compose command, e.g.{" "}
-        <code>{`${DOCKER_QUICKSTART.slice(0, -5)} --env-file .env up -d`}</code>.
-      </p>
 
       <h2>Open the product UI</h2>
       <ul>
@@ -59,8 +65,9 @@ GITHUB_CLIENT_SECRET=your_secret
 
       <h2>First-run checklist</h2>
       <ol>
-        <li>Open Models and select Local Ollama (or another free endpoint).</li>
-        <li>Optional: connect GitHub if you set OAuth secrets.</li>
+        <li>Compose up (DB created in Docker).</li>
+        <li>Connect GitHub (Otter app).</li>
+        <li>Open Models and select Local Ollama.</li>
         <li>Import a repository URL.</li>
       </ol>
     </>

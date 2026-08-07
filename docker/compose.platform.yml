@@ -69,6 +69,8 @@ services:
       LLM_MODEL: ${LLM_MODEL:-qwen2.5-coder:7b}
       LLM_FREE_FAILOVER: ${LLM_FREE_FAILOVER:-true}
       GITHUB_REDIRECT_URI: ${GITHUB_REDIRECT_URI:-http://127.0.0.1:8000/auth/github/callback}
+      OTTER_AUTH_BROKER_URL: ${OTTER_AUTH_BROKER_URL:-}
+      OTTER_AUTH_REDEEM_SECRET: ${OTTER_AUTH_REDEEM_SECRET:-}
     volumes:
       - repository_data:/data/repositories
     extra_hosts:

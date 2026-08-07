@@ -6,8 +6,8 @@ export default function DocsIndexPage() {
     <>
       <h1>Documentation</h1>
       <p className="lead">
-        Otter is self-host first. No clone required — pull the Docker Hub image and start with one
-        command. Product UI: <code>http://127.0.0.1:3000/app</code>.
+        Otter is self-host first. Docker creates a local database. Connect GitHub through the Otter
+        GitHub App (Cloudflare broker). Product UI: <code>http://127.0.0.1:3000/app</code>.
       </p>
 
       <h2>Run Otter</h2>
@@ -16,19 +16,19 @@ export default function DocsIndexPage() {
       <h2>Start here</h2>
       <ul>
         <li>
-          <Link href="/docs/self-host">Self-host</Link> — one command + optional GitHub OAuth
+          <Link href="/docs/self-host">Self-host</Link> — one command + Connect GitHub + Models
         </li>
         <li>
-          <Link href="/docs/docker">Docker</Link> — image, private-repo notes
+          <Link href="/docs/docker">Docker</Link> — image, local DB, broker env
+        </li>
+        <li>
+          <Link href="/docs/github">GitHub</Link> — Otter GitHub App for Web · CLI · MCP
         </li>
         <li>
           <Link href="/docs/models">Models</Link> — Ollama and OpenAI-compatible endpoints
         </li>
         <li>
-          <Link href="/docs/github">GitHub</Link> — OAuth for import and PRs
-        </li>
-        <li>
-          <Link href="/docs/cli">CLI</Link> — thin client status
+          <Link href="/docs/cli">CLI</Link> — thin client; needs Docker API running
         </li>
       </ul>
     </>

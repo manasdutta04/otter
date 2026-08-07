@@ -6,6 +6,10 @@ class Settings(BaseSettings):
     github_client_id: str = ""
     github_client_secret: str = ""
     github_redirect_uri: str = "http://localhost:8000/auth/github/callback"
+    # Public Cloudflare Worker that holds the Otter GitHub App secret.
+    otter_auth_broker_url: str = ""
+    # Must match REDEEM_HMAC_SECRET on the Worker when set.
+    otter_auth_redeem_secret: str = ""
     next_public_url: str = "http://localhost:3000"
     repository_data_dir: str = "./data/repositories"
     database_url: str = "postgresql+asyncpg://otter:otter@127.0.0.1:5432/otter"
@@ -18,6 +22,14 @@ class Settings(BaseSettings):
     llm_free_failover: bool = True
     github_api_url: str = "https://api.github.com"
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+
+    @property
+    def auth_broker_enabled(self) -> bool:
+        return bool(self.otter_auth_broker_url.strip())
+
+    @property
+    def local_oauth_enabled(self) -> bool:
+        return bool(self.github_client_id and self.github_client_secret)
 
 @lru_cache
 def get_settings() -> Settings:

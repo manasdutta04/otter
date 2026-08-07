@@ -21,13 +21,13 @@ The landing page is **not** inside Docker. After `compose up`, open `http://127.
 docker compose -f https://YOUR_SITE/docker-compose.yml up -d
 ```
 
-No clone required. Image: [`manasdutta04/otter`](https://hub.docker.com/r/manasdutta04/otter). Compose is public on the marketing site (`/docker-compose.yml`). Optional GitHub OAuth via a local `--env-file .env`.
+No clone required. Image: [`manasdutta04/otter`](https://hub.docker.com/r/manasdutta04/otter). Compose creates **local** Postgres + Redis. Connect GitHub via the **Otter GitHub App** (Cloudflare auth broker — see `apps/auth-broker/`). CLI/MCP talk to the same local API (`otter login`).
 
-1. Open [http://127.0.0.1:3000/app/models](http://127.0.0.1:3000/app/models) and connect **Local Ollama**.
-2. Connect GitHub, then import a repository from `/app`.
+1. Open [http://127.0.0.1:3000/app](http://127.0.0.1:3000/app) → **Connect GitHub**.
+2. Open Models and connect **Local Ollama**.
+3. Import a repository.
 
-Details: [docs/self-host.md](docs/self-host.md). Public docs also ship from `apps/site` (`/docs`).
-
+Details: public docs from `apps/site` (`/docs`).
 ## Marketing site (Vercel)
 
 ```bash

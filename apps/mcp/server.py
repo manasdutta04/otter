@@ -4,14 +4,36 @@ from __future__ import annotations
 import json
 import os
 import sys
+from pathlib import Path
 from typing import Any
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
 
+def _load_otter_config() -> dict[str, str]:
+    """Prefer env; fall back to ~/.otter/config.json from `otter login`."""
+    api_url = os.getenv("OTTER_API_URL", "").rstrip("/")
+    session = os.getenv("OTTER_SESSION", "")
+    config_path = Path.home() / ".otter" / "config.json"
+    if config_path.is_file():
+        try:
+            parsed = json.loads(config_path.read_text(encoding="utf-8"))
+            if not api_url:
+                api_url = str(parsed.get("apiUrl") or "").rstrip("/")
+            if not session:
+                session = str(parsed.get("session") or "")
+        except (OSError, json.JSONDecodeError, TypeError):
+            pass
+    return {
+        "api_url": api_url or "http://localhost:8000",
+        "session": session,
+    }
+
+
 def api_call(path: str, payload: dict[str, Any] | None = None) -> Any:
-    url = os.getenv("OTTER_API_URL", "http://localhost:8000").rstrip("/")
-    session = os.getenv("OTTER_SESSION")
+    cfg = _load_otter_config()
+    url = cfg["api_url"]
+    session = cfg["session"]
     headers = {"Accept": "application/json"}
     if session:
         headers["Cookie"] = f"otter_session={session}"

@@ -1,0 +1,15 @@
+name = "otter-auth-broker"
+main = "src/index.ts"
+compatibility_date = "2025-03-01"
+
+# Bind a KV namespace named AUTH_KV after: wrangler kv namespace create AUTH_KV
+# Then paste the id below (replace PLACEHOLDER before first deploy).
+[[kv_namespaces]]
+binding = "AUTH_KV"
+id = "PLACEHOLDER_REPLACE_WITH_KV_ID"
+preview_id = "PLACEHOLDER_REPLACE_WITH_KV_PREVIEW_ID"
+
+[vars]
+# Public Worker URL is derived from the request host.
+# Override allowed return origins via ALLOWED_RETURN_ORIGINS (comma-separated).
+ALLOWED_RETURN_ORIGINS = "http://127.0.0.1:8000,http://localhost:8000"

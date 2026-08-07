@@ -3,12 +3,10 @@
 #
 #   docker compose -f https://YOUR_SITE/docker-compose.yml up -d
 #   open http://127.0.0.1:3000/app
+#   Click Connect GitHub (Otter GitHub App via Cloudflare auth broker)
 #
-# Optional GitHub OAuth (import / PRs) — create a local .env next to where you run:
-#   GITHUB_CLIENT_ID=...
-#   GITHUB_CLIENT_SECRET=...
-# then:
-#   docker compose -f https://YOUR_SITE/docker-compose.yml --env-file .env up -d
+# No GitHub Client Secret on the user machine. Operator sets OTTER_AUTH_BROKER_URL
+# on the published image defaults / this file when the broker is deployed.
 
 name: otter
 
@@ -57,11 +55,9 @@ services:
       LLM_BASE_URL: ${PLATFORM_LLM_BASE_URL:-http://host.docker.internal:11434/v1}
       LLM_MODEL: ${LLM_MODEL:-qwen2.5-coder:7b}
       LLM_FREE_FAILOVER: ${LLM_FREE_FAILOVER:-true}
-      GITHUB_REDIRECT_URI: ${GITHUB_REDIRECT_URI:-http://127.0.0.1:8000/auth/github/callback}
-      GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID:-}
-      GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET:-}
-      GITHUB_WEBHOOK_SECRET: ${GITHUB_WEBHOOK_SECRET:-}
-      OTTER_INTERNAL_TOKEN: ${OTTER_INTERNAL_TOKEN:-}
+      # Cloudflare Worker that holds the Otter GitHub App secret (public URL, not a user secret).
+      OTTER_AUTH_BROKER_URL: ${OTTER_AUTH_BROKER_URL:-}
+      OTTER_AUTH_REDEEM_SECRET: ${OTTER_AUTH_REDEEM_SECRET:-}
     volumes:
       - repository_data:/data/repositories
     extra_hosts:

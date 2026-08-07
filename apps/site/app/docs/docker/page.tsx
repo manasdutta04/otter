@@ -6,12 +6,12 @@ export default function DockerDocsPage() {
     <>
       <h1>Docker</h1>
       <p className="lead">
-        Users never need your GitHub repo. They pull{" "}
+        Users never need your private GitHub source. They pull{" "}
         <a href={DOCKER_HUB} target="_blank" rel="noreferrer">
           <code>{DOCKER_IMAGE}</code>
         </a>{" "}
         and start via the public compose file on this site (
-        <code>/docker-compose.yml</code>).
+        <code>/docker-compose.yml</code>). Compose creates local Postgres + Redis automatically.
       </p>
 
       <h2>One command</h2>
@@ -26,18 +26,24 @@ export default function DockerDocsPage() {
           <code>manasdutta04/otter</code> — Next.js UI (:3000), FastAPI (:8000), Celery worker
         </li>
         <li>
-          Official <code>postgres:16-alpine</code> and <code>redis:7-alpine</code>
+          Official <code>postgres:16-alpine</code> and <code>redis:7-alpine</code> (local volumes)
         </li>
       </ul>
+
+      <h2>GitHub Connect (no secrets in the image)</h2>
+      <p>
+        Set <code>OTTER_AUTH_BROKER_URL</code> to the Cloudflare Worker that holds the Otter GitHub
+        App secret. End users only click Connect — see <a href="/docs/github">GitHub</a>.
+      </p>
 
       <h2>If the GitHub repo is private</h2>
       <ul>
         <li>Keep the Docker Hub image <strong>public</strong>.</li>
         <li>Keep this marketing site public (hosts <code>/docker-compose.yml</code>).</li>
-        <li>Users never clone source. Optional secrets go in a local <code>.env</code> they create.</li>
+        <li>Keep App credentials only in Cloudflare Secrets.</li>
       </ul>
       <p>
-        Fallback command (uses this site&apos;s published URL): <code>{DOCKER_QUICKSTART}</code>
+        Fallback command: <code>{DOCKER_QUICKSTART}</code>
       </p>
 
       <h2>Ollama from Docker</h2>

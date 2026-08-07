@@ -33,12 +33,15 @@ export default function LandingPage() {
       <section className="landing-hero">
         <div className="landing-hero-copy">
           <a className="landing-badge" href="/docs/self-host">
-            New ✨ Self-host with Docker
+            New ✨ Docker + Otter GitHub App
           </a>
           <h1 className="landing-headline">
             <span className="script">Easily</span> understand &amp; change code
           </h1>
           <CopyCommand className="landing-copy-pill" useComposeUrl variant="button" />
+          <p className="landing-privacy-note">
+            Runs on your machine. Local DB and repos stay private. Connect GitHub via the Otter app.
+          </p>
           <div className="landing-ctas">
             <a className="btn btn-secondary" href="/docs/self-host">
               Setup guide
