@@ -5,6 +5,7 @@ import { FormEvent, useCallback, useEffect, useState } from "react";
 import { AppShell } from "../../../components/AppShell";
 import { AppSidebar } from "../../../components/AppSidebar";
 import { ModelStatusChip } from "../../../components/ModelStatusChip";
+import { WorkMachine } from "../../../components/WorkMachine";
 import { api, type LlmProvider, type LlmSettings, type LlmTestResult } from "../../../lib/api";
 
 const OLLAMA_DEFAULT = "http://host.docker.internal:11434/v1";
@@ -256,6 +257,8 @@ export default function ModelsPage() {
                   Open workspace
                 </Link>
               </div>
+
+              {testing ? <WorkMachine mode="model" compact label="Probing the inference endpoint…" /> : null}
 
               {message ? <p className="ok-text">{message}</p> : null}
               {error ? <p className="error-text">{error}</p> : null}

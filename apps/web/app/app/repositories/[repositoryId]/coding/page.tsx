@@ -5,6 +5,7 @@ import Link from "next/link";
 import { EmptyState } from "../../../../../components/EmptyState";
 import { useRepository } from "../../../../../components/RepositoryProvider";
 import { StatusBadge } from "../../../../../components/StatusBadge";
+import { WorkMachine } from "../../../../../components/WorkMachine";
 import { api, type CodeTask, type LlmTestResult, type PullRequestResult, type TestResult } from "../../../../../lib/api";
 
 function stripLlmSummaryPrefix(text: string): string {
@@ -183,6 +184,7 @@ export default function CodingPage() {
               {creating ? "Creating…" : "Create task"}
             </button>
           </div>
+          {creating ? <WorkMachine mode="coding" label="Spinning up a new coding task…" /> : null}
         </form>
       </section>
 
@@ -235,6 +237,19 @@ export default function CodingPage() {
                   <p className="muted" style={{ margin: "0.55rem 0 0", fontFamily: "var(--font-mono)", fontSize: "0.8rem" }}>
                     {task.changed_files.join(" · ")}
                   </p>
+                ) : null}
+
+                {busy ? (
+                  <WorkMachine
+                    mode="coding"
+                    label={
+                      task.status === "ready_for_approval"
+                        ? "Warming the patch machine…"
+                        : task.status === "patch_ready"
+                          ? "Running checks / shipping the change…"
+                          : "Otter is working on this task…"
+                    }
+                  />
                 ) : null}
 
                 <div className="task-actions">
@@ -354,10 +369,11 @@ export default function CodingPage() {
               <button className="btn btn-primary" type="submit" disabled={busyId === prTaskId}>
                 {busyId === prTaskId ? "Opening…" : "Create pull request"}
               </button>
-              <button className="btn btn-ghost" type="button" onClick={() => setPrTaskId(null)}>
+              <button className="btn btn-ghost btn-sm" type="button" onClick={() => setPrTaskId(null)}>
                 Cancel
               </button>
             </div>
+            {busyId === prTaskId ? <WorkMachine mode="coding" label="Opening the pull request…" /> : null}
           </form>
         </section>
       ) : null}

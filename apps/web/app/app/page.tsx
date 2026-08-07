@@ -7,6 +7,7 @@ import { AppSidebar } from "../../components/AppSidebar";
 import { EmptyState } from "../../components/EmptyState";
 import { ModelStatusChip } from "../../components/ModelStatusChip";
 import { StatusBadge } from "../../components/StatusBadge";
+import { WorkMachine } from "../../components/WorkMachine";
 import {
   ApiError,
   api,
@@ -213,20 +214,20 @@ export default function AppDashboardPage() {
                       <p>{repo.url.replace("https://github.com/", "")}</p>
                     </div>
                     <StatusBadge status={repo.status} />
-                    <div className="repo-row-meta">
-                      <span>
-                        {repo.branch
-                          ? `branch / ${repo.branch}`
-                          : repo.status === "queued"
-                            ? "awaiting worker"
-                            : repo.status === "cloning"
-                              ? "cloning now"
-                              : repo.status === "failed"
-                                ? "import failed"
-                                : "preparing"}
-                      </span>
-                      <span>{repo.file_count ? `${repo.file_count} files` : "—"}</span>
-                    </div>
+                    {repo.status === "queued" || repo.status === "cloning" ? (
+                      <WorkMachine mode="import" status={repo.status} compact />
+                    ) : (
+                      <div className="repo-row-meta">
+                        <span>
+                          {repo.branch
+                            ? `branch / ${repo.branch}`
+                            : repo.status === "failed"
+                              ? "import failed"
+                              : "preparing"}
+                        </span>
+                        <span>{repo.file_count ? `${repo.file_count} files` : "—"}</span>
+                      </div>
+                    )}
                     {repo.error ? (
                       <p className="error-text" style={{ gridColumn: "1 / -1", margin: 0 }}>
                         {repo.error}
