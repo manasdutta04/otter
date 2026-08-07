@@ -118,35 +118,39 @@ export default function LandingPage() {
         </section>
       </div>
 
-      <section className="landing-band landing-believe">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img className="believe-art" src="/landing/otter-magnify.png" alt="" />
-        <h2 className="section-title">Don&apos;t believe us?</h2>
-        <p className="section-lead">
-          Try the fully free open-source path. Import a repo you already care about and see grounded
-          intelligence in minutes.
-        </p>
-        <a className="btn btn-primary" href={APP_WORKSPACE}>
-          Get access now
-        </a>
-      </section>
-
       <section className="landing-band" id="why">
-        <h2 className="section-title">
-          Ship with Otter in <span className="accent">hours</span>, not weeks.
+        <h2 className="section-title section-title-wide">
+          Ship with Otter in <span className="accent">Fast</span>.
         </h2>
         <div className="landing-stats">
           <div className="stat-cell">
-            <strong>Understand first</strong>
-            <span>Architecture before patches</span>
+            <span className="stat-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="11" cy="11" r="7" />
+                <path d="M20 20l-3.5-3.5" />
+                <path d="M8.5 11h5M11 8.5v5" />
+              </svg>
+            </span>
+            <p className="stat-text">Understand first · architecture before patches</p>
           </div>
           <div className="stat-cell">
-            <strong>Human approval</strong>
-            <span>Nothing lands without a yes</span>
+            <span className="stat-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3z" />
+                <path d="M9.5 12l1.8 1.8L15 10" />
+              </svg>
+            </span>
+            <p className="stat-text">Human approval · nothing lands without a yes</p>
           </div>
           <div className="stat-cell">
-            <strong>Web · CLI · MCP</strong>
-            <span>One brain across surfaces</span>
+            <span className="stat-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 3l8 4-8 4-8-4 8-4z" />
+                <path d="M4 11l8 4 8-4" />
+                <path d="M4 15l8 4 8-4" />
+              </svg>
+            </span>
+            <p className="stat-text">Web · CLI · MCP · one brain across surfaces</p>
           </div>
         </div>
       </section>
