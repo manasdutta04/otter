@@ -6,8 +6,8 @@ compatibility_date = "2025-03-01"
 # Then paste the id below (replace PLACEHOLDER before first deploy).
 [[kv_namespaces]]
 binding = "AUTH_KV"
-id = "PLACEHOLDER_REPLACE_WITH_KV_ID"
-preview_id = "PLACEHOLDER_REPLACE_WITH_KV_PREVIEW_ID"
+id = "8f7845b919814bebab9e6e0a298f2529"
+preview_id = "6268e908d7324a9a9953da6924fabda1"
 
 [vars]
 # Public Worker URL is derived from the request host.
