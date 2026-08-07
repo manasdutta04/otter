@@ -24,25 +24,27 @@ export default function LandingPage() {
         <div className="landing-nav-actions">
           <a className="github-star-btn" href={GITHUB_REPO} target="_blank" rel="noreferrer">
             <GitHubMark />
-            <span>Star on GitHub</span>
+            <span>Star</span>
           </a>
         </div>
       </header>
 
       <section className="landing-hero">
-        <a className="landing-badge" href={APP_WORKSPACE}>
-          New ✨ Introducing Otter workspace
-        </a>
-        <h1 className="landing-headline">
-          <span className="script">Easily</span> understand &amp; change codebases.
-        </h1>
-        <div className="landing-ctas">
-          <a className="btn btn-secondary" href="/docs/self-host">
-            Self-host with Docker
+        <div className="landing-hero-copy">
+          <a className="landing-badge" href={APP_WORKSPACE}>
+            New ✨ Introducing Otter workspace
           </a>
-          <a className="btn btn-primary" href={APP_WORKSPACE}>
-            Start for free
-          </a>
+          <h1 className="landing-headline">
+            <span className="script">Easily</span> understand &amp; change code
+          </h1>
+          <div className="landing-ctas">
+            <a className="btn btn-secondary" href="/docs/self-host">
+              Self-host with Docker
+            </a>
+            <a className="btn btn-primary" href={APP_WORKSPACE}>
+              Start for free
+            </a>
+          </div>
         </div>
         <div className="landing-hero-visual landing-hero-mascot">
           {/* eslint-disable-next-line @next/next/no-img-element */}

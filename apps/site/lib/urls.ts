@@ -4,4 +4,4 @@ export const APP_URL = (process.env.NEXT_PUBLIC_APP_URL ?? "http://127.0.0.1:300
 export const APP_WORKSPACE = `${APP_URL}/app`;
 export const APP_MODELS = `${APP_URL}/app/models`;
 
-export const GITHUB_REPO = "https://github.com/manasdutta04/veridexs";
+export const GITHUB_REPO = "https://github.com/manasdutta04/otter";
