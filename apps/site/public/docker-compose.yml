@@ -55,8 +55,8 @@ services:
       LLM_BASE_URL: ${PLATFORM_LLM_BASE_URL:-http://host.docker.internal:11434/v1}
       LLM_MODEL: ${LLM_MODEL:-qwen2.5-coder:7b}
       LLM_FREE_FAILOVER: ${LLM_FREE_FAILOVER:-true}
-      # Cloudflare Worker that holds the Otter GitHub App secret (public URL, not a user secret).
-      OTTER_AUTH_BROKER_URL: ${OTTER_AUTH_BROKER_URL:-}
+      # Cloudflare Worker (public URL). Override with env if you fork the broker.
+      OTTER_AUTH_BROKER_URL: ${OTTER_AUTH_BROKER_URL:-https://otter-auth-broker.manasdutta512.workers.dev}
       OTTER_AUTH_REDEEM_SECRET: ${OTTER_AUTH_REDEEM_SECRET:-}
     volumes:
       - repository_data:/data/repositories
