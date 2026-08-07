@@ -9,6 +9,7 @@ import { EmptyState } from "../../../../components/EmptyState";
 import { ModelStatusChip } from "../../../../components/ModelStatusChip";
 import { RepositoryProvider, useRepository } from "../../../../components/RepositoryProvider";
 import { StatusBadge } from "../../../../components/StatusBadge";
+import { StudioSidebar } from "../../../../components/StudioSidebar";
 import { api, GITHUB_LOGIN_URL } from "../../../../lib/api";
 
 function RepoChrome({ children }: { children: ReactNode }) {
@@ -29,17 +30,25 @@ function RepoChrome({ children }: { children: ReactNode }) {
   if (authenticated === false) {
     return (
       <AppShell
+        sidebar={<StudioSidebar />}
+        title={
+          <div>
+            <p className="eyebrow">Sign in</p>
+            <h1 className="studio-page-title">Connect GitHub</h1>
+          </div>
+        }
         right={
           <a className="btn btn-primary btn-sm" href={GITHUB_LOGIN_URL}>
             Connect GitHub
           </a>
         }
+        footer={false}
       >
         <div className="auth-gate">
           <div className="connect-panel">
-            <p className="eyebrow">Sign in</p>
-            <h1>Connect GitHub</h1>
-            <p className="muted">Sign in to open this repository workspace.</p>
+            <p className="eyebrow">Repository</p>
+            <h1>Sign in to continue</h1>
+            <p className="muted">Connect GitHub to open this repository workspace.</p>
             <div style={{ marginTop: "1.25rem" }}>
               <a className="btn btn-primary" href={GITHUB_LOGIN_URL}>
                 Connect GitHub
@@ -53,27 +62,35 @@ function RepoChrome({ children }: { children: ReactNode }) {
 
   return (
     <AppShell
-      left={
-        <>
-          <nav className="studio-links" aria-label="Studio">
-            <Link href="/app">Workspace</Link>
-            <Link href="/app/models">Models</Link>
-          </nav>
-          <div className="repo-chrome-title">
-            <h1>{loading && !repository ? "Loading…" : repository?.name ?? "Repository"}</h1>
+      sidebar={
+        <StudioSidebar
+          repoLabel={repository?.name || "Repository"}
+          below={<AppNav repositoryId={repositoryId} variant="rail" />}
+        />
+      }
+      title={
+        <div className="studio-context">
+          <p className="eyebrow">Repository</p>
+          <div className="studio-context-row">
+            <h1 className="studio-page-title">
+              {loading && !repository ? "Loading…" : repository?.name ?? "Repository"}
+            </h1>
             {repository ? <StatusBadge status={repository.status} /> : null}
           </div>
-        </>
+        </div>
       }
       right={
         <>
           <ModelStatusChip />
+          <Link className="btn btn-ghost btn-sm" href="/app">
+            All repos
+          </Link>
           <button className="btn btn-outline btn-sm" type="button" onClick={() => void handleLogout()} disabled={loggingOut}>
             {loggingOut ? "Logging out…" : "Log out"}
           </button>
         </>
       }
-      nav={<AppNav repositoryId={repositoryId} />}
+      footer={false}
     >
       {error ? (
         <EmptyState
@@ -98,7 +115,7 @@ export default function RepositoryLayout({ children }: { children: ReactNode }) 
 
   if (!repositoryId) {
     return (
-      <AppShell>
+      <AppShell sidebar={<StudioSidebar />} footer={false}>
         <EmptyState title="Missing repository" detail="No repository id in the URL." />
       </AppShell>
     );

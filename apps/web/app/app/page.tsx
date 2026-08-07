@@ -6,6 +6,7 @@ import { AppShell } from "../../components/AppShell";
 import { EmptyState } from "../../components/EmptyState";
 import { ModelStatusChip } from "../../components/ModelStatusChip";
 import { StatusBadge } from "../../components/StatusBadge";
+import { StudioSidebar } from "../../components/StudioSidebar";
 import {
   ApiError,
   api,
@@ -115,13 +116,12 @@ export default function AppDashboardPage() {
 
   return (
     <AppShell
-      left={
-        <nav className="studio-links" aria-label="Studio">
-          <Link href="/app" className="active">
-            Workspace
-          </Link>
-          <Link href="/app/models">Models</Link>
-        </nav>
+      sidebar={<StudioSidebar />}
+      title={
+        <div>
+          <p className="eyebrow">Workspace</p>
+          <h1 className="studio-page-title">Repositories</h1>
+        </div>
       }
       right={
         authenticated ? (
@@ -147,18 +147,19 @@ export default function AppDashboardPage() {
           </span>
         )
       }
+      footer={false}
     >
       {!sessionChecked ? (
         <p className="loading-line">Checking your Otter session…</p>
       ) : !authenticated ? (
         <div className="auth-gate">
           <div className="connect-panel">
-            <p className="eyebrow">Workspace</p>
-            <h1>Connect to open your workspace</h1>
+            <p className="eyebrow">Get started</p>
+            <h1>Set a model, then connect GitHub</h1>
             <p className="muted">
-              Set a local model under Models, then sign in with GitHub to import repositories.
+              Choose Local Ollama under Models, then sign in to import repositories.
             </p>
-            <div style={{ marginTop: "1.25rem", display: "flex", gap: "0.65rem", flexWrap: "wrap" }}>
+            <div className="connect-actions">
               <Link className="btn btn-outline" href="/app/models">
                 Choose model
               </Link>
@@ -169,16 +170,10 @@ export default function AppDashboardPage() {
           </div>
         </div>
       ) : (
-        <div className="stack">
-          <div className="page-header">
-            <div>
-              <p className="eyebrow">Workspace</p>
-              <h1>Repositories</h1>
-              <p className="muted" style={{ margin: "0.4rem 0 0" }}>
-                {lastSyncedAt ? `Last synced ${lastSyncedAt}` : "Waiting for first sync…"}
-              </p>
-            </div>
-          </div>
+        <div className="stack workspace-home">
+          <p className="muted workspace-sync">
+            {lastSyncedAt ? `Last synced ${lastSyncedAt}` : "Waiting for first sync…"}
+          </p>
 
           {llmTest && !llmTest.ok ? (
             <div className="model-banner">
@@ -194,11 +189,15 @@ export default function AppDashboardPage() {
             </div>
           ) : null}
 
-          <section className="panel">
-            <h2>Import a repository</h2>
-            <p className="muted" style={{ marginTop: 0 }}>
-              Paste a GitHub URL. Otter will clone and prepare it for intelligence, chat, and planning.
-            </p>
+          <section className="panel import-panel">
+            <div className="panel-head">
+              <div>
+                <h2>Import a repository</h2>
+                <p className="muted" style={{ margin: "0.35rem 0 0" }}>
+                  Paste a GitHub URL. Otter clones it for intelligence, chat, and coding.
+                </p>
+              </div>
+            </div>
             <form className="inline-form" onSubmit={(e) => void importRepository(e)}>
               <input
                 value={url}
@@ -216,7 +215,10 @@ export default function AppDashboardPage() {
           </section>
 
           <section className="panel">
-            <h2>Your repositories</h2>
+            <div className="panel-head">
+              <h2>Your repositories</h2>
+              <span className="muted">{repositories.length ? `${repositories.length} total` : null}</span>
+            </div>
             {repositories.length === 0 ? (
               <EmptyState
                 title="No repositories yet"

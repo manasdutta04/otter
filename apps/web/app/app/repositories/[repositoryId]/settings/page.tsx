@@ -74,8 +74,9 @@ export default function SettingsPage() {
     <div className="stack">
       <div className="page-header">
         <div>
-          <p className="eyebrow">Settings</p>
-          <h1>Repository settings</h1>
+          <p className="eyebrow">Project</p>
+          <h1>Settings</h1>
+          <p className="page-lede">Branch, retention, and repository-level options.</p>
         </div>
         <StatusBadge status={repository.status} />
       </div>

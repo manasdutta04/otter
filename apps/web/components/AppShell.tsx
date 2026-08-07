@@ -4,18 +4,55 @@ import { Brand } from "./Brand";
 
 type AppShellProps = {
   children: ReactNode;
-  /** Extra content on the left of the topbar (after brand). */
+  /** Extra content on the left of the topbar (after brand). Legacy; prefer sidebar. */
   left?: ReactNode;
-  /** Right-side actions. */
+  /** Right-side actions in the top context bar. */
   right?: ReactNode;
-  /** Optional secondary nav row (e.g. repo tabs). */
+  /** Optional secondary nav row (legacy horizontal tabs). */
   nav?: ReactNode;
+  /** Studio left rail (Archestra/Unsloth-style). */
+  sidebar?: ReactNode;
+  /** Title / context shown in the top bar when using sidebar layout. */
+  title?: ReactNode;
   /** Constrain main content width. Default true. */
   narrow?: boolean;
   footer?: boolean;
 };
 
-export function AppShell({ children, left, right, nav, narrow = true, footer = true }: AppShellProps) {
+export function AppShell({
+  children,
+  left,
+  right,
+  nav,
+  sidebar,
+  title,
+  narrow = true,
+  footer = true,
+}: AppShellProps) {
+  if (sidebar) {
+    return (
+      <div className="studio-shell">
+        {sidebar}
+        <div className="studio-stage">
+          <header className="studio-topbar">
+            <div className="studio-topbar-title">{title}</div>
+            <div className="studio-topbar-actions">{right}</div>
+          </header>
+          <main className={narrow ? "studio-main" : "studio-main studio-main-wide"}>{children}</main>
+          {footer ? (
+            <footer className="studio-footer">
+              <span className="muted">Otter Studio</span>
+              <div className="app-footer-links">
+                <Link href="/">Home</Link>
+                <Link href="/app">Workspace</Link>
+              </div>
+            </footer>
+          ) : null}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="app-shell">
       <header className="app-topbar">

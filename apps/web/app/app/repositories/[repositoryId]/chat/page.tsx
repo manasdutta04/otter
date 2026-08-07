@@ -44,11 +44,9 @@ export default function ChatPage() {
     <div className="stack">
       <div className="page-header">
         <div>
-          <p className="eyebrow">Chat</p>
-          <h1>Ask the codebase</h1>
-          <p className="muted" style={{ marginTop: "0.35rem", marginBottom: 0 }}>
-            Ask like you’d ask a teammate. Otter points to the right files and shows a short grounded snippet.
-          </p>
+          <p className="eyebrow">Understand</p>
+          <h1>Chat</h1>
+          <p className="page-lede">Ask like a teammate. Answers cite files from this repository.</p>
         </div>
       </div>
 

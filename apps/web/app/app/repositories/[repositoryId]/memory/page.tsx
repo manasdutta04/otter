@@ -76,8 +76,9 @@ export default function MemoryPage() {
     <div className="stack">
       <div className="page-header">
         <div>
-          <p className="eyebrow">Memory</p>
-          <h1>Engineering memory</h1>
+          <p className="eyebrow">Build</p>
+          <h1>Memory</h1>
+          <p className="page-lede">Decisions and notes Otter should remember on later coding tasks.</p>
         </div>
       </div>
 

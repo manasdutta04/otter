@@ -146,11 +146,9 @@ export default function CodingPage() {
     <div className="stack">
       <div className="page-header">
         <div>
-          <p className="eyebrow">Coding</p>
-          <h1>Tasks</h1>
-          <p className="muted" style={{ margin: "0.35rem 0 0" }}>
-            Generate patches, approve before apply, then open a PR.
-          </p>
+          <p className="eyebrow">Build</p>
+          <h1>Coding</h1>
+          <p className="page-lede">Generate patches, approve before apply, then open a pull request.</p>
         </div>
       </div>
 

@@ -73,11 +73,9 @@ export default function HealthPage() {
     <div className="stack">
       <div className="page-header">
         <div>
-          <p className="eyebrow">Health</p>
-          <h1>Repository health</h1>
-          <p className="muted" style={{ margin: "0.35rem 0 0" }}>
-            Analyzed {new Date(report.analyzed_at).toLocaleString()}
-          </p>
+          <p className="eyebrow">Understand</p>
+          <h1>Health</h1>
+          <p className="page-lede">Analyzed {new Date(report.analyzed_at).toLocaleString()}</p>
         </div>
       </div>
 

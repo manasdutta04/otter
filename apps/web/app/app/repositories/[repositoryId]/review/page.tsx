@@ -64,11 +64,11 @@ export default function ReviewPage() {
     <div className="stack">
       <div className="page-header">
         <div>
-          <p className="eyebrow">Review</p>
-          <h1>Code quality findings</h1>
-          <p className="muted" style={{ margin: "0.35rem 0 0" }}>
+          <p className="eyebrow">Understand</p>
+          <h1>Review</h1>
+          <p className="page-lede">
             {findings.length === 0
-              ? "No findings detected."
+              ? "No findings detected yet."
               : `${findings.length} finding${findings.length === 1 ? "" : "s"} · ${new Date(review.created_at).toLocaleString()}`}
           </p>
         </div>

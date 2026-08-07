@@ -29,17 +29,22 @@ export function ModelStatusChip() {
     };
   }, []);
 
-  const label = settings?.model || "No model";
+  const label = settings?.model || "Configure model";
   const tone = ok === true ? "ok" : ok === false ? "bad" : "muted";
+  const provider =
+    settings?.provider === "ollama"
+      ? "Ollama"
+      : settings?.provider === "openai_compatible"
+        ? "OpenAI-compat"
+        : null;
 
   return (
-    <Link
-      href="/app/models"
-      className={`model-chip model-chip-${tone}`}
-      title="Model Providers"
-    >
+    <Link href="/app/models" className={`model-chip model-chip-${tone}`} title="Model Providers">
       <span className="model-chip-dot" aria-hidden />
-      <span className="model-chip-label">{label}</span>
+      <span className="model-chip-text">
+        {provider ? <span className="model-chip-provider">{provider}</span> : null}
+        <span className="model-chip-label">{label}</span>
+      </span>
     </Link>
   );
 }

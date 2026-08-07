@@ -4,6 +4,7 @@ import Link from "next/link";
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import { AppShell } from "../../../components/AppShell";
 import { ModelStatusChip } from "../../../components/ModelStatusChip";
+import { StudioSidebar } from "../../../components/StudioSidebar";
 import { api, type LlmProvider, type LlmSettings, type LlmTestResult } from "../../../lib/api";
 
 const OLLAMA_DEFAULT = "http://host.docker.internal:11434/v1";
@@ -36,6 +37,11 @@ export default function ModelsPage() {
       setApiKey("");
       const listed = await api.listLlmModels();
       setModels(listed.models);
+      try {
+        setTest(await api.testLlmSettings());
+      } catch {
+        setTest(null);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load model settings");
     } finally {
@@ -55,27 +61,30 @@ export default function ModelsPage() {
     }
   }
 
+  async function persist() {
+    return api.saveLlmSettings({
+      provider,
+      base_url: baseUrl.trim(),
+      model: model.trim(),
+      api_key: apiKey.trim() ? apiKey.trim() : null,
+      free_failover: freeFailover,
+      keep_existing_key: !apiKey.trim() && Boolean(settings?.api_key_set),
+    });
+  }
+
   async function handleSave(event: FormEvent) {
     event.preventDefault();
     setSaving(true);
     setError("");
     setMessage("");
     try {
-      const saved = await api.saveLlmSettings({
-        provider,
-        base_url: baseUrl.trim(),
-        model: model.trim(),
-        api_key: apiKey.trim() ? apiKey.trim() : null,
-        free_failover: freeFailover,
-        keep_existing_key: !apiKey.trim() && Boolean(settings?.api_key_set),
-      });
+      const saved = await persist();
       setSettings(saved);
       setMessage("Saved. Otter will use this model for chat, explain, and coding.");
       setApiKey("");
       const listed = await api.listLlmModels();
       setModels(listed.models);
-      const result = await api.testLlmSettings();
-      setTest(result);
+      setTest(await api.testLlmSettings());
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to save");
     } finally {
@@ -87,24 +96,13 @@ export default function ModelsPage() {
     setTesting(true);
     setError("");
     try {
-      // Persist first so test hits the intended config
-      await api.saveLlmSettings({
-        provider,
-        base_url: baseUrl.trim(),
-        model: model.trim(),
-        api_key: apiKey.trim() ? apiKey.trim() : null,
-        free_failover: freeFailover,
-        keep_existing_key: !apiKey.trim() && Boolean(settings?.api_key_set),
-      });
+      await persist();
       const result = await api.testLlmSettings();
       setTest(result);
       const listed = await api.listLlmModels();
       setModels(listed.models);
-      if (!result.ok) {
-        setError(result.detail || "Model check failed");
-      } else {
-        setMessage(result.detail || "Connection ok");
-      }
+      if (!result.ok) setError(result.detail || "Model check failed");
+      else setMessage(result.detail || "Connection ok");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Test failed");
     } finally {
@@ -114,52 +112,84 @@ export default function ModelsPage() {
 
   return (
     <AppShell
-      left={
-        <nav className="studio-links" aria-label="Studio">
-          <Link href="/app">Workspace</Link>
-          <Link href="/app/models" className="active">
-            Models
-          </Link>
-        </nav>
+      sidebar={<StudioSidebar />}
+      title={
+        <div>
+          <p className="eyebrow">Model Providers</p>
+          <h1 className="studio-page-title">Models</h1>
+        </div>
       }
       right={<ModelStatusChip />}
+      narrow={false}
+      footer={false}
     >
-      <div className="stack models-page">
-        <div className="page-header">
+      <div className="models-layout">
+        <header className="models-hero">
           <div>
-            <p className="eyebrow">Model Providers</p>
-            <h1>Connect a free local model</h1>
-            <p className="muted" style={{ margin: "0.45rem 0 0", maxWidth: "36rem" }}>
-              After Docker is up, this is the only setup step. Prefer Ollama on the host — no paid API key required.
+            <h2>Connect your inference endpoint</h2>
+            <p className="muted">
+              Pick a provider once — Local Ollama is free and recommended for self-host. Otter uses it for
+              chat, intelligence explain, and coding.
             </p>
           </div>
-        </div>
+          {test ? (
+            <div className={`llm-status compact ${test.ok ? "ok" : "bad"}`} role="status">
+              <strong>{test.ok ? "Ready" : "Not ready"}</strong>
+              <span>
+                {test.model ? `${test.model} · ` : ""}
+                {test.detail || (test.reachable ? "Reachable" : "Unreachable")}
+              </span>
+            </div>
+          ) : null}
+        </header>
 
         {loading ? (
           <p className="loading-line">Loading providers…</p>
         ) : (
-          <form className="stack" onSubmit={(e) => void handleSave(e)}>
-            <section className="provider-grid" aria-label="Provider choice">
+          <form className="models-grid" onSubmit={(e) => void handleSave(e)}>
+            <aside className="models-providers" aria-label="Provider choice">
+              <p className="studio-rail-label">Provider</p>
               <button
                 type="button"
                 className={provider === "ollama" ? "provider-card active" : "provider-card"}
                 onClick={() => chooseProvider("ollama")}
               >
+                <span className="provider-card-kicker">Recommended</span>
                 <strong>Local Ollama</strong>
-                <span>Recommended · free · runs on your machine</span>
+                <span>Free · runs on your machine · no API key</span>
               </button>
               <button
                 type="button"
                 className={provider === "openai_compatible" ? "provider-card active" : "provider-card"}
                 onClick={() => chooseProvider("openai_compatible")}
               >
+                <span className="provider-card-kicker">Optional</span>
                 <strong>OpenAI-compatible</strong>
-                <span>Self-hosted or free OpenAI-style endpoints</span>
+                <span>Self-hosted gateway or free OpenAI-style APIs</span>
               </button>
-            </section>
+              <div className="models-hint panel-soft">
+                <p className="studio-rail-label" style={{ padding: 0, marginBottom: "0.45rem" }}>
+                  Host tips
+                </p>
+                <p className="muted" style={{ margin: 0 }}>
+                  Docker: <code>host.docker.internal:11434</code>
+                  <br />
+                  Native: <code>127.0.0.1:11434</code>
+                  <br />
+                  <code>ollama pull qwen2.5-coder:7b</code>
+                </p>
+              </div>
+            </aside>
 
-            <section className="panel">
-              <h2>Endpoint</h2>
+            <section className="panel models-config">
+              <div className="panel-head">
+                <h2>Configuration</h2>
+                {settings?.provider ? (
+                  <span className="muted" style={{ fontSize: "0.85rem" }}>
+                    Active: {settings.provider === "ollama" ? "Ollama" : "OpenAI-compatible"}
+                  </span>
+                ) : null}
+              </div>
               <div className="form-stack">
                 <div className="field">
                   <label htmlFor="base-url">Base URL</label>
@@ -170,12 +200,6 @@ export default function ModelsPage() {
                     placeholder={provider === "ollama" ? OLLAMA_DEFAULT : "https://api.example.com/v1"}
                     required
                   />
-                  {provider === "ollama" ? (
-                    <p className="muted" style={{ margin: "0.35rem 0 0", fontSize: "0.85rem" }}>
-                      In Docker use <code>host.docker.internal</code>. Native: <code>http://127.0.0.1:11434/v1</code>.
-                      Pull a model: <code>ollama pull qwen2.5-coder:7b</code>
-                    </p>
-                  ) : null}
                 </div>
 
                 <div className="field">
@@ -198,11 +222,18 @@ export default function ModelsPage() {
                       required
                     />
                   )}
+                  {models.length > 0 ? (
+                    <p className="muted field-hint">{models.length} models discovered from the endpoint</p>
+                  ) : (
+                    <p className="muted field-hint">No models discovered yet — enter a name or test the connection</p>
+                  )}
                 </div>
 
                 {provider === "openai_compatible" ? (
                   <div className="field">
-                    <label htmlFor="api-key">API key {settings?.api_key_set ? `(saved ${settings.api_key_masked})` : ""}</label>
+                    <label htmlFor="api-key">
+                      API key {settings?.api_key_set ? `(saved ${settings.api_key_masked})` : ""}
+                    </label>
                     <input
                       id="api-key"
                       type="password"
@@ -215,16 +246,12 @@ export default function ModelsPage() {
                 ) : null}
 
                 <label className="check-row">
-                  <input
-                    type="checkbox"
-                    checked={freeFailover}
-                    onChange={(e) => setFreeFailover(e.target.checked)}
-                  />
+                  <input type="checkbox" checked={freeFailover} onChange={(e) => setFreeFailover(e.target.checked)} />
                   Try failover local models when the primary fails
                 </label>
               </div>
 
-              <div className="task-actions" style={{ marginTop: "1.1rem" }}>
+              <div className="models-actions">
                 <button className="btn btn-primary" type="submit" disabled={saving}>
                   {saving ? "Saving…" : "Save"}
                 </button>
@@ -232,22 +259,12 @@ export default function ModelsPage() {
                   {testing ? "Testing…" : "Test connection"}
                 </button>
                 <Link className="btn btn-ghost" href="/app">
-                  Back to workspace
+                  Open workspace
                 </Link>
               </div>
 
               {message ? <p className="ok-text">{message}</p> : null}
               {error ? <p className="error-text">{error}</p> : null}
-              {test ? (
-                <div className={`llm-status ${test.ok ? "ok" : "bad"}`}>
-                  <strong>{test.ok ? "Ready" : "Not ready"}</strong>
-                  <span>
-                    {test.reachable ? "Reachable" : "Unreachable"}
-                    {test.completion_ok ? " · completion ok" : ""}
-                    {test.detail ? ` — ${test.detail}` : ""}
-                  </span>
-                </div>
-              ) : null}
             </section>
           </form>
         )}
