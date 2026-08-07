@@ -2,7 +2,7 @@ import { existsSync } from "fs";
 import path from "path";
 
 type PressSlotProps = {
-  /** Filename under /public/press, e.g. workspace.png */
+  /** Filename under /public/press, e.g. Workspace-UI.png */
   file: string;
   label: string;
   caption?: string;

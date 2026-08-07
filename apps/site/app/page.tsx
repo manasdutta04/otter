@@ -65,7 +65,7 @@ export default function LandingPage() {
             </a>
           </div>
           <div className="feature-media">
-            <PressSlot file="workspace.png" label="Workspace UI" caption="Import · repo list · status" />
+            <PressSlot file="Workspace-UI.png" label="Workspace UI" caption="Import · repo list · status" />
           </div>
         </section>
 
@@ -81,7 +81,7 @@ export default function LandingPage() {
             </a>
           </div>
           <div className="feature-media">
-            <PressSlot file="models.png" label="Models UI" caption="Providers · discovery · test" />
+            <PressSlot file="Models-UI.png" label="Models UI" caption="Providers · discovery · test" />
           </div>
         </section>
 
@@ -97,7 +97,7 @@ export default function LandingPage() {
             </a>
           </div>
           <div className="feature-media">
-            <PressSlot file="chat.png" label="Chat UI" caption="Grounded answers · citations" />
+            <PressSlot file="Chat-UI.png" label="Chat UI" caption="Grounded answers · citations" />
           </div>
         </section>
 
@@ -113,7 +113,7 @@ export default function LandingPage() {
             </a>
           </div>
           <div className="feature-media">
-            <PressSlot file="coding.png" label="Coding UI" caption="Diff · approve · PR" />
+            <PressSlot file="Coding-UI.png" label="Coding UI" caption="Diff · approve · PR" />
           </div>
         </section>
       </div>
