@@ -1,6 +1,7 @@
 import { Brand } from "../components/Brand";
+import { CopyCommand } from "../components/CopyCommand";
 import { PressSlot } from "../components/PressSlot";
-import { APP_MODELS, APP_WORKSPACE, GITHUB_REPO } from "../lib/urls";
+import { DOCKER_HUB, DOCKER_QUICKSTART, GITHUB_REPO } from "../lib/urls";
 
 function GitHubMark({ className }: { className?: string }) {
   return (
@@ -18,8 +19,8 @@ export default function LandingPage() {
         <nav className="landing-nav-links" aria-label="Product">
           <a href="#product">Product</a>
           <a href="/docs">Docs</a>
-          <a href={APP_WORKSPACE}>Workspace</a>
-          <a href={APP_MODELS}>Models</a>
+          <a href="/docs/self-host">Self-host</a>
+          <a href="/docs/docker">Docker</a>
         </nav>
         <div className="landing-nav-actions">
           <a className="github-star-btn" href={GITHUB_REPO} target="_blank" rel="noreferrer">
@@ -31,18 +32,23 @@ export default function LandingPage() {
 
       <section className="landing-hero">
         <div className="landing-hero-copy">
-          <a className="landing-badge" href={APP_WORKSPACE}>
-            New ✨ Introducing Otter workspace
+          <a className="landing-badge" href="/docs/self-host">
+            New ✨ Self-host with Docker
           </a>
           <h1 className="landing-headline">
             <span className="script">Easily</span> understand &amp; change code
           </h1>
+          <p className="landing-hero-lead">
+            Run Otter on your machine. Copy the command, open{" "}
+            <code>http://127.0.0.1:3000/app</code> when it&apos;s up.
+          </p>
+          <CopyCommand className="landing-copy-command" command={DOCKER_QUICKSTART} />
           <div className="landing-ctas">
             <a className="btn btn-secondary" href="/docs/self-host">
-              Self-host with Docker
+              Setup guide
             </a>
-            <a className="btn btn-primary" href={APP_WORKSPACE}>
-              Start for free
+            <a className="btn btn-outline" href={DOCKER_HUB} target="_blank" rel="noreferrer">
+              Docker Hub
             </a>
           </div>
         </div>
@@ -60,7 +66,7 @@ export default function LandingPage() {
               Import a GitHub repo and get architecture signals, entry points, and stack detection —
               before anyone writes a line of code.
             </p>
-            <a className="btn btn-outline" href={APP_WORKSPACE}>
+            <a className="btn btn-outline" href="/docs/self-host">
               Learn more
             </a>
           </div>
@@ -76,7 +82,7 @@ export default function LandingPage() {
               Point Otter at Ollama on your machine (or any OpenAI-compatible endpoint). One Models
               page — used for chat, explain, and coding.
             </p>
-            <a className="btn btn-outline" href={APP_MODELS}>
+            <a className="btn btn-outline" href="/docs/models">
               Learn more
             </a>
           </div>
@@ -92,7 +98,7 @@ export default function LandingPage() {
               Grounded chat cites real files. Plan changes with risks and verification steps before
               any patch is proposed.
             </p>
-            <a className="btn btn-outline" href={APP_WORKSPACE}>
+            <a className="btn btn-outline" href="/docs">
               Learn more
             </a>
           </div>
@@ -108,7 +114,7 @@ export default function LandingPage() {
               Generate patches, review diffs, approve or reject, then open a PR. Otter never silently
               overwrites your source tree.
             </p>
-            <a className="btn btn-outline" href={APP_WORKSPACE}>
+            <a className="btn btn-outline" href="/docs">
               Learn more
             </a>
           </div>
@@ -181,9 +187,9 @@ export default function LandingPage() {
             <img src="/landing/otter-docker.png" alt="" />
           </article>
           <article className="details-mini lavender">
-            <h3>Don&apos;t forget to follow along</h3>
-            <a className="btn btn-outline btn-sm" href={APP_WORKSPACE}>
-              Open workspace
+            <h3>Copy, run, open the app</h3>
+            <a className="btn btn-outline btn-sm" href="/docs/self-host">
+              Self-host guide
             </a>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/landing/otter-magnify.png" alt="" />
@@ -192,9 +198,11 @@ export default function LandingPage() {
       </section>
 
       <section className="landing-cta-band">
-        <h2>Ready to use otter?</h2>
-        <a className="btn btn-primary" href={APP_WORKSPACE}>
-          Get started for free
+        <h2>Ready to run Otter?</h2>
+        <p className="landing-cta-lead">Pull the image and start the stack on your machine.</p>
+        <CopyCommand className="landing-copy-command landing-copy-command-cta" command={DOCKER_QUICKSTART} />
+        <a className="btn btn-secondary" href="/docs/self-host">
+          Full setup guide
         </a>
       </section>
 
@@ -218,16 +226,13 @@ export default function LandingPage() {
             <h3>Product</h3>
             <ul>
               <li>
-                <a href={APP_WORKSPACE}>Workspace</a>
+                <a href="/docs/self-host">Self-host</a>
               </li>
               <li>
                 <a href="/docs/docker">Docker</a>
               </li>
               <li>
-                <a href="/docs/self-host">Self-host</a>
-              </li>
-              <li>
-                <a href={APP_MODELS}>Models</a>
+                <a href="/docs/models">Models</a>
               </li>
               <li>
                 <a href="/docs/cli">CLI</a>
@@ -243,7 +248,9 @@ export default function LandingPage() {
                 </a>
               </li>
               <li>
-                <a href={APP_WORKSPACE}>Start for free</a>
+                <a href={DOCKER_HUB} target="_blank" rel="noreferrer">
+                  Docker Hub
+                </a>
               </li>
             </ul>
           </div>

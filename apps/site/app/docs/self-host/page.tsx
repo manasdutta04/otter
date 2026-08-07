@@ -1,3 +1,6 @@
+import { CopyCommand } from "../../../components/CopyCommand";
+import { DOCKER_HUB, DOCKER_IMAGE, DOCKER_QUICKSTART } from "../../../lib/urls";
+
 export default function SelfHostDocsPage() {
   return (
     <>
@@ -14,17 +17,22 @@ export default function SelfHostDocsPage() {
       </ul>
 
       <h2>Start the stack</h2>
-      <pre>
-        <code>{`cp .env.example .env
-# Set GITHUB_CLIENT_ID and GITHUB_CLIENT_SECRET
-# OAuth callback: http://127.0.0.1:8000/auth/github/callback
-
-docker compose -f docker/compose.platform.yml pull
-docker compose -f docker/compose.platform.yml up -d`}</code>
-      </pre>
       <p>
-        This pulls <code>manasdutta04/otter:latest</code> from Docker Hub. To build from source instead,
-        use <code>up --build -d</code>.
+        Copy and run this on your machine. It pulls{" "}
+        <a href={DOCKER_HUB} target="_blank" rel="noreferrer">
+          <code>{DOCKER_IMAGE}</code>
+        </a>{" "}
+        from Docker Hub.
+      </p>
+      <CopyCommand command={DOCKER_QUICKSTART} />
+      <p className="muted" style={{ marginTop: "0.85rem" }}>
+        Optional: copy <code>.env.example</code> to <code>.env</code> and set{" "}
+        <code>GITHUB_CLIENT_ID</code> / <code>GITHUB_CLIENT_SECRET</code>. OAuth callback:{" "}
+        <code>http://127.0.0.1:8000/auth/github/callback</code>
+      </p>
+      <p>
+        To build from source instead of pulling:{" "}
+        <code>docker compose -f docker/compose.platform.yml up --build -d</code>
       </p>
 
       <h2>Open the product UI</h2>

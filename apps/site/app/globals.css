@@ -116,8 +116,8 @@ pre code {
   color: inherit;
 }
 
-.muted {
-  color: var(--muted);
+.docs-article .copy-command {
+  margin: 0.85rem 0 1.1rem;
 }
 
 .accent {
@@ -403,6 +403,70 @@ pre code {
   justify-content: center;
   margin-top: 0.45rem;
   animation: rise 0.65s 0.15s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.landing-hero-lead {
+  margin: 0.35rem auto 1rem;
+  max-width: 34rem;
+  color: var(--muted);
+  font-size: 1.02rem;
+  line-height: 1.5;
+  text-align: center;
+  animation: rise 0.65s 0.1s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.copy-command {
+  position: relative;
+  text-align: left;
+  border-radius: 16px;
+  border: 1px solid rgba(18, 22, 20, 0.12);
+  background: #121614;
+  overflow: hidden;
+}
+
+.copy-command pre {
+  margin: 0;
+  padding: 1.05rem 5.5rem 1.05rem 1.15rem;
+  background: transparent;
+  border-radius: 0;
+  font-size: 0.86rem;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.copy-command-btn {
+  position: absolute;
+  top: 0.7rem;
+  right: 0.7rem;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.08);
+  color: #e8efec;
+  border-radius: 999px;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.copy-command-btn:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.landing-copy-command {
+  width: min(560px, 100%);
+  margin: 0.85rem auto 0.9rem;
+  animation: rise 0.65s 0.12s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.landing-copy-command-cta {
+  margin: 1rem auto 1.1rem;
+}
+
+.landing-cta-lead {
+  margin: 0.35rem auto 0;
+  max-width: 28rem;
+  color: var(--muted);
 }
 
 .landing-hero-visual {

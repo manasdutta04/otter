@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { CopyCommand } from "../../components/CopyCommand";
+import { DOCKER_QUICKSTART } from "../../lib/urls";
 
 export default function DocsIndexPage() {
   return (
@@ -8,6 +10,10 @@ export default function DocsIndexPage() {
         Otter is self-host first. This site is marketing and docs. The product UI runs on your machine
         via Docker at <code>http://127.0.0.1:3000/app</code>.
       </p>
+
+      <h2>Run Otter</h2>
+      <CopyCommand command={DOCKER_QUICKSTART} />
+
       <h2>Start here</h2>
       <ul>
         <li>
