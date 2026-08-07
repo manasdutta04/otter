@@ -37,7 +37,6 @@ export default function OverviewPage() {
     <div className="stack">
       <div className="page-header">
         <div>
-          <p className="eyebrow">Understand</p>
           <h1>Overview</h1>
           <p className="page-lede">Import status, branch, and a short read of what this repository is.</p>
         </div>

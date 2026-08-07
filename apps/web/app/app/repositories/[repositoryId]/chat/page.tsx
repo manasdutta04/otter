@@ -44,7 +44,6 @@ export default function ChatPage() {
     <div className="stack">
       <div className="page-header">
         <div>
-          <p className="eyebrow">Understand</p>
           <h1>Chat</h1>
           <p className="page-lede">Ask like a teammate. Answers cite files from this repository.</p>
         </div>

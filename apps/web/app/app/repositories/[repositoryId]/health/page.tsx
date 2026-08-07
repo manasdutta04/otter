@@ -73,7 +73,6 @@ export default function HealthPage() {
     <div className="stack">
       <div className="page-header">
         <div>
-          <p className="eyebrow">Understand</p>
           <h1>Health</h1>
           <p className="page-lede">Analyzed {new Date(report.analyzed_at).toLocaleString()}</p>
         </div>

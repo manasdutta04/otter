@@ -2,6 +2,11 @@ export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000
 export const GITHUB_LOGIN_URL = `${API_URL}/auth/github/login`;
 export const REFRESH_INTERVAL_MS = 5000;
 
+/** Marketing / docs site (Vercel). Product UI lives in Docker only. */
+export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL ?? "http://127.0.0.1:3001").replace(/\/$/, "");
+export const SITE_DOCS_URL = `${SITE_URL}/docs`;
+
+
 export type LlmProvider = "ollama" | "openai_compatible";
 
 export type LlmSettings = {
@@ -261,7 +266,8 @@ async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 export const api = {
-  getMe: () => apiFetch<{ authenticated: boolean }>("/auth/me"),
+  getMe: () =>
+    apiFetch<{ authenticated: boolean; login: string | null; avatar_url: string | null }>("/auth/me"),
   logout: () => apiFetch<void>("/auth/logout", { method: "POST" }),
 
   listRepositories: () => apiFetch<{ repositories: Repository[] }>("/repositories"),

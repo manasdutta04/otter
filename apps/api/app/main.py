@@ -326,9 +326,13 @@ async def auth_me(request: Request, db: AsyncSession = Depends(get_db)) -> dict[
     try:
         session = await current_session(request, db)
         user = await db.get(User, session.user_id)
-        return {"authenticated": True, "login": user.login if user else None}
+        return {
+            "authenticated": True,
+            "login": user.login if user else None,
+            "avatar_url": user.avatar_url if user else None,
+        }
     except HTTPException:
-        return {"authenticated": False, "login": None}
+        return {"authenticated": False, "login": None, "avatar_url": None}
 
 @app.post("/auth/logout", status_code=204)
 async def logout(request: Request, db: AsyncSession = Depends(get_db)) -> Response:

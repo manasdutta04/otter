@@ -1,12 +1,19 @@
 # Otter 🦦
 
-Otter is an AI software engineer for modern teams — an engineering-intelligence platform that understands repositories, explains architecture, plans changes, reviews quality, and remembers project decisions.
+Otter is an engineering-intelligence platform: understand repositories, explain architecture, plan changes, review quality, and remember project decisions — with approval before any write.
 
 **Understand → Explain → Plan → Review → Build (with approval).**
 
-## Quickstart (self-host)
+## Two surfaces
 
-Same idea as platforms like [Archestra](https://archestra.ai/): pull/build with Docker, open the browser, bring your own model (Ollama on the host or any OpenAI-compatible API).
+| Surface | Package | Where it runs |
+|---------|---------|---------------|
+| **Marketing + docs** | [`apps/site`](apps/site) | Vercel (public domain) |
+| **Product UI + API** | [`apps/web`](apps/web) + [`apps/api`](apps/api) | Docker on your machine |
+
+The landing page is **not** inside Docker. After `compose up`, open `http://127.0.0.1:3000/app`.
+
+## Quickstart (self-host)
 
 **Requires:** Docker Engine + Compose v2. **Recommended:** Ollama on the host (`ollama pull qwen2.5-coder:7b`).
 
@@ -18,16 +25,24 @@ cp .env.example .env
 docker compose -f docker/compose.platform.yml up --build -d
 ```
 
-1. Open [http://127.0.0.1:3000/app/models](http://127.0.0.1:3000/app/models) and connect **Local Ollama** (or another free OpenAI-compatible endpoint).
+1. Open [http://127.0.0.1:3000/app/models](http://127.0.0.1:3000/app/models) and connect **Local Ollama**.
 2. Connect GitHub, then import a repository from `/app`.
 
-Default stack = **one** Otter image (`otter/platform`) + official `postgres:16-alpine` + `redis:7-alpine`. Details: [docs/self-host.md](docs/self-host.md).
+Details: [docs/self-host.md](docs/self-host.md). Public docs also ship from `apps/site` (`/docs`).
+
+## Marketing site (Vercel)
+
+```bash
+cd apps/site
+npm install
+npm run dev   # http://127.0.0.1:3001
+```
+
+Deploy: create a Vercel project with **Root Directory** `apps/site`. Set `NEXT_PUBLIC_APP_URL=http://127.0.0.1:3000` (or your users’ local/default app URL).
 
 ## Native development (no Docker)
 
-Use when freeing RAM for Ollama on the host.
-
-1. Copy `.env.example` → `.env` and set GitHub OAuth (use `localhost` URLs for native).
+1. Copy `.env.example` → `.env` and set GitHub OAuth.
 2. Start Ollama and pull models.
 3. Local Postgres with user/db `otter` / `otter`.
 4. Run:
@@ -37,24 +52,7 @@ $env:PGPASSWORD = "YOUR_POSTGRES_PASSWORD"
 powershell -ExecutionPolicy Bypass -File scripts/dev-native.ps1
 ```
 
-Or manually:
-
-```powershell
-cd apps/api
-python -m venv .venv
-.\.venv\Scripts\pip install -r requirements.txt
-$env:DATABASE_URL = "postgresql+asyncpg://otter:otter@127.0.0.1:5432/otter"
-$env:LLM_BASE_URL = "http://127.0.0.1:11434/v1"
-$env:REPOSITORY_DATA_DIR = "c:\Coding Workspace\veridexs\data\repositories"
-$env:PYTHONPATH = (Get-Location).Path
-.\.venv\Scripts\alembic.exe upgrade head
-.\.venv\Scripts\uvicorn.exe app.main:app --reload --host 127.0.0.1 --port 8000
-
-# second terminal
-cd apps/web
-npm install
-npm run dev
-```
+Or manually run API (`apps/api`) and product web (`apps/web`). Marketing site is optional: `apps/site` on port 3001.
 
 ## Contributor Docker (bind mounts)
 
@@ -68,11 +66,11 @@ Not the product install path — use `compose.platform.yml` for self-host.
 
 | Surface | How to use |
 |---------|------------|
-| Web | Self-host UI at `http://127.0.0.1:3000` (`/app` workspace) |
-| CLI | `npx otter` / `bunx otter` (same API) |
+| Web (product) | Self-host UI at `http://127.0.0.1:3000/app` |
+| Site (docs) | Vercel / `apps/site` |
+| CLI | Thin client against the same API (see `/docs/cli`) |
 | MCP | `python apps/mcp/server.py` with `OTTER_API_URL` / `OTTER_SESSION` |
 | VS Code | Extension in `apps/vscode` |
-| GitHub App | Optional; `compose.dev.yml --profile github` |
 
 ## Product principles
 

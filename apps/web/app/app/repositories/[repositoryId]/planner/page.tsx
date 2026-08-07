@@ -75,7 +75,6 @@ export default function PlannerPage() {
     <div className="stack">
       <div className="page-header">
         <div>
-          <p className="eyebrow">Build</p>
           <h1>Planner</h1>
           <p className="page-lede">Turn a goal into ordered steps before you generate code.</p>
         </div>

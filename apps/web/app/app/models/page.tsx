@@ -3,8 +3,8 @@
 import Link from "next/link";
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import { AppShell } from "../../../components/AppShell";
+import { AppSidebar } from "../../../components/AppSidebar";
 import { ModelStatusChip } from "../../../components/ModelStatusChip";
-import { StudioSidebar } from "../../../components/StudioSidebar";
 import { api, type LlmProvider, type LlmSettings, type LlmTestResult } from "../../../lib/api";
 
 const OLLAMA_DEFAULT = "http://host.docker.internal:11434/v1";
@@ -112,24 +112,18 @@ export default function ModelsPage() {
 
   return (
     <AppShell
-      sidebar={<StudioSidebar />}
-      title={
-        <div>
-          <p className="eyebrow">Model Providers</p>
-          <h1 className="studio-page-title">Models</h1>
-        </div>
-      }
+      sidebar={<AppSidebar />}
+      title={<h1 className="product-page-title">Models</h1>}
       right={<ModelStatusChip />}
       narrow={false}
-      footer={false}
     >
       <div className="models-layout">
         <header className="models-hero">
           <div>
-            <h2>Connect your inference endpoint</h2>
+            <h2>Inference endpoint</h2>
             <p className="muted">
-              Pick a provider once — Local Ollama is free and recommended for self-host. Otter uses it for
-              chat, intelligence explain, and coding.
+              Connect Local Ollama on the host, or any OpenAI-compatible base URL. Otter uses this for
+              chat, explain, and coding.
             </p>
           </div>
           {test ? (
@@ -148,7 +142,7 @@ export default function ModelsPage() {
         ) : (
           <form className="models-grid" onSubmit={(e) => void handleSave(e)}>
             <aside className="models-providers" aria-label="Provider choice">
-              <p className="studio-rail-label">Provider</p>
+              <p className="product-rail-label">Provider</p>
               <button
                 type="button"
                 className={provider === "ollama" ? "provider-card active" : "provider-card"}
@@ -168,7 +162,7 @@ export default function ModelsPage() {
                 <span>Self-hosted gateway or free OpenAI-style APIs</span>
               </button>
               <div className="models-hint panel-soft">
-                <p className="studio-rail-label" style={{ padding: 0, marginBottom: "0.45rem" }}>
+                <p className="product-rail-label" style={{ padding: 0, marginBottom: "0.45rem" }}>
                   Host tips
                 </p>
                 <p className="muted" style={{ margin: 0 }}>

@@ -67,7 +67,6 @@ export default function IntelligencePage() {
     <div className="stack">
       <div className="page-header">
         <div>
-          <p className="eyebrow">Understand</p>
           <h1>Intelligence</h1>
           <p className="page-lede">Stack, structure, and facts Otter inferred from the repo — without guessing from chat.</p>
         </div>

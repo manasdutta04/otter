@@ -30,7 +30,6 @@ const GROUPS = [
 
 type AppNavProps = {
   repositoryId: string;
-  /** Render as vertical studio rail links instead of horizontal tabs. */
   variant?: "tabs" | "rail";
 };
 
@@ -66,7 +65,7 @@ export function AppNav({ repositoryId, variant = "rail" }: AppNavProps) {
     <nav className="studio-rail-nav studio-rail-nav-repo" aria-label="Repository sections">
       {GROUPS.map((group) => (
         <div key={group.label} className="studio-rail-group">
-          <p className="studio-rail-group-label">{group.label}</p>
+          <p className="studio-rail-label">{group.label}</p>
           {group.links.map((link) => {
             const href = `${base}${link.href}`;
             const active = link.href === "" ? pathname === base : pathname.startsWith(href);
@@ -77,8 +76,9 @@ export function AppNav({ repositoryId, variant = "rail" }: AppNavProps) {
                 href={href}
                 prefetch
                 scroll={false}
+                title={link.label}
               >
-                {link.label}
+                <span className="studio-rail-text">{link.label}</span>
               </Link>
             );
           })}

@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Otter 🦦 — Engineering intelligence",
-  description: "Import repositories, understand codebases, plan changes, and ship with confidence.",
+  title: "Otter — Local workspace",
+  description: "Self-hosted engineering intelligence. Import repos, plan changes, and ship with approval.",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

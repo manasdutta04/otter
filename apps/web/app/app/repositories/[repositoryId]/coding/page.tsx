@@ -146,7 +146,6 @@ export default function CodingPage() {
     <div className="stack">
       <div className="page-header">
         <div>
-          <p className="eyebrow">Build</p>
           <h1>Coding</h1>
           <p className="page-lede">Generate patches, approve before apply, then open a pull request.</p>
         </div>

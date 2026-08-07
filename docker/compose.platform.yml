@@ -40,6 +40,7 @@ services:
       args:
         NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://127.0.0.1:8000}
         NEXT_PUBLIC_URL: ${NEXT_PUBLIC_URL:-http://127.0.0.1:3000}
+        NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-http://127.0.0.1:3001}
     ports:
       - "127.0.0.1:3000:3000"
       - "127.0.0.1:8000:8000"
@@ -56,6 +57,7 @@ services:
       REDIS_HOST: redis
       REDIS_PORT: "6379"
       NEXT_PUBLIC_URL: ${NEXT_PUBLIC_URL:-http://127.0.0.1:3000}
+      NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-http://127.0.0.1:3001}
       # Do not reuse native LLM_BASE_URL=127.0.0.1 from .env (that is the container loopback).
       LLM_BASE_URL: ${PLATFORM_LLM_BASE_URL:-http://host.docker.internal:11434/v1}
       LLM_MODEL: ${LLM_MODEL:-qwen2.5-coder:7b}

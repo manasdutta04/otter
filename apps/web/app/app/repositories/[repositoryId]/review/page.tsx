@@ -64,7 +64,6 @@ export default function ReviewPage() {
     <div className="stack">
       <div className="page-header">
         <div>
-          <p className="eyebrow">Understand</p>
           <h1>Review</h1>
           <p className="page-lede">
             {findings.length === 0

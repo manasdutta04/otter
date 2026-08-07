@@ -3,10 +3,10 @@
 import Link from "next/link";
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import { AppShell } from "../../components/AppShell";
+import { AppSidebar } from "../../components/AppSidebar";
 import { EmptyState } from "../../components/EmptyState";
 import { ModelStatusChip } from "../../components/ModelStatusChip";
 import { StatusBadge } from "../../components/StatusBadge";
-import { StudioSidebar } from "../../components/StudioSidebar";
 import {
   ApiError,
   api,
@@ -29,7 +29,6 @@ export default function AppDashboardPage() {
   const [importing, setImporting] = useState(false);
   const [lastSyncedAt, setLastSyncedAt] = useState<string | null>(null);
   const [error, setError] = useState("");
-  const [loggingOut, setLoggingOut] = useState(false);
   const [llmTest, setLlmTest] = useState<LlmTestResult | null>(null);
 
   const loadRepositories = useCallback(async () => {
@@ -101,45 +100,28 @@ export default function AppDashboardPage() {
     }
   }
 
-  async function handleLogout() {
-    setLoggingOut(true);
-    try {
-      await api.logout();
-    } catch {
-      /* ignore */
-    } finally {
-      setAuthenticated(false);
-      setRepositories([]);
-      setLoggingOut(false);
-    }
-  }
-
   return (
     <AppShell
-      sidebar={<StudioSidebar />}
+      sidebar={<AppSidebar />}
       title={
         <div>
-          <p className="eyebrow">Workspace</p>
-          <h1 className="studio-page-title">Repositories</h1>
+          <h1 className="product-page-title">Repositories</h1>
         </div>
       }
       right={
-        authenticated ? (
+        sessionChecked ? (
           <>
             <ModelStatusChip />
-            <button className="btn btn-ghost btn-sm" type="button" onClick={() => void loadRepositories()} disabled={loadingRepositories}>
-              {loadingRepositories ? "Refreshing…" : "Refresh"}
-            </button>
-            <button className="btn btn-outline btn-sm" type="button" onClick={() => void handleLogout()} disabled={loggingOut}>
-              {loggingOut ? "Logging out…" : "Log out"}
-            </button>
-          </>
-        ) : sessionChecked ? (
-          <>
-            <ModelStatusChip />
-            <a className="btn btn-primary btn-sm" href={GITHUB_LOGIN_URL}>
-              Connect GitHub
-            </a>
+            {authenticated ? (
+              <button
+                className="btn btn-ghost btn-sm"
+                type="button"
+                onClick={() => void loadRepositories()}
+                disabled={loadingRepositories}
+              >
+                {loadingRepositories ? "Refreshing…" : "Refresh"}
+              </button>
+            ) : null}
           </>
         ) : (
           <span className="muted" style={{ fontSize: "0.85rem" }}>
@@ -147,17 +129,15 @@ export default function AppDashboardPage() {
           </span>
         )
       }
-      footer={false}
     >
       {!sessionChecked ? (
-        <p className="loading-line">Checking your Otter session…</p>
+        <p className="loading-line">Checking session…</p>
       ) : !authenticated ? (
         <div className="auth-gate">
           <div className="connect-panel">
-            <p className="eyebrow">Get started</p>
-            <h1>Set a model, then connect GitHub</h1>
+            <h1>Connect GitHub to import repos</h1>
             <p className="muted">
-              Choose Local Ollama under Models, then sign in to import repositories.
+              Set a model under Models, then connect GitHub from the sidebar for clone and PR access.
             </p>
             <div className="connect-actions">
               <Link className="btn btn-outline" href="/app/models">
