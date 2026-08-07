@@ -57,7 +57,7 @@ services:
       LLM_FREE_FAILOVER: ${LLM_FREE_FAILOVER:-true}
       # Cloudflare Worker (public URL). Override with env if you fork the broker.
       OTTER_AUTH_BROKER_URL: ${OTTER_AUTH_BROKER_URL:-https://otter-auth-broker.manasdutta512.workers.dev}
-      OTTER_AUTH_REDEEM_SECRET: ${OTTER_AUTH_REDEEM_SECRET:-}
+      OTTER_AUTH_REDEEM_SECRET: ${OTTER_AUTH_REDEEM_SECRET:-70ba46b601d43d568a60f507e3e76723f01af3bc99d46f5875cd59834ec0a000}
     volumes:
       - repository_data:/data/repositories
     extra_hosts:
