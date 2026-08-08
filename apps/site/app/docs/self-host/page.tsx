@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { CopyCommand } from "../../../components/CopyCommand";
 import { InstallTabs } from "../../../components/InstallTabs";
 import {
@@ -92,11 +93,15 @@ otter`}</code>
       </ul>
 
       <h2>First-run checklist</h2>
+      <p>
+        Prefer the step-by-step guide: <Link href="/docs/first-run">First 10 minutes</Link>.
+      </p>
       <ol>
         <li>Install via Docker pull or npm CLI (<code>{NPM_PACKAGE}</code>).</li>
         <li>Connect GitHub (Otter app).</li>
         <li>Point models at Local Ollama (or OpenAI-compatible).</li>
         <li>Import a repository.</li>
+        <li>Ask → plan → approve before any write.</li>
       </ol>
 
       <h2>Want to hack on Otter?</h2>

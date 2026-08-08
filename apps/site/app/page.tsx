@@ -18,9 +18,9 @@ export default function LandingPage() {
         <Brand size="md" href="/" />
         <nav className="landing-nav-links" aria-label="Product">
           <a href="#product">Product</a>
+          <a href="#how">How it runs</a>
           <a href="/docs">Docs</a>
-          <a href="/docs/self-host">Self-host</a>
-          <a href="/docs/docker">Docker</a>
+          <a href="/docs/first-run">First run</a>
         </nav>
         <div className="landing-nav-actions">
           <a className="github-star-btn" href={GITHUB_REPO} target="_blank" rel="noreferrer">
@@ -42,7 +42,7 @@ export default function LandingPage() {
           <p className="landing-privacy-note">
             Docker for the full local UI, or <code>{NPM_PACKAGE}</code> for the interactive CLI.
             Repos and data stay on your machine.{" "}
-            <a href="/docs">Docs</a>
+            <a href="/docs/first-run">First 10 minutes</a>
           </p>
         </div>
         <div className="landing-hero-visual landing-hero-mascot">
@@ -59,8 +59,8 @@ export default function LandingPage() {
               Import a GitHub repo and get architecture signals, entry points, and stack detection —
               before anyone writes a line of code.
             </p>
-            <a className="btn btn-outline" href="/docs/self-host">
-              Learn more
+            <a className="btn btn-outline" href="/docs/first-run">
+              First 10 minutes
             </a>
           </div>
           <div className="feature-media">
@@ -117,6 +117,66 @@ export default function LandingPage() {
         </section>
       </div>
 
+      <section className="landing-path" id="how" aria-labelledby="how-title">
+        <p className="section-kicker">How it runs</p>
+        <h2 className="section-title" id="how-title">
+          From install to <span className="accent">PR</span> tonight
+        </h2>
+        <p className="landing-path-lead">
+          One path on your machine — no cloud agent, no silent writes.
+        </p>
+        <ol className="path-steps">
+          <li>
+            <span className="path-num" aria-hidden="true">
+              01
+            </span>
+            <div>
+              <strong>Install</strong>
+              <p>Docker for the full UI, or the npm CLI in your terminal.</p>
+            </div>
+          </li>
+          <li>
+            <span className="path-num" aria-hidden="true">
+              02
+            </span>
+            <div>
+              <strong>Connect GitHub</strong>
+              <p>Install the Otter GitHub App — no Client secrets on your machine.</p>
+            </div>
+          </li>
+          <li>
+            <span className="path-num" aria-hidden="true">
+              03
+            </span>
+            <div>
+              <strong>Point at a model</strong>
+              <p>Local Ollama (recommended) or any OpenAI-compatible endpoint.</p>
+            </div>
+          </li>
+          <li>
+            <span className="path-num" aria-hidden="true">
+              04
+            </span>
+            <div>
+              <strong>Import a repo</strong>
+              <p>Otter scans architecture, entry points, and stack before coding.</p>
+            </div>
+          </li>
+          <li>
+            <span className="path-num" aria-hidden="true">
+              05
+            </span>
+            <div>
+              <strong>Plan → approve → ship</strong>
+              <p>Generate a patch, review the diff, approve, then open a PR.</p>
+            </div>
+          </li>
+        </ol>
+        <p className="landing-path-cta">
+          <a href="/docs/first-run">First 10 minutes guide</a>
+        </p>
+      </section>
+
       <section className="landing-band" id="why">
         <h2 className="section-title section-title-wide">
           Ship with Otter in <span className="accent">Fast</span>.
@@ -163,7 +223,7 @@ export default function LandingPage() {
               As AI coding tools rush to write files first, Otter starts with understanding. Run it on
               your machine, bring your own model, and keep approval before every write.
             </p>
-            <a className="btn btn-outline" href="/docs">
+            <a className="btn btn-outline" href="/docs/first-run">
               Find out more
             </a>
           </div>
@@ -193,8 +253,8 @@ export default function LandingPage() {
       <section className="landing-cta-band">
         <h2>Ready to run Otter?</h2>
         <InstallTabs className="landing-install-tabs" showDocker defaultTab="docker" />
-        <a className="btn btn-secondary" href="/docs">
-          Full docs
+        <a className="btn btn-secondary" href="/docs/first-run">
+          First 10 minutes
         </a>
       </section>
 
@@ -217,6 +277,9 @@ export default function LandingPage() {
           <div>
             <h3>Product</h3>
             <ul>
+              <li>
+                <a href="/docs/first-run">First 10 minutes</a>
+              </li>
               <li>
                 <a href="/docs/self-host">Self-host</a>
               </li>

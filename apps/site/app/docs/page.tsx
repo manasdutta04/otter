@@ -25,7 +25,11 @@ export default function DocsIndexPage() {
       <h2>Guides</h2>
       <ul>
         <li>
-          <Link href="/docs/self-host">Self-host</Link> — first-run checklist (Docker or CLI)
+          <Link href="/docs/first-run">First 10 minutes</Link> — install → GitHub → model → import →
+          approve
+        </li>
+        <li>
+          <Link href="/docs/self-host">Self-host</Link> — Docker or CLI checklist
         </li>
         <li>
           <Link href="/docs/cli">CLI</Link> — <code>@otter-engg/cli</code>, slash commands
