@@ -1,26 +1,8 @@
 name: Publish @otter-engg/cli
 
-# Publish via npm Trusted Publisher (OIDC) — no NPM_TOKEN.
-#
-# One-time setup on npmjs.com → @otter-engg/cli → Settings → Trusted Publisher:
-#   Provider: GitHub Actions
-#   Organization or user: manasdutta04
-#   Repository: otter
-#   Workflow filename: cli-publish.yml   ← must match exactly (one publisher per package)
-#   Allowed actions: npm publish
-#
-# Then optionally: Publishing access → "Require 2FA and disallow tokens"
-# (Trusted Publisher still works; classic/automation tokens will not.)
-#
-# Triggers:
-#   - push to main (no-ops quickly if version already on npm)
-#   - tag cli-v* (e.g. git tag cli-v0.2.0 && git push origin cli-v0.2.0)
-#   - workflow_dispatch
-#
-# No path filters: tags + Trusted Publisher need this single workflow to always
-# be eligible; the "already published" check keeps noise low.
-#
-# Requires Node ≥ 22.14 and npm ≥ 11.5.1 for OIDC trusted publishing.
+# Publishes @otter-engg/cli with npm Trusted Publisher (OIDC).
+# Configure once on npmjs.com → package → Trusted Publisher → GitHub Actions:
+#   manasdutta04 / otter / cli-publish.yml
 
 on:
   push:
@@ -41,19 +23,19 @@ jobs:
         working-directory: apps/cli
     permissions:
       contents: read
-      id-token: write # OIDC for npm Trusted Publisher + provenance
+      id-token: write
     steps:
       - uses: actions/checkout@v4
 
+      # Do not set registry-url — it writes an .npmrc with always-auth and
+      # empty _authToken, which breaks OIDC trusted publishing (false E404).
       - uses: actions/setup-node@v4
         with:
-          # Trusted publishing needs Node ≥ 22.14 and npm ≥ 11.5.1
-          node-version: "22"
-          registry-url: "https://registry.npmjs.org"
+          node-version: "24"
           cache: npm
           cache-dependency-path: apps/cli/package-lock.json
 
-      - name: Ensure npm supports trusted publishing
+      - name: Use npm with trusted publishing support
         run: npm install -g npm@latest
 
       - name: Resolve version
@@ -69,11 +51,9 @@ jobs:
             fi
             npm version "${VERSION}" --no-git-tag-version
             echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
-            echo "Publishing from tag ${GITHUB_REF_NAME} → ${VERSION}"
           else
             VERSION="$(node -p "require('./package.json').version")"
             echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
-            echo "Publishing from package.json → ${VERSION}"
           fi
 
       - name: Skip if version already on npm
@@ -87,7 +67,6 @@ jobs:
             echo "@otter-engg/cli@${VERSION} already published — skipping."
           else
             echo "exists=false" >> "$GITHUB_OUTPUT"
-            echo "Will publish @otter-engg/cli@${VERSION}"
           fi
 
       - name: Install & build
@@ -96,8 +75,8 @@ jobs:
           npm ci
           npm run build
 
-      - name: Publish to npm (OIDC)
+      - name: Publish to npm
         if: steps.check.outputs.exists == 'false'
-        # No NODE_AUTH_TOKEN — npm uses GitHub OIDC via Trusted Publisher.
-        # --provenance is automatic with trusted publishing; keep flag for clarity.
-        run: npm publish --access public --provenance
+        run: |
+          rm -f .npmrc "$HOME/.npmrc"
+          npm publish --access public --provenance

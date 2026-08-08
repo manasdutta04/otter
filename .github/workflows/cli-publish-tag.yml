@@ -1,10 +1,6 @@
 name: Publish @otter-engg/cli (tag)
 
-# Deprecated standalone tag workflow.
-# npm Trusted Publisher allows only ONE workflow filename per package.
-# Tag publishes are handled by cli-publish.yml (on: tags: cli-v*).
-#
-# This job only reminds you — it does not publish.
+# Tag publishes are handled by cli-publish.yml (npm allows one Trusted Publisher workflow).
 
 on:
   push:
@@ -15,8 +11,4 @@ jobs:
   notice:
     runs-on: ubuntu-latest
     steps:
-      - name: Use cli-publish.yml for tags
-        run: |
-          echo "::notice::cli-v* tags are published by .github/workflows/cli-publish.yml (npm Trusted Publisher)."
-          echo "Ensure Trusted Publisher on npmjs.com points at workflow filename: cli-publish.yml"
-          echo "You can disable this workflow under Actions if the notice is noisy."
+      - run: echo "Tag publishes run via cli-publish.yml."
