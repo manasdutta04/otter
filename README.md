@@ -1,94 +1,129 @@
 # Otter 🦦
 
-Otter is an engineering-intelligence platform: understand repositories, explain architecture, plan changes, review quality, and remember project decisions — with approval before any write.
+**Self-hosted engineering intelligence** — understand repositories, plan changes, review quality, and ship patches with approval before any write.
 
-**Understand → Explain → Plan → Review → Build (with approval).**
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![npm](https://img.shields.io/npm/v/@otter-engg/cli.svg)](https://www.npmjs.com/package/@otter-engg/cli)
+[![Docker Hub](https://img.shields.io/docker/v/manasdutta04/otter?label=docker&logo=docker)](https://hub.docker.com/r/manasdutta04/otter)
 
-## Surfaces
+**Site:** [otter.manasdutta.com](https://otter.manasdutta.com) · **Docs:** [otter.manasdutta.com/docs](https://otter.manasdutta.com/docs) · **Repo:** [github.com/manasdutta04/otter](https://github.com/manasdutta04/otter)
 
-| Surface | Package | Where it runs |
-|---------|---------|---------------|
-| **Marketing + docs** | [`apps/site`](apps/site) | Vercel (public domain) |
-| **Product UI + API** | [`apps/web`](apps/web) + [`apps/api`](apps/api) | Docker on your machine |
-| **CLI** | [`@otter-engg/cli`](https://www.npmjs.com/package/@otter-engg/cli) | Local Node (≥20); `~/.otter/` |
+```
+Understand → Explain → Plan → Review → Build (with approval)
+```
 
-The landing page is **not** inside Docker. After compose up, open `http://127.0.0.1:3000/app`.
+## Why Otter
+
+Most AI coding tools jump straight to editing files. Otter starts with **understanding**: architecture signals, grounded chat with citations, plans with risks, then approval-gated patches and PRs. Repos and data stay on **your** machine.
 
 ## Quickstart
 
-**Recommended:** Ollama on the host (`ollama pull qwen2.5-coder:7b`).
+**Recommended:** [Ollama](https://ollama.com) on the host — `ollama pull qwen2.5-coder:7b`.
 
-### Docker (full UI)
+### Option A — Docker (full UI + API)
 
 ```bash
 docker pull manasdutta04/otter
-docker compose -f https://YOUR_SITE/docker-compose.yml up -d
+docker compose -f https://otter.manasdutta.com/docker-compose.yml up -d
 ```
 
-Image: [`manasdutta04/otter`](https://hub.docker.com/r/manasdutta04/otter). Compose creates **local** Postgres + Redis.
+Open [http://127.0.0.1:3000/app](http://127.0.0.1:3000/app) → **Connect GitHub** → Models → Import a repo.
 
-### CLI (no Docker)
+> **Windows tip:** if Compose fails resolving `.env` from a URL, download [`docker-compose.yml`](https://otter.manasdutta.com/docker-compose.yml) first, then run `docker compose -f docker-compose.yml up -d`.
+
+### Option B — CLI (no Docker)
 
 ```bash
-npm i @otter-engg/cli
+npm i -g @otter-engg/cli   # or: pnpm add -g / yarn global add / bun add -g
 otter
 ```
 
-Bun installs the same npm package (`bun add -g @otter-engg/cli`) — no separate Bun publish.
+Then `/login`, `/model`, `/import owner/repo`, or type a freeform task. Data lives under `~/.otter/`.
 
-Connect GitHub via the **Otter GitHub App** (Cloudflare auth broker — see `apps/auth-broker/`).
+pnpm, yarn, and bun install the **same** npm package — no separate registry publish.
 
-1. Docker: open [http://127.0.0.1:3000/app](http://127.0.0.1:3000/app) → **Connect GitHub**. CLI: `otter login`.
-2. Point models at **Local Ollama** (or OpenAI-compatible).
-3. Import a repository.
+## Surfaces
 
-Details: public docs from `apps/site` (`/docs`).
-## Marketing site (Vercel)
+| Surface | How to use |
+|---------|------------|
+| **Web UI** | Docker stack → `http://127.0.0.1:3000/app` |
+| **CLI** | [`@otter-engg/cli`](https://www.npmjs.com/package/@otter-engg/cli) → `otter` |
+| **Docs site** | [`apps/site`](apps/site) → [otter.manasdutta.com](https://otter.manasdutta.com) |
+| **MCP** | [`apps/mcp`](apps/mcp) — stdio bridge to the local API |
+| **VS Code** | [`apps/vscode`](apps/vscode) |
+| **GitHub App** | Connect via Otter App (Cloudflare auth broker) |
+
+## Repository layout
+
+```
+apps/
+  api/           FastAPI backend
+  web/           Product UI (Next.js) — served in Docker
+  site/          Marketing + docs (Vercel)
+  cli/           @otter-engg/cli
+  auth-broker/   Cloudflare Worker for GitHub App login
+  mcp/           MCP stdio server
+  vscode/        VS Code extension
+  github-app/    Webhook service
+docker/          Compose files (platform / dev)
+docs/            Design notes for contributors
+```
+
+## Develop from source (contributor mode)
+
+Prerequisites: Node 20+, Python 3.11+, Docker (optional), Postgres + Redis for native API, Ollama recommended.
 
 ```bash
-cd apps/site
-npm install
-npm run dev   # http://127.0.0.1:3001
+git clone https://github.com/manasdutta04/otter.git
+cd otter
+cp .env.example .env   # contributor defaults — no production secrets
 ```
 
-Deploy: create a Vercel project with **Root Directory** `apps/site`. Set `NEXT_PUBLIC_APP_URL=http://127.0.0.1:3000` (or your users’ local/default app URL).
-
-## Native development (no Docker)
-
-1. Copy `.env.example` → `.env` and set GitHub OAuth.
-2. Start Ollama and pull models.
-3. Local Postgres with user/db `otter` / `otter`.
-4. Run:
-
-```powershell
-$env:PGPASSWORD = "YOUR_POSTGRES_PASSWORD"
-powershell -ExecutionPolicy Bypass -File scripts/dev-native.ps1
-```
-
-Or manually run API (`apps/api`) and product web (`apps/web`). Marketing site is optional: `apps/site` on port 3001.
-
-## Contributor Docker (bind mounts)
+**Contributor Docker (bind mounts):**
 
 ```bash
 docker compose -f docker/compose.dev.yml up --build
 ```
 
-Not the product install path — use `compose.platform.yml` for self-host.
+**Marketing site only:**
 
-## Client surfaces
+```bash
+cd apps/site && npm install && npm run dev   # http://127.0.0.1:3001
+```
 
-| Surface | How to use |
-|---------|------------|
-| Web (product) | Self-host UI at `http://127.0.0.1:3000/app` |
-| Site (docs) | Vercel / `apps/site` |
-| CLI | `npm i @otter-engg/cli` → `otter` — local `~/.otter/`, no Docker |
-| MCP | `python apps/mcp/server.py` (Docker API + session; optional) |
-| VS Code | Extension in `apps/vscode` |
+**CLI package:**
+
+```bash
+cd apps/cli && npm install && npm run build
+node dist/cli.js
+```
+
+**Native API + web** (see [CONTRIBUTING.md](CONTRIBUTING.md)):
+
+```powershell
+# Windows example
+$env:PGPASSWORD = "YOUR_POSTGRES_PASSWORD"
+powershell -ExecutionPolicy Bypass -File scripts/dev-native.ps1
+```
+
+## Contributing
+
+Contributions are welcome — bugs, docs, UX, and features that support **understand → plan → approve → build**.
+
+1. Read [CONTRIBUTING.md](CONTRIBUTING.md)
+2. Open an issue or draft PR describing the change
+3. Keep PRs focused; add tests when you touch API/CLI behavior
+
+Please follow the [Code of Conduct](CODE_OF_CONDUCT.md). Security reports: [SECURITY.md](SECURITY.md).
 
 ## Product principles
 
 - Explain before coding
 - Approval before any write
-- One API contract across all clients
+- One contract across Web · CLI · MCP · VS Code
 - Grounded answers with source citations
-- Self-host first; BYO local or remote LLM
+- Self-host first; bring your own local or remote LLM
+
+## License
+
+[MIT](LICENSE) © Manas Dutta

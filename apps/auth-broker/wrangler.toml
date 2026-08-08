@@ -2,14 +2,17 @@ name = "otter-auth-broker"
 main = "src/index.ts"
 compatibility_date = "2025-03-01"
 
-# Bind a KV namespace named AUTH_KV after: wrangler kv namespace create AUTH_KV
-# Then paste the id below (replace PLACEHOLDER before first deploy).
+# Contributor / operator setup:
+#   1. wrangler kv namespace create AUTH_KV
+#   2. Paste the id below (never commit production secrets — use `wrangler secret put`)
+#   3. wrangler secret put GITHUB_APP_CLIENT_ID
+#   4. wrangler secret put GITHUB_APP_CLIENT_SECRET
+#   5. Optional: wrangler secret put REDEEM_HMAC_SECRET
 [[kv_namespaces]]
 binding = "AUTH_KV"
-id = "8f7845b919814bebab9e6e0a298f2529"
-preview_id = "6268e908d7324a9a9953da6924fabda1"
+id = "REPLACE_WITH_AUTH_KV_ID"
+preview_id = "REPLACE_WITH_AUTH_KV_PREVIEW_ID"
 
 [vars]
 # Public Worker URL is derived from the request host.
-# Override allowed return origins via ALLOWED_RETURN_ORIGINS (comma-separated).
 ALLOWED_RETURN_ORIGINS = "http://127.0.0.1:8000,http://localhost:8000"

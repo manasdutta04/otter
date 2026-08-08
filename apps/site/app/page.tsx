@@ -237,6 +237,9 @@ export default function LandingPage() {
                 <a href="/docs/cli">CLI</a>
               </li>
               <li>
+                <a href="/docs/contribute">Contribute</a>
+              </li>
+              <li>
                 <a href="https://www.npmjs.com/package/@otter-engg/cli" target="_blank" rel="noreferrer">
                   npm
                 </a>

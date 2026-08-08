@@ -5,6 +5,8 @@ import {
   DOCKER_IMAGE,
   DOCKER_PULL,
   DOCKER_QUICKSTART,
+  GITHUB_REPO,
+  PUBLIC_SITE,
 } from "../../../lib/urls";
 
 export default function DockerDocsPage() {
@@ -12,28 +14,40 @@ export default function DockerDocsPage() {
     <>
       <h1>Docker</h1>
       <p className="lead">
-        Pull the public image{" "}
-        <a href={DOCKER_HUB} target="_blank" rel="noreferrer">
-          <code>{DOCKER_IMAGE}</code>
+        Otter ships a public image on Docker Hub. End users pull and run Compose — no GitHub clone
+        required. Contributors who want bind mounts should use{" "}
+        <code>docker/compose.dev.yml</code> from the{" "}
+        <a href={GITHUB_REPO} target="_blank" rel="noreferrer">
+          repo
         </a>
-        . For the full UI stack, start Compose from this site (
-        <code>/docker-compose.yml</code>) — it creates local Postgres + Redis automatically.
+        .
       </p>
 
-      <h2>Pull</h2>
+      <h2>Pull &amp; install tabs</h2>
       <InstallTabs size="docs" showDocker defaultTab="docker" />
       <p className="muted">
-        Docker tab: <code>{DOCKER_PULL}</code>. npm/bun tabs install the standalone CLI (no Docker).
+        Docker tab: <code>{DOCKER_PULL}</code>. Package-manager tabs install the standalone CLI.
       </p>
 
       <h2>Full stack (UI + API + DB)</h2>
+      <pre>
+        <code>{`docker compose -f ${PUBLIC_SITE}/docker-compose.yml up -d`}</code>
+      </pre>
       <CopyCommand useComposeUrl variant="button" className="docs-copy-pill" />
       <p className="muted" style={{ marginTop: "0.85rem" }}>
-        Fallback: <code>{DOCKER_QUICKSTART}</code>
+        This docs build resolves to: <code>{DOCKER_QUICKSTART}</code>
+      </p>
+      <p>
+        Image:{" "}
+        <a href={DOCKER_HUB} target="_blank" rel="noreferrer">
+          <code>{DOCKER_IMAGE}</code>
+        </a>
+        . Compose creates local Postgres + Redis volumes automatically.
       </p>
       <p>
         On Windows, if Compose fails resolving <code>.env</code> from a URL, download{" "}
-        <code>/docker-compose.yml</code> first, then <code>docker compose -f docker-compose.yml up -d</code>.
+        <a href="/docker-compose.yml">/docker-compose.yml</a> first, then{" "}
+        <code>docker compose -f docker-compose.yml up -d</code>.
       </p>
 
       <h2>What runs</h2>
@@ -48,15 +62,29 @@ export default function DockerDocsPage() {
 
       <h2>GitHub Connect (no secrets in the image)</h2>
       <p>
-        Set <code>OTTER_AUTH_BROKER_URL</code> to the Cloudflare Worker that holds the Otter GitHub
-        App secret. End users only click Connect — see <a href="/docs/github">GitHub</a>.
+        The published image does not contain GitHub App Client Secrets. Operators set{" "}
+        <code>OTTER_AUTH_BROKER_URL</code> to the Cloudflare Worker that completes login. End users
+        only click Connect — see <a href="/docs/github">GitHub</a>.
       </p>
 
-      <h2>If the GitHub repo is private</h2>
+      <h2>Public distribution</h2>
       <ul>
-        <li>Keep the Docker Hub image <strong>public</strong>.</li>
-        <li>Keep this marketing site public (hosts <code>/docker-compose.yml</code>).</li>
-        <li>Keep App credentials only in Cloudflare Secrets.</li>
+        <li>
+          Source: public on{" "}
+          <a href={GITHUB_REPO} target="_blank" rel="noreferrer">
+            GitHub
+          </a>
+        </li>
+        <li>
+          Runtime image: public on{" "}
+          <a href={DOCKER_HUB} target="_blank" rel="noreferrer">
+            Docker Hub
+          </a>
+        </li>
+        <li>
+          Compose file: public on this site (<code>{PUBLIC_SITE}/docker-compose.yml</code>)
+        </li>
+        <li>App credentials: only in Cloudflare Secrets for the auth broker</li>
       </ul>
 
       <h2>Ollama from Docker</h2>

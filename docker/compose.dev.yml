@@ -1,6 +1,7 @@
-# Contributor / bind-mount development stack.
-# Prefer docker/compose.platform.yml for self-host installs.
+# Contributor mode — bind-mount development stack.
+# End users should use Docker Hub + https://otter.manasdutta.com/docker-compose.yml instead.
 #
+#   cp .env.example .env
 #   docker compose -f docker/compose.dev.yml up --build
 
 name: otter-dev

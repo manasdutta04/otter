@@ -1,11 +1,13 @@
+import { GITHUB_REPO } from "../../../lib/urls";
+
 export default function GitHubDocsPage() {
   return (
     <>
       <h1>GitHub</h1>
       <p className="lead">
-        Connect with the <strong>Otter GitHub App</strong> so import and pull requests work. You do not
-        create your own OAuth app. App secrets live on Otter&apos;s Cloudflare auth broker — not in
-        your Docker image.
+        Connect with the <strong>Otter GitHub App</strong> so import and pull requests work. You do
+        not create your own OAuth app. App secrets live on Otter&apos;s Cloudflare auth broker —
+        not in your Docker image or CLI package.
       </p>
 
       <h2>What you do (end user)</h2>
@@ -32,25 +34,40 @@ export default function GitHubDocsPage() {
           (same broker; session in <code>~/.otter/config.json</code>). No Docker required.
         </li>
         <li>
-          <strong>MCP</strong> — uses <code>OTTER_SESSION</code> or reads <code>~/.otter/config.json</code>{" "}
-          after CLI login. Point <code>OTTER_API_URL</code> at the Docker API if you use MCP tools
-          against the web stack.
+          <strong>MCP</strong> — uses <code>OTTER_SESSION</code> or reads{" "}
+          <code>~/.otter/config.json</code> after CLI login. Point <code>OTTER_API_URL</code> at the
+          Docker API if you use MCP tools against the web stack. See{" "}
+          <code>apps/mcp</code> in the{" "}
+          <a href={GITHUB_REPO} target="_blank" rel="noreferrer">
+            repo
+          </a>
+          .
         </li>
       </ul>
 
+      <h2>Is the Worker login link safe?</h2>
+      <p>
+        Yes. Opening a Cloudflare Worker URL for login is expected. That link only starts GitHub OAuth —
+        it does not embed Client Secrets. After GitHub authorizes you, the broker hands a short-lived
+        one-time code back to your local CLI or API. Day-to-day work stays on your machine.
+      </p>
+
       <h2>Privacy</h2>
       <ul>
-        <li>Repository clones and the database stay on your machine (Docker volumes).</li>
+        <li>Repository clones and databases stay on your machine (Docker volumes or <code>~/.otter/</code>).</li>
         <li>Cloudflare only completes GitHub App login and returns a short-lived one-time code.</li>
-        <li>Day-to-day chat / import / PRs talk to your local API only.</li>
+        <li>Day-to-day chat / import / PRs talk to your local API or CLI only.</li>
       </ul>
 
-      <h2>Operators (Otter maintainers)</h2>
+      <h2>Operators &amp; contributors</h2>
       <p>
-        Register the GitHub App and deploy the broker — see{" "}
-        <code>apps/auth-broker/GITHUB_APP_SETUP.md</code> in the repo. Set{" "}
-        <code>OTTER_AUTH_BROKER_URL</code> on the platform compose. Never put the Client Secret in
-        Docker Hub.
+        The GitHub App and auth broker are maintained in this public monorepo under{" "}
+        <code>apps/auth-broker</code> and <code>apps/github-app</code>. Never commit Client Secrets.
+        See{" "}
+        <a href={`${GITHUB_REPO}/blob/main/apps/auth-broker/README.md`} target="_blank" rel="noreferrer">
+          auth-broker README
+        </a>{" "}
+        and <a href="/docs/contribute">Contribute</a>.
       </p>
     </>
   );

@@ -1,8 +1,9 @@
 import { InstallTabs } from "../../../components/InstallTabs";
 import {
   CLI_INSTALL_NPM_GLOBAL,
+  GITHUB_REPO,
   NPM_PACKAGE,
-  SITE_URL,
+  PUBLIC_SITE,
 } from "../../../lib/urls";
 
 export default function CliDocsPage() {
@@ -12,19 +13,18 @@ export default function CliDocsPage() {
       <p className="lead">
         Otter CLI (<code>{NPM_PACKAGE}</code>) is an interactive terminal product — splash, setup
         menus, then a session prompt. No Docker required. Data lives under{" "}
-        <code>~/.otter/</code>.
+        <code>~/.otter/</code>. Source:{" "}
+        <a href={`${GITHUB_REPO}/tree/main/apps/cli`} target="_blank" rel="noreferrer">
+          apps/cli
+        </a>
+        .
       </p>
 
       <h2>Install</h2>
       <InstallTabs size="docs" defaultTab="npm" />
       <p>
-        For a global binary on PATH, prefer{" "}
-        <code>{CLI_INSTALL_NPM_GLOBAL}</code>. Tabs use the same{" "}
-        <a href="https://chanhdai.com/components/code-block-command" target="_blank" rel="noreferrer">
-          Code Block Command
-        </a>{" "}
-        pattern (pnpm / yarn / npm / bun). Bun installs the same npm package — we do not publish a
-        separate Bun package.
+        For a global binary on PATH, prefer <code>{CLI_INSTALL_NPM_GLOBAL}</code>. pnpm, yarn, npm,
+        and bun all install from the public npm registry — same package, no separate Bun publish.
       </p>
 
       <h2>Start</h2>
@@ -93,11 +93,19 @@ export default function CliDocsPage() {
       <h2>Models</h2>
       <p>
         Default Ollama at <code>http://127.0.0.1:11434/v1</code>. Pick models during setup or with{" "}
-        <code>/model</code>.
+        <code>/model</code>. More: <a href="/docs/models">Models</a>.
       </p>
 
+      <h2>Develop the CLI</h2>
+      <pre>
+        <code>{`git clone ${GITHUB_REPO}.git
+cd otter/apps/cli
+npm install && npm run build
+node dist/cli.js`}</code>
+      </pre>
       <p>
-        Site: <a href={SITE_URL}>{SITE_URL}</a>
+        See <a href="/docs/contribute">Contribute</a> and{" "}
+        <a href={PUBLIC_SITE}>{PUBLIC_SITE}</a>.
       </p>
     </>
   );

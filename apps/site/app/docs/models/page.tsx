@@ -1,11 +1,12 @@
-import { APP_MODELS } from "../../../lib/urls";
+import { APP_MODELS, GITHUB_REPO } from "../../../lib/urls";
 
 export default function ModelsDocsPage() {
   return (
     <>
       <h1>Models</h1>
       <p className="lead">
-        Otter does not host GPUs for you. Configure inference once in the local app under Models.
+        Otter does not host GPUs for you. Bring your own inference — local Ollama is the default
+        recommendation; any OpenAI-compatible <code>/v1</code> endpoint works.
       </p>
 
       <h2>Local Ollama (recommended)</h2>
@@ -31,8 +32,17 @@ export default function ModelsDocsPage() {
 
       <h2>Failover</h2>
       <p>
-        Optional free failover tries alternate local models when the primary completion fails. Toggle it
-        on the Models page.
+        Optional free failover tries alternate local models when the primary completion fails. Toggle
+        it on the Models page in the Docker UI.
+      </p>
+
+      <h2>Contributor tip</h2>
+      <p>
+        Default model env vars live in{" "}
+        <a href={`${GITHUB_REPO}/blob/main/.env.example`} target="_blank" rel="noreferrer">
+          .env.example
+        </a>
+        . Prefer documenting new providers in this page when you add them.
       </p>
     </>
   );

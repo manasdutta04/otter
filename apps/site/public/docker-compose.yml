@@ -1,12 +1,14 @@
-# Public Otter stack — no GitHub clone required.
-# Served from the marketing site: /docker-compose.yml
+# Public Otter stack — no GitHub clone required for end users.
+# Served from the marketing site: https://otter.manasdutta.com/docker-compose.yml
 #
-#   docker compose -f https://YOUR_SITE/docker-compose.yml up -d
+#   docker pull manasdutta04/otter
+#   docker compose -f https://otter.manasdutta.com/docker-compose.yml up -d
 #   open http://127.0.0.1:3000/app
 #   Click Connect GitHub (Otter GitHub App via Cloudflare auth broker)
 #
+# Source is public: https://github.com/manasdutta04/otter
 # No GitHub Client Secret on the user machine. Operator sets OTTER_AUTH_BROKER_URL
-# on the published image defaults / this file when the broker is deployed.
+# when the broker is deployed.
 
 name: otter
 
@@ -55,9 +57,9 @@ services:
       LLM_BASE_URL: ${PLATFORM_LLM_BASE_URL:-http://host.docker.internal:11434/v1}
       LLM_MODEL: ${LLM_MODEL:-qwen2.5-coder:7b}
       LLM_FREE_FAILOVER: ${LLM_FREE_FAILOVER:-true}
-      # Cloudflare Worker (public URL). Override with env if you fork the broker.
+      # Public auth broker URL (no secrets). Optional redeem secret comes from your .env only.
       OTTER_AUTH_BROKER_URL: ${OTTER_AUTH_BROKER_URL:-https://otter-auth-broker.manasdutta512.workers.dev}
-      OTTER_AUTH_REDEEM_SECRET: ${OTTER_AUTH_REDEEM_SECRET:-70ba46b601d43d568a60f507e3e76723f01af3bc99d46f5875cd59834ec0a000}
+      OTTER_AUTH_REDEEM_SECRET: ${OTTER_AUTH_REDEEM_SECRET:-}
     volumes:
       - repository_data:/data/repositories
     extra_hosts:

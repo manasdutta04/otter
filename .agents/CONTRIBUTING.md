@@ -1,6 +1,8 @@
-# Contribution Guide
+# Contribution Guide (agents / maintainers)
 
-Before contributing, read `PRD.md` and the relevant guide in this directory.
+Public contributor guide: **[`../CONTRIBUTING.md`](../CONTRIBUTING.md)** at the repo root.
+
+Before contributing, also skim `PRD.md` and the relevant guide in this directory when changing product behavior.
 
 Changes should be focused, documented when they affect behavior or architecture, and validated before handoff. New features should clearly support repository understanding, engineering planning, code quality, or developer productivity.
 

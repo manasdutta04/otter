@@ -5,6 +5,8 @@ export const APP_WORKSPACE = `${APP_URL}/app`;
 export const APP_MODELS = `${APP_URL}/app/models`;
 
 export const GITHUB_REPO = "https://github.com/manasdutta04/otter";
+/** Canonical production marketing site (compose file + docs). */
+export const PUBLIC_SITE = "https://otter.manasdutta.com";
 export const DOCKER_HUB = "https://hub.docker.com/r/manasdutta04/otter";
 export const DOCKER_IMAGE = "manasdutta04/otter:latest";
 export const DOCKER_PULL = "docker pull manasdutta04/otter";
@@ -16,11 +18,11 @@ export const CLI_INSTALL_BUN = "bun add -g @otter-engg/cli";
 
 /**
  * Marketing site origin (hosts /docker-compose.yml so users never need to clone).
- * Prefer NEXT_PUBLIC_SITE_URL in production (your Vercel domain).
+ * Prefer NEXT_PUBLIC_SITE_URL in production; fall back to the public domain, then local.
  */
 export const SITE_URL = (
   process.env.NEXT_PUBLIC_SITE_URL ??
-  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://127.0.0.1:3001")
+  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : PUBLIC_SITE)
 ).replace(/\/$/, "");
 
 /** Compose quickstart (full stack with Postgres + Redis). */
