@@ -14,7 +14,7 @@ export default function GitHubDocsPage() {
       <ol>
         <li>
           Start Docker (see <a href="/docs/self-host">Self-host</a>) or install the CLI (
-          <code>npm i @otter-engg/cli</code>).
+          <code>npm i -g @otter-engg/cli</code>).
         </li>
         <li>
           In the product UI click <strong>Connect GitHub</strong>, or run{" "}

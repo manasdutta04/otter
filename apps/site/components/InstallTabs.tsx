@@ -25,8 +25,7 @@ export function InstallTabs({
   showDocker = false,
   defaultTab,
 }: InstallTabsProps) {
-  const pkg = CLI_INSTALL_NPM.replace(/^npm (i|install)\s+(-g\s+)?/, "").trim();
-  const converted = convertNpmCommand(`npm install ${pkg}`);
+  const converted = convertNpmCommand(CLI_INSTALL_NPM);
 
   return (
     <CodeBlockCommand
@@ -36,7 +35,7 @@ export function InstallTabs({
       docker={showDocker ? DOCKER_PULL : undefined}
       pnpm={converted.pnpm}
       yarn={converted.yarn}
-      npm={CLI_INSTALL_NPM}
+      npm={converted.npm}
       bun={converted.bun}
     />
   );

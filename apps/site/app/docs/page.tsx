@@ -19,7 +19,7 @@ export default function DocsIndexPage() {
       <InstallTabs size="docs" showDocker defaultTab="npm" />
       <p className="muted">
         After Docker: open <code>http://127.0.0.1:3000/app</code>. After a package manager: run{" "}
-        <code>otter</code>. pnpm / yarn / npm / bun all install the same npm package.
+        <code>otter</code> (install uses <code>-g</code> so the binary is on your PATH).
       </p>
 
       <h2>Guides</h2>

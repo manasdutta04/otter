@@ -12,8 +12,11 @@ export const DOCKER_IMAGE = "manasdutta04/otter:latest";
 export const DOCKER_PULL = "docker pull manasdutta04/otter";
 
 export const NPM_PACKAGE = "@otter-engg/cli";
-export const CLI_INSTALL_NPM = "npm i @otter-engg/cli";
-export const CLI_INSTALL_NPM_GLOBAL = "npm i -g @otter-engg/cli";
+/** Global install — puts `otter` on PATH (what the landing tabs should show). */
+export const CLI_INSTALL_NPM = "npm i -g @otter-engg/cli";
+export const CLI_INSTALL_NPM_GLOBAL = CLI_INSTALL_NPM;
+export const CLI_INSTALL_PNPM = "pnpm add -g @otter-engg/cli";
+export const CLI_INSTALL_YARN = "yarn global add @otter-engg/cli";
 export const CLI_INSTALL_BUN = "bun add -g @otter-engg/cli";
 
 /**
