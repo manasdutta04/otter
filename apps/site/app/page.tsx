@@ -41,16 +41,9 @@ export default function LandingPage() {
           <InstallTabs className="landing-install-tabs" showDocker defaultTab="npm" />
           <p className="landing-privacy-note">
             Docker for the full local UI, or <code>{NPM_PACKAGE}</code> for the interactive CLI.
-            Repos and data stay on your machine.
+            Repos and data stay on your machine.{" "}
+            <a href="/docs">Docs</a>
           </p>
-          <div className="landing-ctas">
-            <a className="btn btn-secondary" href="/docs/self-host">
-              Setup guide
-            </a>
-            <a className="btn btn-outline" href={DOCKER_HUB} target="_blank" rel="noreferrer">
-              Docker Hub
-            </a>
-          </div>
         </div>
         <div className="landing-hero-visual landing-hero-mascot">
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -272,6 +265,12 @@ export default function LandingPage() {
         </div>
         <div className="site-footer-bottom">
           <span>© {new Date().getFullYear()} otter. All rights reserved.</span>
+          <span className="site-footer-credit">
+            Developed by{" "}
+            <a href="https://manasdutta.com" target="_blank" rel="noreferrer">
+              Manas Dutta
+            </a>
+          </span>
         </div>
       </footer>
     </main>

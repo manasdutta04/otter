@@ -396,6 +396,17 @@ pre code {
   transform-origin: left bottom;
 }
 
+.landing-privacy-note a {
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+  font-weight: 500;
+}
+
+.landing-privacy-note a:hover {
+  color: var(--green);
+}
+
 .landing-ctas {
   display: flex;
   flex-wrap: wrap;
@@ -1231,10 +1242,21 @@ pre code {
   border-top: 1px solid var(--line);
   display: flex;
   justify-content: space-between;
+  align-items: baseline;
   gap: 1rem;
   flex-wrap: wrap;
   color: var(--muted);
   font-size: 0.85rem;
+}
+
+.site-footer-credit a {
+  color: var(--ink);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.site-footer-credit a:hover {
+  color: var(--green);
 }
 
 /* Docs */
