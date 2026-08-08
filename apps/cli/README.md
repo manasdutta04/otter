@@ -1,30 +1,36 @@
-# Otter CLI 🦦
+# Otter CLI (`otter-engg`)
 
-Thin TypeScript client for the Otter API. Same contract as the web workspace.
+Interactive engineering-intelligence session — Claude Code–style terminal UX.
 
-## Install / run
+## Install
 
 ```bash
-# from repo
-cd apps/cli && npm install && npm run build
-node dist/cli.js --help
-
-# published / one-shot (after npm publish)
-npx otter login
-bunx otter repos list
+npm install -g otter-engg
+# or
+bun add -g otter-engg
 ```
 
-## Auth
+## Run
 
-`otter login` opens GitHub OAuth and writes `~/.otter/config.json`.
+```bash
+otter
+```
 
-You can also set `OTTER_SESSION` and `OTTER_API_URL`.
+You get a splash, optional GitHub / model setup, then an interactive session:
 
-## Commands
+```
+otter › explain the auth flow
+otter › /scan
+otter › /import owner/repo
+otter › /exit
+```
 
-- `login` / `logout`
-- `health`
-- `repos list|import|status`
-- `analyze` / `chat` / `plan` / `health-report` / `review` / `architect` / `docs`
+Data: `~/.otter/` (config, SQLite, clones).
 
-Legacy Python client lives in `apps/cli-py` for internal use only.
+## Develop
+
+```bash
+cd apps/cli
+npm install && npm run build
+node dist/cli.js
+```

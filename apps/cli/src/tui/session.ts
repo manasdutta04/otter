@@ -2,7 +2,7 @@ import readline from "node:readline";
 import chalk from "chalk";
 import { c } from "./theme.js";
 import { renderBanner } from "./banner.js";
-import { startWork, startAgentPulse } from "./work.js";
+import { startWork } from "./work.js";
 import { loadConfig, clearAuth, saveConfig } from "../config.js";
 import { resolveWorkRoot, ensureProjectRepo, importRepository } from "../git/repos.js";
 import { scanRepository } from "../scan/analyze.js";
@@ -19,6 +19,7 @@ import {
   reviewRepo,
 } from "../features/workspace.js";
 import { createAndMaybePr, openPrForRepo } from "../features/create.js";
+import { confirmYn } from "./prompt.js";
 
 function parseFlags(arg: string): { text: string; pr: boolean; yes: boolean } {
   const parts = arg.split(/\s+/).filter(Boolean);
@@ -26,6 +27,14 @@ function parseFlags(arg: string): { text: string; pr: boolean; yes: boolean } {
   const yes = parts.includes("--yes") || parts.includes("-y");
   const text = parts.filter((p) => p !== "--pr" && p !== "--yes" && p !== "-y").join(" ");
   return { text, pr, yes };
+}
+
+/** Strip accidental prompt echoes / double prompts from pasted or glitchy input. */
+function normalizeInput(raw: string): string {
+  let s = raw.replace(/\r/g, "").trim();
+  // "otter › otter › /create ..." → "/create ..."
+  s = s.replace(/^(?:otter\s*[›>]\s*)+/gi, "").trim();
+  return s;
 }
 
 async function handleSlash(
@@ -134,8 +143,8 @@ async function handleSlash(
         console.log(c.dim(row.local_path));
         console.log(result.summary);
         ctx.setRoot(row.local_path);
-        root = row.local_path;
         console.log(c.brand(`Workspace → ${row.local_path}`));
+        console.log(c.dim(`GitHub → ${row.full_name}`));
       } catch (err) {
         spin.fail(c.bad(err instanceof Error ? err.message : String(err)));
       }
@@ -316,61 +325,96 @@ export async function startSession(explicitPath?: string): Promise<void> {
   let root = resolveWorkRoot(explicitPath).root;
   await renderBanner(root);
 
-  const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout,
-    prompt: chalk.hex("#5EEAD4").bold("otter › "),
-  });
+  const promptText = chalk.hex("#5EEAD4").bold("otter › ");
 
-  const ask = (): void => rl.prompt();
-  ask();
+  const makeRl = () =>
+    readline.createInterface({
+      input: process.stdin,
+      output: process.stdout,
+      terminal: true,
+      prompt: promptText,
+    });
 
-  rl.on("line", async (line) => {
-    const input = line.trim();
-    if (!input) {
-      ask();
-      return;
-    }
+  let rl = makeRl();
+  let busy = false;
+  const queue: string[] = [];
+  let closed = false;
 
-    try {
-      if (input.startsWith("/")) {
-        const status = await handleSlash(input, {
-          root,
-          setRoot: (r) => {
-            root = r;
-          },
-        });
-        if (status === "exit") {
-          console.log(c.dim("\n  🦦  Bye.\n"));
-          rl.close();
-          return;
-        }
-      } else {
-        const pulse = startAgentPulse();
-        let sawOutput = false;
-        try {
-          await runAgent(input, {
-            root,
-            onEvent: (msg) => {
-              if (!sawOutput) {
-                pulse.stop(true, "Cooking");
-                sawOutput = true;
-              }
-              console.log(msg);
-            },
-          });
-          if (!sawOutput) pulse.stop(true, "Done");
-          else console.log(c.ok("✔ Done"));
-        } catch (err) {
-          pulse.stop(false, err instanceof Error ? err.message : String(err));
-        }
-        console.log();
+  const attach = (interface_: readline.Interface) => {
+    interface_.on("line", (line) => {
+      if (busy) {
+        const n = normalizeInput(line);
+        if (n) queue.push(n);
+        return;
       }
-    } catch (err) {
-      console.error(c.bad(err instanceof Error ? err.message : String(err)));
-    }
-    ask();
-  });
 
-  await new Promise<void>((resolve) => rl.on("close", resolve));
+      void (async () => {
+        busy = true;
+        // Fully detach session prompt so confirms don't double-read stdin.
+        interface_.close();
+        try {
+          let next: string | undefined = line;
+          while (next !== undefined) {
+            const status = await runOne(next);
+            if (status === "exit") {
+              console.log(c.dim("\n  🦦  Bye.\n"));
+              closed = true;
+              return;
+            }
+            next = queue.shift();
+          }
+        } catch (err) {
+          console.error(c.bad(err instanceof Error ? err.message : String(err)));
+        } finally {
+          busy = false;
+          if (!closed) {
+            rl = makeRl();
+            attach(rl);
+            rl.prompt();
+          }
+        }
+      })();
+    });
+  };
+
+  const runOne = async (raw: string): Promise<"exit" | "ok"> => {
+    const input = normalizeInput(raw);
+    if (!input) return "ok";
+
+    if (input.startsWith("/")) {
+      return handleSlash(input, {
+        root,
+        setRoot: (r) => {
+          root = r;
+        },
+      });
+    }
+
+    const allow = await confirmYn("Allow file writes & shell for this task?", true);
+    console.log(c.muted(allow ? "Cooking…" : "Cooking (read-only)…"));
+    try {
+      await runAgent(input, {
+        root,
+        autoApprove: allow,
+        onEvent: (msg) => console.log(msg),
+      });
+      console.log(c.ok("✔ Done"));
+    } catch (err) {
+      console.log(c.bad(`✖ ${err instanceof Error ? err.message : String(err)}`));
+    }
+    console.log();
+    return "ok";
+  };
+
+  attach(rl);
+  rl.prompt();
+
+  await new Promise<void>((resolve) => {
+    const check = setInterval(() => {
+      if (closed) {
+        clearInterval(check);
+        resolve();
+      }
+    }, 200);
+  });
 }

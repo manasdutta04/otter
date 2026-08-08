@@ -25,13 +25,21 @@ export function upsertRepository(row: {
     .get(row.url, row.local_path) as { id: string } | undefined;
 
   if (existing) {
+    // Never downgrade a GitHub import to a file:// stub.
+    const prev = getRepository(existing.id)!;
+    const nextUrl =
+      row.url.startsWith("file://") && prev.url.startsWith("http") ? prev.url : row.url;
+    const nextName =
+      row.url.startsWith("file://") && prev.full_name?.includes("/")
+        ? prev.full_name
+        : (row.full_name ?? prev.full_name);
     db.prepare(
       `UPDATE repositories SET url = ?, full_name = ?, local_path = ?, status = ?, updated_at = ? WHERE id = ?`,
     ).run(
-      row.url,
-      row.full_name ?? null,
+      nextUrl,
+      nextName ?? null,
       row.local_path,
-      row.status ?? "ready",
+      row.status ?? prev.status,
       ts,
       existing.id,
     );
@@ -55,6 +63,15 @@ export function listRepositories(): RepositoryRow[] {
   return getDb()
     .prepare("SELECT * FROM repositories ORDER BY updated_at DESC")
     .all() as RepositoryRow[];
+}
+
+export function getRepositoryByPath(localPath: string): RepositoryRow | undefined {
+  const normalized = localPath.replace(/\\/g, "/");
+  const rows = listRepositories();
+  return rows.find((r) => {
+    const p = r.local_path.replace(/\\/g, "/");
+    return p === normalized || p.toLowerCase() === normalized.toLowerCase();
+  });
 }
 
 export function linkProject(cwd: string, repositoryId: string): void {

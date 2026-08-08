@@ -1,24 +1,27 @@
-import readline from "node:readline";
 import type OpenAI from "openai";
 import chalk from "chalk";
 import { createLlmClient } from "../llm/client.js";
 import { loadConfig } from "../config.js";
 import { TOOL_SPECS, runTool, type ToolName } from "./tools.js";
 import { readRepoContext } from "../scan/analyze.js";
+import { confirmYn } from "../tui/prompt.js";
 
 const TOOL_NAMES = new Set(TOOL_SPECS.map((t) => t.function.name));
 
 const SYSTEM = `You are Otter, a local engineering-intelligence coding agent.
 You work inside a single workspace directory. Prefer small, correct changes.
 
-You have tools: read, write, edit, bash, glob, grep.
+ALWAYS inspect the real layout first with glob/read (e.g. server/routes.ts, package.json).
+Do NOT invent paths like src/server unless they exist.
 
-When you need a tool, emit one or more JSON objects (no markdown fences), each on its own line or block:
+Tools: read, write, edit, bash, glob, grep.
+
+When you need a tool, emit ONLY valid JSON (double quotes everywhere, never \\'):
 {"name":"read","arguments":{"path":"server/routes.ts"}}
 {"name":"write","arguments":{"path":"server/routes/health.ts","content":"..."}}
-{"name":"edit","arguments":{"path":"file.ts","old_string":"...","new_string":"..."}}
+{"name":"edit","arguments":{"path":"server/routes.ts","old_string":"...","new_string":"..."}}
 
-After tools run you will receive results. Then continue or finish with a short summary.
+After tools run you receive results. Then continue or finish with a short summary.
 Do not pretend tools ran — only emit the JSON and wait.`;
 
 export type AgentOptions = {
@@ -31,12 +34,47 @@ export type AgentOptions = {
 type ParsedCall = { name: ToolName; arguments: Record<string, string>; id: string };
 
 async function confirm(prompt: string): Promise<boolean> {
-  const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-  const answer = await new Promise<string>((resolve) => {
-    rl.question(`${prompt} [y/N] `, resolve);
-  });
-  rl.close();
-  return /^y(es)?$/i.test(answer.trim());
+  return confirmYn(prompt, false);
+}
+
+/** Ollama often emits invalid JSON (\\' instead of '). */
+function repairToolJson(raw: string): string {
+  return raw.replace(/\\'/g, "'");
+}
+
+function parseToolObject(slice: string): ParsedCall | null {
+  for (const candidate of [slice, repairToolJson(slice)]) {
+    try {
+      const obj = JSON.parse(candidate) as {
+        name?: string;
+        arguments?: Record<string, string> | string;
+      };
+      if (!obj.name || !TOOL_NAMES.has(obj.name)) return null;
+      let args: Record<string, string> = {};
+      if (typeof obj.arguments === "string") {
+        try {
+          args = JSON.parse(repairToolJson(obj.arguments)) as Record<string, string>;
+        } catch {
+          args = {};
+        }
+      } else if (obj.arguments && typeof obj.arguments === "object") {
+        args = obj.arguments as Record<string, string>;
+      }
+      // Coerce all values to strings for tool runner
+      const normalized: Record<string, string> = {};
+      for (const [k, v] of Object.entries(args)) {
+        normalized[k] = typeof v === "string" ? v : JSON.stringify(v);
+      }
+      return {
+        name: obj.name as ToolName,
+        arguments: normalized,
+        id: `text_tmp`,
+      };
+    } catch {
+      /* next */
+    }
+  }
+  return null;
 }
 
 /** Extract tool JSON from model prose (Ollama often won't use native tool_calls). */
@@ -47,7 +85,7 @@ export function extractToolCallsFromText(text: string): ParsedCall[] {
 
   for (let i = 0; i < text.length; i++) {
     if (text[i] !== "{") continue;
-    if (!text.slice(i, i + 40).includes('"name"')) continue;
+    if (!text.slice(i, i + 80).includes('"name"')) continue;
     let depth = 0;
     let end = -1;
     let inStr = false;
@@ -73,21 +111,13 @@ export function extractToolCallsFromText(text: string): ParsedCall[] {
     if (end < 0) continue;
     const slice = text.slice(i, end + 1);
     i = end;
-    try {
-      const obj = JSON.parse(slice) as { name?: string; arguments?: Record<string, string> };
-      if (!obj.name || !TOOL_NAMES.has(obj.name)) continue;
-      const args = obj.arguments || {};
-      const key = `${obj.name}:${JSON.stringify(args)}`;
-      if (seen.has(key)) continue;
-      seen.add(key);
-      calls.push({
-        name: obj.name as ToolName,
-        arguments: args,
-        id: `text_${calls.length + 1}`,
-      });
-    } catch {
-      /* skip */
-    }
+    const parsed = parseToolObject(slice);
+    if (!parsed) continue;
+    const key = `${parsed.name}:${JSON.stringify(parsed.arguments)}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    parsed.id = `text_${calls.length + 1}`;
+    calls.push(parsed);
   }
   return calls;
 }
@@ -101,11 +131,15 @@ function nativeToolCalls(
     if (tc.type !== "function") continue;
     let args: Record<string, string> = {};
     try {
-      args = JSON.parse(tc.function.arguments || "{}") as Record<string, string>;
+      args = JSON.parse(repairToolJson(tc.function.arguments || "{}")) as Record<string, string>;
     } catch {
       args = {};
     }
-    out.push({ name: tc.function.name as ToolName, arguments: args, id: tc.id });
+    const normalized: Record<string, string> = {};
+    for (const [k, v] of Object.entries(args)) {
+      normalized[k] = typeof v === "string" ? v : JSON.stringify(v);
+    }
+    out.push({ name: tc.function.name as ToolName, arguments: normalized, id: tc.id });
   }
   return out;
 }
@@ -156,6 +190,7 @@ export async function runAgent(prompt: string, opts: AgentOptions): Promise<stri
   let finalText = "";
   const maxTurns = opts.maxTurns ?? 12;
   let useNativeTools = true;
+  let writes = 0;
 
   for (let turn = 0; turn < maxTurns; turn++) {
     let content = "";
@@ -203,6 +238,10 @@ export async function runAgent(prompt: string, opts: AgentOptions): Promise<stri
       break;
     }
 
+    for (const call of calls) {
+      if (call.name === "write" || call.name === "edit") writes++;
+    }
+
     if (nativeCalls.length && useNativeTools) {
       messages.push({
         role: "assistant",
@@ -218,7 +257,6 @@ export async function runAgent(prompt: string, opts: AgentOptions): Promise<stri
         messages.push({ role: "tool", tool_call_id: r.id, content: r.result });
       }
     } else {
-      // Text-protocol path for local models
       messages.push({ role: "assistant", content });
       const results = await executeCalls(opts.root, calls, opts, log);
       const report = results
@@ -226,93 +264,10 @@ export async function runAgent(prompt: string, opts: AgentOptions): Promise<stri
         .join("\n\n");
       messages.push({
         role: "user",
-        content: `${report}\n\nContinue. Emit more tool JSON if needed, or finish with a short summary.`,
+        content: `${report}\n\nContinue. Emit more tool JSON if needed (valid JSON only), or finish with a short summary.`,
       });
     }
   }
 
   return finalText;
-}
-
-export async function startRepl(root: string): Promise<void> {
-  console.log(chalk.bold("\n🦦 Otter"));
-  console.log(chalk.dim(`Workspace: ${root}`));
-  console.log(chalk.dim("Type a task, or /help /scan /model /login /clear /exit\n"));
-
-  const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout,
-    prompt: chalk.green("otter> "),
-  });
-
-  rl.prompt();
-  rl.on("line", async (line) => {
-    const input = line.trim();
-    if (!input) {
-      rl.prompt();
-      return;
-    }
-
-    try {
-      if (input === "/exit" || input === "/quit") {
-        rl.close();
-        return;
-      }
-      if (input === "/help") {
-        console.log(`Commands:
-  /help     this help
-  /scan     scan workspace
-  /model    show active model
-  /login    GitHub login
-  /logout   clear session
-  /clear    clear screen
-  /exit     quit
-Or type any coding / intelligence request.`);
-        rl.prompt();
-        return;
-      }
-      if (input === "/clear") {
-        console.clear();
-        rl.prompt();
-        return;
-      }
-      if (input === "/model") {
-        const cfg = loadConfig();
-        console.log(`${cfg.llm.model} @ ${cfg.llm.baseUrl}`);
-        rl.prompt();
-        return;
-      }
-      if (input === "/login") {
-        const { loginWithBrowser } = await import("../auth/login.js");
-        const auth = await loginWithBrowser();
-        console.log(`Logged in as ${auth.login}`);
-        rl.prompt();
-        return;
-      }
-      if (input === "/logout") {
-        const { clearAuth } = await import("../config.js");
-        clearAuth();
-        console.log("Logged out.");
-        rl.prompt();
-        return;
-      }
-      if (input === "/scan") {
-        const { ensureProjectRepo } = await import("../git/repos.js");
-        const { scanRepository } = await import("../scan/analyze.js");
-        const repo = ensureProjectRepo(root);
-        const result = await scanRepository(repo.id, root);
-        console.log(result.summary);
-        console.log(result.health.summary);
-        rl.prompt();
-        return;
-      }
-
-      await runAgent(input, { root });
-    } catch (err) {
-      console.error(chalk.red(err instanceof Error ? err.message : String(err)));
-    }
-    rl.prompt();
-  });
-
-  await new Promise<void>((resolve) => rl.on("close", resolve));
 }

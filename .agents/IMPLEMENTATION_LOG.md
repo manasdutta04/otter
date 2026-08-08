@@ -9,7 +9,7 @@ This document tracks implementation progression and architectural decisions for 
 1. **Rebrand**: Product renamed from veridexs to **Otter** across API cookies (`otter_session`), env vars (`OTTER_*`), Docker DB credentials (`otter`), docs, and UI (🦦).
 2. **API wiring**: Fixed planner/memory/docs imports (`save_plan`, `add_memory`, `generate_overview`); CLI OAuth via `cli_port` + local callback; `X-Otter-Session` header; `/internal/github-events` sink; `CodeTaskResponse.from_task` for JSON `changed_files`.
 3. **Web product**: Marketing landing at `/` with USP sections; authenticated workspace at `/app`; multi-route repository shell (intelligence, chat, planner, memory, health, review, coding tasks, settings).
-4. **TypeScript CLI**: `apps/cli` publishable as `otter` with `npx`/`bunx` bin — login, repos, analyze, chat, plan, review, etc. Legacy Python moved to `apps/cli-py`.
+4. **Standalone CLI (`otter-engg`)**: Pure Node CLI in `apps/cli` — local `~/.otter` SQLite + clones, Cloudflare broker auth (`mode=cli`), agent REPL / run / create / scan / intelligence / health / memory. Install: `npm i -g otter-engg`. Docker web remains a separate surface.
 5. **MCP / VS Code / GitHub App**: Expanded MCP tools + initialize; Otter VS Code commands; GitHub App event forwarding to API.
 6. **Production baseline**: GitHub Actions CI workflow; deployment guide updated.
 

@@ -21,7 +21,9 @@ The landing page is **not** inside Docker. After `compose up`, open `http://127.
 docker compose -f https://YOUR_SITE/docker-compose.yml up -d
 ```
 
-No clone required. Image: [`manasdutta04/otter`](https://hub.docker.com/r/manasdutta04/otter). Compose creates **local** Postgres + Redis. Connect GitHub via the **Otter GitHub App** (Cloudflare auth broker — see `apps/auth-broker/`). CLI/MCP talk to the same local API (`otter login`).
+No clone required. Image: [`manasdutta04/otter`](https://hub.docker.com/r/manasdutta04/otter). Compose creates **local** Postgres + Redis. Connect GitHub via the **Otter GitHub App** (Cloudflare auth broker — see `apps/auth-broker/`).
+
+Standalone CLI (no Docker): `npm install -g otter-engg` then `otter login` — see `/docs/cli`.
 
 1. Open [http://127.0.0.1:3000/app](http://127.0.0.1:3000/app) → **Connect GitHub**.
 2. Open Models and connect **Local Ollama**.
@@ -66,8 +68,8 @@ Not the product install path — use `compose.platform.yml` for self-host.
 |---------|------------|
 | Web (product) | Self-host UI at `http://127.0.0.1:3000/app` |
 | Site (docs) | Vercel / `apps/site` |
-| CLI | Thin client against the same API (see `/docs/cli`) |
-| MCP | `python apps/mcp/server.py` with `OTTER_API_URL` / `OTTER_SESSION` |
+| CLI | Standalone `otter-engg` (`otter` bin) — local `.otter` storage, no Docker |
+| MCP | `python apps/mcp/server.py` (Docker API + session; optional) |
 | VS Code | Extension in `apps/vscode` |
 
 ## Product principles
