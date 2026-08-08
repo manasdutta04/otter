@@ -13,6 +13,16 @@ from .config import get_settings
 
 logger = logging.getLogger(__name__)
 
+
+def _edit_prompt_addon() -> str:
+    try:
+        from packages.agent.patch import edit_prompt_addon
+
+        return f"{edit_prompt_addon()}\n"
+    except Exception:  # noqa: BLE001 — keep generate usable without agent package
+        return ""
+
+
 HEALTH_PATTERNS = (
     re.compile(r"[\"']/health[\"']"),
     re.compile(r"@app\.get\(\s*[\"']/health"),
@@ -526,6 +536,22 @@ def _normalize_patch(result: dict, *, originals: dict[str, str] | None = None, r
     originals = originals or {}
     summary = strip_llm_summary_prefix(str(result.get("summary") or "").strip())
     files = result.get("files")
+    edits = result.get("edits")
+
+    # Prefer targeted edits when the model provides them.
+    if isinstance(edits, list) and edits:
+        try:
+            from packages.agent.patch import apply_edits_to_originals
+
+            materialized = apply_edits_to_originals(
+                [e for e in edits if isinstance(e, dict)],
+                originals,
+            )
+            if materialized:
+                files = materialized
+        except Exception:  # noqa: BLE001 — fall through to full files
+            pass
+
     if not summary or not isinstance(files, list) or not files:
         raise ValueError("Invalid patch shape")
 
@@ -938,6 +964,8 @@ async def generate_patch(
         "Return ONLY valid JSON (no markdown fences) with this shape:\n"
         '{"summary":"short description",'
         '"dependencies":{"package-name":"^1.2.3"},'
+        '"edits":[{"path":"relative/path.ext","old_string":"exact existing snippet",'
+        '"new_string":"replacement snippet"}],'
         '"files":[{"path":"relative/path.ext","content":"full file contents"}]}\n\n'
         "Rules:\n"
         "1. Implement the requested change for real — working code, not placeholders.\n"
@@ -947,13 +975,15 @@ async def generate_patch(
         "5. If a /health (or equivalent) already exists, do not duplicate it.\n"
         "6. Match existing style, imports, and framework conventions EXACTLY.\n"
         "7. Change as few files as possible, but include every file required for a working change.\n"
-        "8. Return FULL file contents for each changed path.\n"
+        "8. PREFER `edits` (targeted old_string→new_string) over full `files` rewrites. "
+        "Use `files` only for brand-new files or when an edit cannot express the change.\n"
+        f"{_edit_prompt_addon()}"
         "9. NEVER invent APIs (no fake drizzle helpers, no made-up packages).\n"
         "10. If the repo uses drizzle-orm/pg-core + node-postgres, keep that pattern; extend pgTable schemas.\n"
         "11. For auth/password: hash passwords (bcrypt/argon2/scrypt); never store plaintext.\n"
         "12. NEVER output package.json or lock files. Declare new packages in `dependencies` instead — "
         "they are merged into package.json automatically.\n"
-        "13. List the most important file first; the response is length-capped.\n"
+        "13. List the most important change first; the response is length-capped.\n"
         "14. Summary must be plain English for humans — never include model names or `[llm:…]` tags.\n"
         f"{auth_rules}"
         f"Requested change: {request}\n"
@@ -986,7 +1016,8 @@ async def generate_patch(
                     "role": "system",
                     "content": (
                         "You are a cautious senior software engineer. "
-                        "Return only compact JSON with keys summary, dependencies and files. "
+                        "Return only compact JSON with keys summary, dependencies, and optionally edits and/or files. "
+                        "Prefer targeted edits over full file rewrites. "
                         "Never wrap JSON in markdown. "
                         "Produce a real implementation that compiles against the existing stack. "
                         "Never invent ORM APIs. Never store plaintext passwords. Never TODO-only patches. "

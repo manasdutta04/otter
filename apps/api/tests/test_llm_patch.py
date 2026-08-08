@@ -92,18 +92,20 @@ def test_ollama_allows_empty_api_key(monkeypatch):
 
 
 def test_non_ollama_requires_api_key(monkeypatch):
-    from app.config import Settings
     from app.llm import PatchGenerationError, _validate_llm_settings
+    from app.llm_settings import LlmRuntime
 
     monkeypatch.setattr(
-        "app.llm.get_settings",
-        lambda: Settings(
-            llm_api_key="",
-            llm_model="some-model",
-            llm_base_url="https://api.example.com/v1",
+        "app.llm_settings.get_effective_runtime_sync",
+        lambda: LlmRuntime(
+            provider="openai_compatible",
+            api_key="",
+            model="some-model",
+            base_url="https://api.example.com/v1",
+            free_failover=False,
         ),
     )
-    with pytest.raises(PatchGenerationError, match="LLM_API_KEY"):
+    with pytest.raises(PatchGenerationError, match="API key|api key|LLM API key"):
         _validate_llm_settings()
 
 

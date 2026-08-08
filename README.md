@@ -9,8 +9,10 @@
 **Site:** [otter.manasdutta.com](https://otter.manasdutta.com) · **Docs:** [otter.manasdutta.com/docs](https://otter.manasdutta.com/docs) · **Repo:** [github.com/manasdutta04/otter](https://github.com/manasdutta04/otter)
 
 ```
-Understand → Explain → Plan → Review → Build (with approval)
+Understand → Explain → Plan → Approve → Build
 ```
+
+**Current release:** [0.2.0](CHANGELOG.md) — engineer core in Docker Web/API + `@otter-engg/cli@0.2.0`. Docs: [otter.manasdutta.com/docs/changelog](https://otter.manasdutta.com/docs/changelog).
 
 ## Why Otter
 
@@ -50,21 +52,21 @@ pnpm, yarn, and bun install the **same** npm package — no separate registry pu
 | **CLI** | [`@otter-engg/cli`](https://www.npmjs.com/package/@otter-engg/cli) → `otter` (CI: push `main` / tag `cli-v*`) |
 | **Docs site** | [`apps/site`](apps/site) → [otter.manasdutta.com](https://otter.manasdutta.com) |
 | **MCP** | [`apps/mcp`](apps/mcp) — stdio bridge to the local API |
-| **VS Code** | [`apps/vscode`](apps/vscode) |
 | **GitHub App** | Connect via Otter App (Cloudflare auth broker) |
 
 ## Repository layout
 
 ```
 apps/
-  api/           FastAPI backend
+  api/           FastAPI backend (+ packages/agent engineer core)
   web/           Product UI (Next.js) — served in Docker
   site/          Marketing + docs (Vercel)
   cli/           @otter-engg/cli
   auth-broker/   Cloudflare Worker for GitHub App login
   mcp/           MCP stdio server
-  vscode/        VS Code extension
   github-app/    Webhook service
+packages/
+  agent/         Shared engineer loop (Python) for API/Docker
 docker/          Compose files (platform / dev)
 docs/            Design notes for contributors
 ```
@@ -120,7 +122,7 @@ Please follow the [Code of Conduct](CODE_OF_CONDUCT.md). Security reports: [SECU
 
 - Explain before coding
 - Approval before any write
-- One contract across Web · CLI · MCP · VS Code
+- One contract across Web · CLI · MCP
 - Grounded answers with source citations
 - Self-host first; bring your own local or remote LLM
 

@@ -38,10 +38,13 @@ export async function createAndMaybePr(opts: CreateOptions): Promise<{ taskId: s
   console.log(plan.content);
   console.log();
 
+  // Engineer stages: plan → human approval → implement → validate (git dirty check)
+  console.log(c.dim("Stage: await approval → implement → validate"));
+
   // --pr implies apply+PR; one confirm covers both unless --yes
   const applyLabel = opts.openPr
-    ? "Apply this plan and open a pull request?"
-    : "Apply this plan with the coding agent?";
+    ? "Approve plan and implement (then open PR)?"
+    : "Approve plan and implement with the coding agent?";
   const ok = opts.autoApprove || (await confirmYn(applyLabel, false));
   if (!ok) {
     saveCodeTask({
@@ -54,14 +57,21 @@ export async function createAndMaybePr(opts: CreateOptions): Promise<{ taskId: s
     return { taskId };
   }
 
+  saveCodeTask({
+    id: taskId,
+    repository_id: opts.repo.id,
+    request: opts.request,
+    status: "implementing",
+  });
+
   // After the plan confirm, never ask per-tool — that caused yy spam and blocked PRs.
   const autoApprove = true;
 
   console.log(
     c.muted(
       opts.openPr
-        ? "Cooking (writes auto-approved) · then opening PR…"
-        : "Cooking (writes auto-approved)…",
+        ? "Implementing (prefer edit tools; writes auto-approved) · then opening PR…"
+        : "Implementing (prefer edit tools; writes auto-approved)…",
     ),
   );
 
@@ -72,8 +82,11 @@ export async function createAndMaybePr(opts: CreateOptions): Promise<{ taskId: s
   try {
     await runAgent(
       `Implement this request using the plan. Keep changes minimal and correct for THIS repo's real file layout.\n` +
+        `Prefer the edit tool (old_string → new_string) over write/full-file rewrites whenever possible.\n` +
         `First glob/read existing server files (often server/routes.ts — NOT src/server unless it exists).\n` +
         `Emit valid JSON tool calls only (double quotes, never \\').\n\n` +
+        `Stages already completed: understand → plan → approved.\n` +
+        `Current stage: implement → then we validate via git status.\n\n` +
         `Request:\n${opts.request}\n\nPlan:\n${plan.content}`,
       {
         root: opts.root,

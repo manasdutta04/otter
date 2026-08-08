@@ -15,7 +15,12 @@ services:
     env_file:
       - path: ../.env
         required: false
-    environment: {REPOSITORY_DATA_DIR: /data/repositories, PYTHONPATH: /workspace}
+    environment:
+      # Override host .env 127.0.0.1 URLs — containers must use compose service DNS.
+      DATABASE_URL: postgresql+asyncpg://otter:otter@postgres:5432/otter
+      REDIS_URL: redis://redis:6379/0
+      REPOSITORY_DATA_DIR: /data/repositories
+      PYTHONPATH: /workspace
     depends_on:
       postgres: {condition: service_healthy}
   api:
@@ -27,8 +32,12 @@ services:
       - path: ../.env
         required: false
     environment:
+      DATABASE_URL: postgresql+asyncpg://otter:otter@postgres:5432/otter
+      REDIS_URL: redis://redis:6379/0
       REPOSITORY_DATA_DIR: /data/repositories
       PYTHONPATH: /workspace
+      # Do not reuse native LLM_BASE_URL=127.0.0.1 from .env (container loopback).
+      LLM_BASE_URL: ${PLATFORM_LLM_BASE_URL:-http://host.docker.internal:11434/v1}
     extra_hosts:
       - "host.docker.internal:host-gateway"
     ports: ["8000:8000"]
@@ -51,7 +60,14 @@ services:
     env_file:
       - path: ../.env
         required: false
-    environment: {REPOSITORY_DATA_DIR: /data/repositories, PYTHONPATH: /workspace}
+    environment:
+      DATABASE_URL: postgresql+asyncpg://otter:otter@postgres:5432/otter
+      REDIS_URL: redis://redis:6379/0
+      REPOSITORY_DATA_DIR: /data/repositories
+      PYTHONPATH: /workspace
+      LLM_BASE_URL: ${PLATFORM_LLM_BASE_URL:-http://host.docker.internal:11434/v1}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     depends_on:
       migration: {condition: service_completed_successfully}
       redis: {condition: service_started}

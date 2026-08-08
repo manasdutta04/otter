@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useCallback, useEffect, useState } from "react";
+import Link from "next/link";
 import { EmptyState } from "../../../../../components/EmptyState";
 import { useRepository } from "../../../../../components/RepositoryProvider";
 import { api, type Plan } from "../../../../../lib/api";
@@ -135,6 +136,11 @@ export default function PlannerPage() {
               </ul>
             </>
           ) : null}
+          <p style={{ marginTop: "1rem" }}>
+            <Link className="btn btn-outline btn-sm" href={`./coding?plan=${encodeURIComponent(selected.id)}`}>
+              Use this plan in Coding
+            </Link>
+          </p>
         </section>
       ) : null}
 

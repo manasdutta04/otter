@@ -59,7 +59,7 @@ from app.worker import enqueue_import, import_repository_task
 
 
 settings = get_settings()
-app = FastAPI(title=settings.app_name, version="0.2.0")
+app = FastAPI(title=settings.app_name, version="0.3.0")
 _cors_origins = {
     settings.next_public_url.rstrip("/"),
     "http://127.0.0.1:3000",
@@ -705,8 +705,16 @@ async def propose_patch(repository_id: str, task_id: str, payload: PatchProposal
 
 @app.post("/repositories/{repository_id}/code-tasks/{task_id}/apply", response_model=CodeTaskResponse)
 async def apply_patch(repository_id: str, task_id: str, session: AuthSession = Depends(current_session), db: AsyncSession = Depends(get_db)) -> CodeTaskResponse:
+    from packages.agent.state_machine import IllegalTransition, assert_can_apply
+
     task = await db.scalar(select(CodeChangeTask).where(CodeChangeTask.id == task_id, CodeChangeTask.repository_id == repository_id, CodeChangeTask.user_id == session.user_id))
-    if not task or task.status != "approved":
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found")
+    try:
+        assert_can_apply(task.status)
+    except IllegalTransition as error:
+        raise HTTPException(status_code=409, detail=str(error)) from error
+    if task.status != "approved":
         raise HTTPException(status_code=409, detail="Only approved tasks can be applied")
     root = (Path(settings.repository_data_dir) / repository_id).resolve()
     patch_items = json.loads(task.patch_json or "[]")
@@ -773,121 +781,102 @@ async def apply_patch(repository_id: str, task_id: str, session: AuthSession = D
 
 @app.post("/repositories/{repository_id}/code-tasks/{task_id}/generate", response_model=CodeTaskResponse)
 async def generate_code_task_patch(repository_id: str, task_id: str, session: AuthSession = Depends(current_session), db: AsyncSession = Depends(get_db)) -> CodeTaskResponse:
+    from packages.agent.context import build_context
+    from packages.agent.model_adapt import budget_for_model
+    from packages.agent.orchestrate import begin_implement, prepare_engineering_run
+    from packages.agent.state_machine import IllegalTransition, assert_can_generate
+
     task = await db.scalar(select(CodeChangeTask).where(CodeChangeTask.id == task_id, CodeChangeTask.repository_id == repository_id, CodeChangeTask.user_id == session.user_id))
-    if not task or task.status != "ready_for_approval":
-        raise HTTPException(status_code=409, detail="Task is not ready for patch generation")
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found")
+    try:
+        assert_can_generate(task.status)
+    except IllegalTransition as error:
+        raise HTTPException(status_code=409, detail=str(error)) from error
+
     root = Path(settings.repository_data_dir) / repository_id
-    words = set(re.findall(r"[a-z0-9_]+", task.request.lower()))
-    auth_boost = bool(words & {"auth", "login", "password", "session", "oauth", "signup", "signin", "authentication", "credential"})
-    scored_files: list[tuple[float, Path]] = []
-    for path in root.rglob("*"):
-        if not path.is_file() or ".git" in path.parts:
-            continue
-        if path.suffix.lower() not in {".py", ".ts", ".tsx", ".js", ".jsx", ".go", ".rs", ".java", ".md"} and path.name not in {"Dockerfile", "Makefile"}:
-            continue
-        rel = str(path.relative_to(root)).replace("\\", "/").lower()
-        score = 0.0
-        for word in words:
-            if len(word) > 2 and word in rel:
-                score += 4.0
-        if any(rel.endswith(name) for name in ("main.py", "app.py", "index.ts", "server.ts", "route.ts", "routes.ts")):
-            score += 2.0
-        if auth_boost and any(term in rel for term in ("auth", "login", "session", "passport", "next-auth", "password", "user", "middleware", "credential")):
-            score += 8.0
-        scored_files.append((score, path))
-    scored_files.sort(key=lambda item: item[0], reverse=True)
-    selected = [path for score, path in scored_files if score > 0][:CONTEXT_FILE_LIMIT] or [
-        path for _, path in scored_files[:CONTEXT_FILE_LIMIT]
-    ]
+    model_name = settings.llm_model
+    try:
+        from app.llm_settings import get_effective_runtime_sync
+
+        model_name = get_effective_runtime_sync().model or model_name
+    except Exception:  # noqa: BLE001
+        pass
+    budget = budget_for_model(model_name)
 
     intelligence_row = await db.scalar(select(RepositoryIntelligence).where(RepositoryIntelligence.repository_id == repository_id))
     intelligence = None
     if intelligence_row:
+        try:
+            analysis = json.loads(intelligence_row.analysis_json or "{}")
+        except json.JSONDecodeError:
+            analysis = {}
         intelligence = {
             "entry_points": json.loads(intelligence_row.entry_points or "[]"),
             "tech_stack": json.loads(intelligence_row.tech_stack or "[]"),
+            "analysis": analysis if isinstance(analysis, dict) else {},
         }
-    try:
-        plan_context = build_plan(root, task.request, intelligence)
-    except Exception:  # noqa: BLE001 — planning is advisory only
-        plan_context = {
-            "title": f"Plan: {task.request[:80]}",
-            "summary": task.request,
-            "steps": [],
-            "affected_files": [],
-            "risks": [],
-        }
-    for hint in plan_context.get("affected_files") or []:
-        candidate = root / str(hint)
-        if candidate.is_file() and candidate not in selected:
-            selected.insert(0, candidate)
-
-    for extra_name in ("package.json", "pyproject.toml", "requirements.txt", "next.config.js", "next.config.mjs", "next.config.ts"):
-        extra = root / extra_name
-        if extra.exists() and extra not in selected:
-            selected.insert(0, extra)
-    # Prefer schema/db/routes for auth work so the small local model sees the real stack.
-    if auth_boost:
-        for preferred in (
-            "shared/schema.ts",
-            "server/db.ts",
-            "server/routes.ts",
-            "server/index.ts",
-            "package.json",
-        ):
-            candidate = root / preferred
-            if candidate.is_file() and candidate not in selected:
-                selected.insert(0, candidate)
-    files = []
-    for path in selected[:CONTEXT_FILE_LIMIT]:
+    plan_context: dict = {}
+    if task.plan_id:
+        plan_row = await db.scalar(select(RepositoryPlan).where(RepositoryPlan.id == task.plan_id))
+        if plan_row:
+            plan_context = {
+                "title": plan_row.title,
+                "summary": plan_row.summary,
+                "steps": json.loads(plan_row.steps or "[]"),
+                "affected_files": json.loads(plan_row.affected_files or "[]"),
+                "risks": json.loads(plan_row.risks or "[]"),
+            }
+    if not plan_context:
         try:
-            raw = path.read_text(encoding="utf-8", errors="ignore")
-            # Manifests must stay valid JSON/TOML for dependency merging — never truncate.
-            if path.name.lower() in {"package.json", "pyproject.toml", "requirements.txt"}:
-                content = raw
-            else:
-                content = raw[:CONTEXT_CHARS_PER_FILE]
-            files.append({
-                "path": str(path.relative_to(root)).replace("\\", "/"),
-                "content": content,
-            })
-        except OSError:
-            continue
-    for path in root.rglob("*"):
-        if len(files) >= CONTEXT_FILE_LIMIT:
-            break
-        if not path.is_file() or ".git" in path.parts:
-            continue
-        rel = str(path.relative_to(root)).replace("\\", "/")
-        if rel in {item["path"] for item in files}:
-            continue
-        rel_l = rel.lower()
-        if (
-            rel.endswith(("main.py", "app.py", "server.ts", "server.js", "route.ts", "routes.ts", "schema.ts", "db.ts"))
-            or "/api/" in rel_l
-            or (auth_boost and any(term in rel_l for term in ("auth", "login", "session", "middleware", "passport")))
-        ):
-            try:
-                raw = path.read_text(encoding="utf-8", errors="ignore")
-                content = raw if path.name.lower() in {"package.json", "pyproject.toml", "requirements.txt"} else raw[:CONTEXT_CHARS_PER_FILE]
-                files.append({"path": rel, "content": content})
-            except OSError:
-                continue
-    # Guarantee package.json is present (full text) so dependency auto-merge works.
+            plan_context = build_plan(root, task.request, intelligence)
+        except Exception:  # noqa: BLE001 — planning is advisory only
+            plan_context = {
+                "title": f"Plan: {task.request[:80]}",
+                "summary": task.request,
+                "steps": [],
+                "affected_files": [],
+                "risks": [],
+            }
+
+    # Engineer loop: understand → investigate → plan → decompose → await_approval → implement.
+    # Clicking Generate is the human gate to leave await_approval (patch still needs Approve → Apply).
+    eng = prepare_engineering_run(
+        repository_id=repository_id,
+        request=task.request,
+        repo_root=root,
+        model=model_name,
+        intelligence=intelligence,
+        plan=plan_context,
+        plan_id=task.plan_id,
+        code_task_id=task.id,
+    )
+    begin_implement(eng)
+    context_bundle = eng.context or build_context(
+        root,
+        task.request,
+        intelligence=intelligence,
+        plan=plan_context,
+        model=model_name,
+        budget=budget,
+    )
+    files = [{"path": f.path, "content": f.content} for f in context_bundle.bounded_files(budget.max_context_files, budget.max_chars_per_file)]
+    # Guarantee package.json present for dependency merge
     pkg = root / "package.json"
     if pkg.is_file() and not any(item["path"] == "package.json" for item in files):
         try:
             files.insert(0, {"path": "package.json", "content": pkg.read_text(encoding="utf-8", errors="ignore")})
-            files = files[:CONTEXT_FILE_LIMIT]
+            files = files[: budget.max_context_files]
         except OSError:
             pass
-    files = files[:CONTEXT_FILE_LIMIT]
+
     try:
         proposal = await generate_patch(task.request, files, plan_context=plan_context)
     except PatchGenerationError as error:
         raise HTTPException(status_code=502, detail=str(error)) from error
     except Exception as error:  # noqa: BLE001 — surface unexpected generate failures
         raise HTTPException(status_code=502, detail=f"Patch generation failed: {error}") from error
+
     safe_files = []
     for item in proposal["files"]:
         candidate = Path(str(item["path"]))
@@ -909,6 +898,9 @@ async def generate_code_task_patch(repository_id: str, task_id: str, session: Au
     task.patch_json = json.dumps(safe_files)
     task.changed_files = json.dumps([item["path"] for item in safe_files])
     task.proposed_summary = strip_llm_summary_prefix(str(proposal["summary"]))
+    # Attach engineer graph summary into approval note when empty
+    if eng.graph and not task.approval_note:
+        task.approval_note = json.dumps({"engineer_run": eng.id, "graph": eng.graph.to_dict()}, default=str)[:4000]
     task.status = "patch_ready"
     await db.commit()
     await db.refresh(task)

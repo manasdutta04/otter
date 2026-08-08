@@ -57,7 +57,7 @@ services:
       DATABASE_URL: postgresql+asyncpg://otter:otter@postgres:5432/otter
       REDIS_URL: redis://redis:6379/0
       REPOSITORY_DATA_DIR: /data/repositories
-      PYTHONPATH: /app/api
+      PYTHONPATH: /app:/app/api
       POSTGRES_HOST: postgres
       POSTGRES_PORT: "5432"
       REDIS_HOST: redis

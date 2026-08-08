@@ -41,7 +41,7 @@ export default function ContributeDocsPage() {
         <li>CLI UX and slash commands in <code>apps/cli</code></li>
         <li>Product UI polish in <code>apps/web</code></li>
         <li>API tests and clarity in <code>apps/api</code></li>
-        <li>MCP / VS Code bridges</li>
+        <li>MCP bridge (future priority)</li>
       </ul>
 
       <h2>Local setup (short)</h2>

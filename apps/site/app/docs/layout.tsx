@@ -9,6 +9,7 @@ const DOC_LINKS = [
   { href: "/docs/models", label: "Models" },
   { href: "/docs/github", label: "GitHub" },
   { href: "/docs/cli", label: "CLI" },
+  { href: "/docs/changelog", label: "Changelog" },
   { href: "/docs/contribute", label: "Contribute" },
 ];
 

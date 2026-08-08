@@ -6,7 +6,7 @@ import { EmptyState } from "../../../../../components/EmptyState";
 import { useRepository } from "../../../../../components/RepositoryProvider";
 import { StatusBadge } from "../../../../../components/StatusBadge";
 import { WorkMachine } from "../../../../../components/WorkMachine";
-import { api, type CodeTask, type LlmTestResult, type PullRequestResult, type TestResult } from "../../../../../lib/api";
+import { api, type CodeTask, type LlmTestResult, type Plan, type PullRequestResult, type TestResult } from "../../../../../lib/api";
 
 function stripLlmSummaryPrefix(text: string): string {
   return text.replace(/^(\[llm:[^\]]+\]\s*)+/i, "").trim();
@@ -17,6 +17,8 @@ export default function CodingPage() {
   const cached = getTabCache<CodeTask[]>("tasks");
   const [tasks, setTasks] = useState<CodeTask[]>(cached ?? []);
   const [request, setRequest] = useState("");
+  const [planId, setPlanId] = useState("");
+  const [plans, setPlans] = useState<Plan[]>([]);
   const [loading, setLoading] = useState(!cached);
   const [creating, setCreating] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
@@ -41,6 +43,25 @@ export default function CodingPage() {
       }
     })();
   }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const fromQuery = params.get("plan");
+    if (fromQuery) setPlanId(fromQuery);
+  }, []);
+
+  useEffect(() => {
+    if (!isReady) return;
+    void (async () => {
+      try {
+        const data = await api.listPlans(repositoryId);
+        setPlans(data);
+      } catch {
+        setPlans([]);
+      }
+    })();
+  }, [isReady, repositoryId]);
 
   const loadTasks = useCallback(async (opts?: { force?: boolean }) => {
     if (!isReady) {
@@ -77,8 +98,9 @@ export default function CodingPage() {
     setCreating(true);
     setError("");
     try {
-      await api.createCodeTask(repositoryId, request.trim());
+      await api.createCodeTask(repositoryId, request.trim(), planId || undefined);
       setRequest("");
+      setPlanId("");
       await loadTasks({ force: true });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to create task");
@@ -178,6 +200,22 @@ export default function CodingPage() {
               minLength={8}
               disabled={creating || llmOk === false}
             />
+          </div>
+          <div className="field">
+            <label htmlFor="task-plan">Link plan (optional)</label>
+            <select
+              id="task-plan"
+              value={planId}
+              onChange={(e) => setPlanId(e.target.value)}
+              disabled={creating || llmOk === false}
+            >
+              <option value="">No plan</option>
+              {plans.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.title}
+                </option>
+              ))}
+            </select>
           </div>
           <div>
             <button className="btn btn-primary" type="submit" disabled={creating}>

@@ -27,9 +27,10 @@ RUN npm run build
 # ---------------------------------------------------------------------------
 FROM python:3.12-slim-bookworm AS runtime
 
+# PYTHONPATH: /app for packages.*; /app/api for app.*
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    PYTHONPATH=/app/api \
+    PYTHONPATH=/app:/app/api \
     REPOSITORY_DATA_DIR=/data/repositories \
     PORT=3000 \
     HOSTNAME=0.0.0.0 \

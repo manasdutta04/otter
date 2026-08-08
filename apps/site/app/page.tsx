@@ -32,8 +32,8 @@ export default function LandingPage() {
 
       <section className="landing-hero">
         <div className="landing-hero-copy">
-          <a className="landing-badge" href="/docs/cli">
-            New ✨ Docker image + npm CLI
+          <a className="landing-badge" href="/docs/changelog">
+            New ✨ 0.2.0 — engineer core (Docker + CLI)
           </a>
           <h1 className="landing-headline">
             <span className="script">Easily</span> understand &amp; change code

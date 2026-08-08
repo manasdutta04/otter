@@ -2,7 +2,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-export const PACKAGE_VERSION = "0.1.0";
+export const PACKAGE_VERSION = "0.2.0";
 export const DEFAULT_BROKER_URL =
   "https://otter-auth-broker.manasdutta512.workers.dev";
 export const DEFAULT_LLM_BASE_URL = "http://127.0.0.1:11434/v1";

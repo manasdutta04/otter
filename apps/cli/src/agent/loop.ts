@@ -15,11 +15,12 @@ ALWAYS inspect the real layout first with glob/read (e.g. server/routes.ts, pack
 Do NOT invent paths like src/server unless they exist.
 
 Tools: read, write, edit, bash, glob, grep.
+Prefer edit (exact old_string → new_string) over write/full-file rewrites.
 
 When you need a tool, emit ONLY valid JSON (double quotes everywhere, never \\'):
 {"name":"read","arguments":{"path":"server/routes.ts"}}
-{"name":"write","arguments":{"path":"server/routes/health.ts","content":"..."}}
 {"name":"edit","arguments":{"path":"server/routes.ts","old_string":"...","new_string":"..."}}
+{"name":"write","arguments":{"path":"server/routes/health.ts","content":"..."}}
 
 After tools run you receive results. Then continue or finish with a short summary.
 Do not pretend tools ran — only emit the JSON and wait.`;

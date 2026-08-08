@@ -8,7 +8,7 @@ Thanks for helping make Otter better. This repo is public and MIT-licensed — i
 2. Search [existing issues](https://github.com/manasdutta04/otter/issues) to avoid duplicates
 3. For large features, open an issue first so we can align on scope
 
-**Fit the product:** Otter is *understand → explain → plan → review → build (with approval)*. Prefer changes that strengthen repository understanding, planning, quality, or developer productivity. Avoid silent code mutation, generic chatbot chrome, or features that fight the self-host / BYO-model model.
+**Fit the product:** Otter is *understand → explain → plan → approve → build*. Prefer changes that strengthen repository understanding, planning, quality, or developer productivity. Avoid silent code mutation, generic chatbot chrome, or features that fight the self-host / BYO-model model. Shared engineer logic for the Docker API lives in `packages/agent`; the CLI mirrors the same stages in TypeScript.
 
 ## Ways to contribute
 
@@ -17,9 +17,9 @@ Thanks for helping make Otter better. This repo is public and MIT-licensed — i
 | Docs | Site pages under `apps/site/app/docs`, root README, app READMEs |
 | CLI | `apps/cli` — slash commands, UX, install story |
 | Web UI | `apps/web` — product experience at `/app` |
-| API | `apps/api` — FastAPI routes and domain logic |
+| API | `apps/api` + `packages/agent` — FastAPI routes and engineer core |
 | Infra | Docker compose, auth broker, CI |
-| Extensions | `apps/mcp`, `apps/vscode` |
+| Extensions | `apps/mcp` (later priority) |
 
 ## Development setup
 

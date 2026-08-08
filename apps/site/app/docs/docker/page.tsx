@@ -53,12 +53,17 @@ export default function DockerDocsPage() {
       <h2>What runs</h2>
       <ul>
         <li>
-          <code>manasdutta04/otter</code> — Next.js UI (:3000), FastAPI (:8000), Celery worker
+          <code>manasdutta04/otter</code> — Next.js UI (:3000), FastAPI (:8000), Celery worker,
+          engineer core (<code>packages/agent</code>)
         </li>
         <li>
           Official <code>postgres:16-alpine</code> and <code>redis:7-alpine</code> (local volumes)
         </li>
       </ul>
+      <p>
+        Release notes: <a href="/docs/changelog">Changelog</a> (pull <code>:latest</code> or a{" "}
+        <code>v*</code> tag after each publish).
+      </p>
 
       <h2>GitHub Connect (no secrets in the image)</h2>
       <p>

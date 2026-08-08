@@ -8,4 +8,4 @@ Changes should be focused, documented when they affect behavior or architecture,
 
 Avoid building generic chatbot features, silent code mutation, or functionality that does not serve the senior-engineer workflow described in the PRD.
 
-Brand: **Otter** 🦦. Prefer shared API contracts across web, CLI, MCP, VS Code, and the GitHub App.
+Brand: **Otter** 🦦. Prefer shared API contracts across web, CLI, MCP, and the GitHub App.

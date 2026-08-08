@@ -51,4 +51,4 @@ jobs:
           pip install pytest httpx fastapi sqlalchemy pydantic pydantic-settings
       - run: |
           export PYTHONPATH="${GITHUB_WORKSPACE}/apps/api:${GITHUB_WORKSPACE}"
-          pytest -q || true
+          pytest -q tests/test_agent_core.py tests/test_patch_safety.py tests/test_schemas.py

@@ -70,7 +70,8 @@ export default function CliDocsPage() {
       <h3>Build</h3>
       <ul>
         <li>
-          <code>/create &lt;request&gt; [--pr] [--yes]</code> — code + optional PR
+          <code>/create &lt;request&gt; [--pr] [--yes]</code> — plan → approve → implement →
+          validate (edit-first tools; optional PR)
         </li>
         <li>
           <code>/pr</code> — open PR for current local changes
@@ -88,7 +89,16 @@ export default function CliDocsPage() {
           <code>/clear</code> · <code>/help</code> · <code>/exit</code>
         </li>
       </ul>
-      <p>Freeform prompts run the coding agent with approval before writes.</p>
+      <p>
+        Freeform prompts and <code>/create</code> follow the same contract as the Docker Coding UI:
+        understand and plan first, then human approval before writes.
+      </p>
+
+      <h2>Release</h2>
+      <p>
+        Current CLI line: <strong>0.2.0</strong>. See <a href="/docs/changelog">Changelog</a> for
+        Docker image + CLI upgrade commands.
+      </p>
 
       <h2>Models</h2>
       <p>
