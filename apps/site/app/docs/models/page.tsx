@@ -12,14 +12,15 @@ export default function ModelsDocsPage() {
       <pre>
         <code>{`ollama pull qwen2.5-coder:7b
 # Docker platform base URL: http://host.docker.internal:11434/v1
-# Native base URL:          http://127.0.0.1:11434/v1`}</code>
+# Native / CLI base URL:    http://127.0.0.1:11434/v1`}</code>
       </pre>
       <p>
-        Then open{" "}
+        Docker UI: open{" "}
         <a href={APP_MODELS}>
           <code>/app/models</code>
         </a>
-        , choose Local Ollama, save, and test the connection.
+        , choose Local Ollama, save, and test. CLI: run <code>/model</code> inside{" "}
+        <code>otter</code>.
       </p>
 
       <h2>OpenAI-compatible</h2>

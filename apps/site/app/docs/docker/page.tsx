@@ -1,24 +1,40 @@
 import { CopyCommand } from "../../../components/CopyCommand";
-import { DOCKER_HUB, DOCKER_IMAGE, DOCKER_QUICKSTART } from "../../../lib/urls";
+import { InstallTabs } from "../../../components/InstallTabs";
+import {
+  DOCKER_HUB,
+  DOCKER_IMAGE,
+  DOCKER_PULL,
+  DOCKER_QUICKSTART,
+} from "../../../lib/urls";
 
 export default function DockerDocsPage() {
   return (
     <>
       <h1>Docker</h1>
       <p className="lead">
-        Users never need your private GitHub source. They pull{" "}
+        Pull the public image{" "}
         <a href={DOCKER_HUB} target="_blank" rel="noreferrer">
           <code>{DOCKER_IMAGE}</code>
-        </a>{" "}
-        and start via the public compose file on this site (
-        <code>/docker-compose.yml</code>). Compose creates local Postgres + Redis automatically.
+        </a>
+        . For the full UI stack, start Compose from this site (
+        <code>/docker-compose.yml</code>) — it creates local Postgres + Redis automatically.
       </p>
 
-      <h2>One command</h2>
-      <CopyCommand useComposeUrl variant="button" className="docs-copy-pill" />
+      <h2>Pull</h2>
+      <InstallTabs size="docs" showDocker defaultTab="docker" />
+      <p className="muted">
+        Docker tab: <code>{DOCKER_PULL}</code>. npm/bun tabs install the standalone CLI (no Docker).
+      </p>
 
-      <h2>Pull only</h2>
-      <CopyCommand command={`docker pull ${DOCKER_IMAGE}`} variant="button" className="docs-copy-pill" />
+      <h2>Full stack (UI + API + DB)</h2>
+      <CopyCommand useComposeUrl variant="button" className="docs-copy-pill" />
+      <p className="muted" style={{ marginTop: "0.85rem" }}>
+        Fallback: <code>{DOCKER_QUICKSTART}</code>
+      </p>
+      <p>
+        On Windows, if Compose fails resolving <code>.env</code> from a URL, download{" "}
+        <code>/docker-compose.yml</code> first, then <code>docker compose -f docker-compose.yml up -d</code>.
+      </p>
 
       <h2>What runs</h2>
       <ul>
@@ -42,9 +58,6 @@ export default function DockerDocsPage() {
         <li>Keep this marketing site public (hosts <code>/docker-compose.yml</code>).</li>
         <li>Keep App credentials only in Cloudflare Secrets.</li>
       </ul>
-      <p>
-        Fallback command: <code>{DOCKER_QUICKSTART}</code>
-      </p>
 
       <h2>Ollama from Docker</h2>
       <p>

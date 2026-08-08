@@ -7,6 +7,12 @@ export const APP_MODELS = `${APP_URL}/app/models`;
 export const GITHUB_REPO = "https://github.com/manasdutta04/otter";
 export const DOCKER_HUB = "https://hub.docker.com/r/manasdutta04/otter";
 export const DOCKER_IMAGE = "manasdutta04/otter:latest";
+export const DOCKER_PULL = "docker pull manasdutta04/otter";
+
+export const NPM_PACKAGE = "@otter-engg/cli";
+export const CLI_INSTALL_NPM = "npm i @otter-engg/cli";
+export const CLI_INSTALL_NPM_GLOBAL = "npm i -g @otter-engg/cli";
+export const CLI_INSTALL_BUN = "bun add -g @otter-engg/cli";
 
 /**
  * Marketing site origin (hosts /docker-compose.yml so users never need to clone).
@@ -17,5 +23,6 @@ export const SITE_URL = (
   (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://127.0.0.1:3001")
 ).replace(/\/$/, "");
 
-/** One-line no-clone install (compose file is public on the marketing site). */
+/** Compose quickstart (full stack with Postgres + Redis). */
 export const DOCKER_QUICKSTART = `docker compose -f ${SITE_URL}/docker-compose.yml up -d`;
+export const DOCKER_COMPOSE_UP = DOCKER_QUICKSTART;

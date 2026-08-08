@@ -4,29 +4,42 @@ Otter is an engineering-intelligence platform: understand repositories, explain 
 
 **Understand → Explain → Plan → Review → Build (with approval).**
 
-## Two surfaces
+## Surfaces
 
 | Surface | Package | Where it runs |
 |---------|---------|---------------|
 | **Marketing + docs** | [`apps/site`](apps/site) | Vercel (public domain) |
 | **Product UI + API** | [`apps/web`](apps/web) + [`apps/api`](apps/api) | Docker on your machine |
+| **CLI** | [`@otter-engg/cli`](https://www.npmjs.com/package/@otter-engg/cli) | Local Node (≥20); `~/.otter/` |
 
-The landing page is **not** inside Docker. After `compose up`, open `http://127.0.0.1:3000/app`.
+The landing page is **not** inside Docker. After compose up, open `http://127.0.0.1:3000/app`.
 
-## Quickstart (self-host)
+## Quickstart
 
-**Requires:** Docker Engine + Compose v2. **Recommended:** Ollama on the host (`ollama pull qwen2.5-coder:7b`).
+**Recommended:** Ollama on the host (`ollama pull qwen2.5-coder:7b`).
+
+### Docker (full UI)
 
 ```bash
+docker pull manasdutta04/otter
 docker compose -f https://YOUR_SITE/docker-compose.yml up -d
 ```
 
-No clone required. Image: [`manasdutta04/otter`](https://hub.docker.com/r/manasdutta04/otter). Compose creates **local** Postgres + Redis. Connect GitHub via the **Otter GitHub App** (Cloudflare auth broker — see `apps/auth-broker/`).
+Image: [`manasdutta04/otter`](https://hub.docker.com/r/manasdutta04/otter). Compose creates **local** Postgres + Redis.
 
-Standalone CLI (no Docker): `npm install -g @otter-engg/cli` then `otter` — see `/docs/cli`.
+### CLI (no Docker)
 
-1. Open [http://127.0.0.1:3000/app](http://127.0.0.1:3000/app) → **Connect GitHub**.
-2. Open Models and connect **Local Ollama**.
+```bash
+npm i @otter-engg/cli
+otter
+```
+
+Bun installs the same npm package (`bun add -g @otter-engg/cli`) — no separate Bun publish.
+
+Connect GitHub via the **Otter GitHub App** (Cloudflare auth broker — see `apps/auth-broker/`).
+
+1. Docker: open [http://127.0.0.1:3000/app](http://127.0.0.1:3000/app) → **Connect GitHub**. CLI: `otter login`.
+2. Point models at **Local Ollama** (or OpenAI-compatible).
 3. Import a repository.
 
 Details: public docs from `apps/site` (`/docs`).
@@ -62,13 +75,13 @@ docker compose -f docker/compose.dev.yml up --build
 
 Not the product install path — use `compose.platform.yml` for self-host.
 
-## Surfaces
+## Client surfaces
 
 | Surface | How to use |
 |---------|------------|
 | Web (product) | Self-host UI at `http://127.0.0.1:3000/app` |
 | Site (docs) | Vercel / `apps/site` |
-| CLI | Standalone `@otter-engg/cli` (`otter` bin) — local `.otter` storage, no Docker |
+| CLI | `npm i @otter-engg/cli` → `otter` — local `~/.otter/`, no Docker |
 | MCP | `python apps/mcp/server.py` (Docker API + session; optional) |
 | VS Code | Extension in `apps/vscode` |
 

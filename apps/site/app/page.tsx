@@ -1,7 +1,7 @@
 import { Brand } from "../components/Brand";
-import { CopyCommand } from "../components/CopyCommand";
+import { InstallTabs } from "../components/InstallTabs";
 import { PressSlot } from "../components/PressSlot";
-import { DOCKER_HUB, GITHUB_REPO } from "../lib/urls";
+import { DOCKER_HUB, GITHUB_REPO, NPM_PACKAGE } from "../lib/urls";
 
 function GitHubMark({ className }: { className?: string }) {
   return (
@@ -32,15 +32,16 @@ export default function LandingPage() {
 
       <section className="landing-hero">
         <div className="landing-hero-copy">
-          <a className="landing-badge" href="/docs/self-host">
-            New ✨ Docker + Otter GitHub App
+          <a className="landing-badge" href="/docs/cli">
+            New ✨ Docker image + npm CLI
           </a>
           <h1 className="landing-headline">
             <span className="script">Easily</span> understand &amp; change code
           </h1>
-          <CopyCommand className="landing-copy-pill" useComposeUrl variant="button" />
+          <InstallTabs className="landing-install-tabs" showDocker defaultTab="npm" />
           <p className="landing-privacy-note">
-            Runs on your machine. Local DB and repos stay private. Connect GitHub via the Otter app.
+            Docker for the full local UI, or <code>{NPM_PACKAGE}</code> for the interactive CLI.
+            Repos and data stay on your machine.
           </p>
           <div className="landing-ctas">
             <a className="btn btn-secondary" href="/docs/self-host">
@@ -186,9 +187,9 @@ export default function LandingPage() {
             <img src="/landing/otter-docker.png" alt="" />
           </article>
           <article className="details-mini lavender">
-            <h3>Copy, run, open the app</h3>
-            <a className="btn btn-outline btn-sm" href="/docs/self-host">
-              Self-host guide
+            <h3>Or install the npm CLI</h3>
+            <a className="btn btn-outline btn-sm" href="/docs/cli">
+              CLI docs
             </a>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/landing/otter-magnify.png" alt="" />
@@ -198,9 +199,9 @@ export default function LandingPage() {
 
       <section className="landing-cta-band">
         <h2>Ready to run Otter?</h2>
-        <CopyCommand className="landing-copy-pill" useComposeUrl variant="button" />
-        <a className="btn btn-secondary" href="/docs/self-host">
-          Full setup guide
+        <InstallTabs className="landing-install-tabs" showDocker defaultTab="docker" />
+        <a className="btn btn-secondary" href="/docs">
+          Full docs
         </a>
       </section>
 
@@ -234,6 +235,11 @@ export default function LandingPage() {
               </li>
               <li>
                 <a href="/docs/cli">CLI</a>
+              </li>
+              <li>
+                <a href="https://www.npmjs.com/package/@otter-engg/cli" target="_blank" rel="noreferrer">
+                  npm
+                </a>
               </li>
             </ul>
           </div>

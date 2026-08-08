@@ -11,7 +11,7 @@ const OTTER_FAVICON =
 export const metadata: Metadata = {
   title: "Otter - Easily understand & change code",
   description:
-    "Otter is engineering intelligence you self-host. Import repos, plan changes, and ship approval-gated patches with Docker + your own model.",
+    "Otter is engineering intelligence you self-host. Import repos, plan changes, and ship approval-gated patches with Docker or the npm CLI — and your own model.",
   icons: {
     icon: [{ url: OTTER_FAVICON, type: "image/svg+xml" }],
     shortcut: OTTER_FAVICON,

@@ -1,56 +1,70 @@
 import { CopyCommand } from "../../../components/CopyCommand";
-import { DOCKER_HUB, DOCKER_IMAGE, DOCKER_QUICKSTART } from "../../../lib/urls";
+import { InstallTabs } from "../../../components/InstallTabs";
+import {
+  CLI_INSTALL_NPM,
+  DOCKER_HUB,
+  DOCKER_IMAGE,
+  DOCKER_PULL,
+  DOCKER_QUICKSTART,
+  NPM_PACKAGE,
+} from "../../../lib/urls";
 
 export default function SelfHostDocsPage() {
   return (
     <>
       <h1>Self-host</h1>
       <p className="lead">
-        No GitHub clone required. Pull the public image, start Compose (local Postgres + Redis
-        auto-created), then Connect GitHub via the Otter GitHub App.
+        Two ways to run Otter locally: the Docker product UI (Postgres + API), or the standalone CLI
+        (<code>{NPM_PACKAGE}</code>). Both use the Otter GitHub App for login.
       </p>
 
-      <h2>Run</h2>
+      <h2>Install</h2>
+      <InstallTabs size="docs" showDocker defaultTab="docker" />
+
+      <h2>Option A — Docker (full UI)</h2>
+      <ol>
+        <li>
+          Pull: <code>{DOCKER_PULL}</code>
+        </li>
+        <li>Start Compose (local Postgres + Redis):</li>
+      </ol>
       <CopyCommand useComposeUrl variant="button" className="docs-copy-pill" />
       <p className="muted" style={{ marginTop: "0.85rem" }}>
         Or: <code>{DOCKER_QUICKSTART}</code>
       </p>
       <p>
-        Then open <code>http://127.0.0.1:3000/app</code>. Image:{" "}
+        Open <code>http://127.0.0.1:3000/app</code>. Image:{" "}
         <a href={DOCKER_HUB} target="_blank" rel="noreferrer">
           <code>{DOCKER_IMAGE}</code>
         </a>
         .
       </p>
 
-      <h2>Requirements</h2>
+      <h3>Requirements</h3>
       <ul>
         <li>Docker Engine + Compose v2</li>
         <li>Ollama on the host (recommended): <code>ollama pull qwen2.5-coder:7b</code></li>
       </ul>
 
+      <h2>Option B — CLI only</h2>
+      <pre>
+        <code>{`${CLI_INSTALL_NPM}
+otter`}</code>
+      </pre>
+      <p>
+        No Docker. Storage under <code>~/.otter/</code>. See <a href="/docs/cli">CLI docs</a> for
+        slash commands. Bun users: <code>bun add -g {NPM_PACKAGE}</code> (same npm package).
+      </p>
+
       <h2>Connect GitHub</h2>
       <p>
-        Click <strong>Connect GitHub</strong> in the UI (or <code>otter login</code>). You install the
-        Otter GitHub App — you do <strong>not</strong> paste Client secrets or create your own OAuth
-        app. Details: <a href="/docs/github">GitHub docs</a>.
+        In the Docker UI click <strong>Connect GitHub</strong>, or in the CLI run{" "}
+        <code>otter login</code> / <code>/login</code>. You install the Otter GitHub App — you do{" "}
+        <strong>not</strong> paste Client secrets or create your own OAuth app. Details:{" "}
+        <a href="/docs/github">GitHub docs</a>.
       </p>
 
-      <h2>CLI and MCP</h2>
-      <p>
-        Keep Docker running, then use the CLI/MCP against <code>http://127.0.0.1:8000</code>. The CLI
-        does not embed a database — it uses the same local API + Postgres as the web UI.
-      </p>
-      <pre>
-        <code>{`otter login
-otter repos list
-
-# MCP (after otter login) — example env
-# OTTER_API_URL=http://127.0.0.1:8000
-# OTTER_SESSION is optional if ~/.otter/config.json exists`}</code>
-      </pre>
-
-      <h2>Open the product UI</h2>
+      <h2>Open the product UI (Docker)</h2>
       <ul>
         <li>
           Workspace: <code>http://127.0.0.1:3000/app</code>
@@ -65,10 +79,10 @@ otter repos list
 
       <h2>First-run checklist</h2>
       <ol>
-        <li>Compose up (DB created in Docker).</li>
+        <li>Install via Docker pull or npm CLI.</li>
         <li>Connect GitHub (Otter app).</li>
-        <li>Open Models and select Local Ollama.</li>
-        <li>Import a repository URL.</li>
+        <li>Point models at Local Ollama (or OpenAI-compatible).</li>
+        <li>Import a repository.</li>
       </ol>
     </>
   );

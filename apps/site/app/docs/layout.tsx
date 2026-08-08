@@ -25,8 +25,8 @@ export default function DocsLayout({ children }: { children: ReactNode }) {
           </a>
         </nav>
         <div className="landing-nav-actions">
-          <a className="btn btn-primary btn-sm" href="/docs/self-host">
-            Run with Docker
+          <a className="btn btn-primary btn-sm" href="/docs">
+            Install
           </a>
         </div>
       </header>

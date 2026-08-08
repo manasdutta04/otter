@@ -11,12 +11,12 @@ export default function GitHubDocsPage() {
       <h2>What you do (end user)</h2>
       <ol>
         <li>
-          Start the local stack with Docker (see <a href="/docs/self-host">Self-host</a>). Postgres is
-          created automatically in Docker.
+          Start Docker (see <a href="/docs/self-host">Self-host</a>) or install the CLI (
+          <code>npm i @otter-engg/cli</code>).
         </li>
         <li>
-          In the product UI click <strong>Connect GitHub</strong>, or with the standalone CLI run{" "}
-          <code>otter login</code>.
+          In the product UI click <strong>Connect GitHub</strong>, or run{" "}
+          <code>otter login</code> / <code>/login</code> in the CLI.
         </li>
         <li>Install / authorize the Otter GitHub App when GitHub prompts you.</li>
         <li>Import a repo and open PRs after approving coding tasks.</li>
