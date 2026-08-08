@@ -41,21 +41,27 @@ See root [CONTRIBUTING.md](../../CONTRIBUTING.md).
 
 ## Publish (CI)
 
-GitHub Actions publishes `@otter-engg/cli` to npm on push.
+GitHub Actions publishes `@otter-engg/cli` via **npm Trusted Publisher (OIDC)** — no `NPM_TOKEN`.
 
-**Secret:** repo → Settings → Secrets and variables → Actions → `NPM_TOKEN`  
-(npmjs.com → Access Tokens → **Automation** token with publish rights to the `otter-engg` org)
+**One-time npm setup:** package → Settings → Trusted Publisher → GitHub Actions:
+
+| Field | Value |
+|-------|--------|
+| Organization or user | `manasdutta04` |
+| Repository | `otter` |
+| Workflow filename | `cli-publish.yml` |
+| Allowed actions | `npm publish` |
+
+Optional: Publishing access → **Require 2FA and disallow tokens** (OIDC still works).
 
 ```bash
-# 1) Bump version in apps/cli/package.json (and lockfile if needed)
+# 1) Bump version in apps/cli/package.json
 # 2) Push to main → publishes that version (skips if already on npm)
 git add apps/cli
-git commit -m "release(cli): 0.1.2"
+git commit -m "release(cli): 0.2.0"
 git push origin main
 
-# Optional explicit tag release:
-git tag cli-v0.1.2
-git push origin cli-v0.1.2
+
 ```
 
 Manual: Actions → **Publish @otter-engg/cli** → Run workflow.

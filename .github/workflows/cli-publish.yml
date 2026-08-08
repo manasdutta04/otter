@@ -1,23 +1,32 @@
 name: Publish @otter-engg/cli
 
-# Direct npm deploy on GitHub push.
-# Secret: NPM_TOKEN (npm Automation token with publish access to @otter-engg)
+# Publish via npm Trusted Publisher (OIDC) — no NPM_TOKEN.
 #
-#   1. Bump "version" in apps/cli/package.json
-#   2. Commit + push to main
-#        → this workflow publishes @otter-engg/cli@<version>
+# One-time setup on npmjs.com → @otter-engg/cli → Settings → Trusted Publisher:
+#   Provider: GitHub Actions
+#   Organization or user: manasdutta04
+#   Repository: otter
+#   Workflow filename: cli-publish.yml   ← must match exactly (one publisher per package)
+#   Allowed actions: npm publish
 #
-#   Optional tag (same publish path via tags workflow companion):
-#        git tag cli-v0.1.2 && git push origin cli-v0.1.2
+# Then optionally: Publishing access → "Require 2FA and disallow tokens"
+# (Trusted Publisher still works; classic/automation tokens will not.)
 #
-#   Manual: Actions → Publish @otter-engg/cli → Run workflow
+# Triggers:
+#   - push to main (no-ops quickly if version already on npm)
+#   - tag cli-v* (e.g. git tag cli-v0.2.0 && git push origin cli-v0.2.0)
+#   - workflow_dispatch
+#
+# No path filters: tags + Trusted Publisher need this single workflow to always
+# be eligible; the "already published" check keeps noise low.
+#
+# Requires Node ≥ 22.14 and npm ≥ 11.5.1 for OIDC trusted publishing.
 
 on:
   push:
     branches: [main]
-    paths:
-      - "apps/cli/**"
-      - ".github/workflows/cli-publish.yml"
+    tags:
+      - "cli-v*"
   workflow_dispatch:
 
 concurrency:
@@ -32,20 +41,40 @@ jobs:
         working-directory: apps/cli
     permissions:
       contents: read
-      id-token: write
+      id-token: write # OIDC for npm Trusted Publisher + provenance
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          # Trusted publishing needs Node ≥ 22.14 and npm ≥ 11.5.1
+          node-version: "22"
           registry-url: "https://registry.npmjs.org"
           cache: npm
           cache-dependency-path: apps/cli/package-lock.json
 
-      - name: Read version
+      - name: Ensure npm supports trusted publishing
+        run: npm install -g npm@latest
+
+      - name: Resolve version
         id: ver
-        run: echo "version=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "${GITHUB_REF}" == refs/tags/cli-v* ]]; then
+            VERSION="${GITHUB_REF_NAME#cli-v}"
+            if [[ ! "${VERSION}" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then
+              echo "Tag must look like cli-v1.2.3 (got ${GITHUB_REF_NAME})"
+              exit 1
+            fi
+            npm version "${VERSION}" --no-git-tag-version
+            echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+            echo "Publishing from tag ${GITHUB_REF_NAME} → ${VERSION}"
+          else
+            VERSION="$(node -p "require('./package.json').version")"
+            echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+            echo "Publishing from package.json → ${VERSION}"
+          fi
 
       - name: Skip if version already on npm
         id: check
@@ -67,8 +96,8 @@ jobs:
           npm ci
           npm run build
 
-      - name: Publish to npm
+      - name: Publish to npm (OIDC)
         if: steps.check.outputs.exists == 'false'
+        # No NODE_AUTH_TOKEN — npm uses GitHub OIDC via Trusted Publisher.
+        # --provenance is automatic with trusted publishing; keep flag for clarity.
         run: npm publish --access public --provenance
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
