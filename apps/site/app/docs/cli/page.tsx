@@ -86,6 +86,9 @@ export default function CliDocsPage() {
           <code>/model [name]</code> · <code>/login</code> · <code>/logout</code>
         </li>
         <li>
+          <code>/update [--check]</code> — upgrade <code>@otter-engg/cli</code> from npm
+        </li>
+        <li>
           <code>/clear</code> · <code>/help</code> · <code>/exit</code>
         </li>
       </ul>

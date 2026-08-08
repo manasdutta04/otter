@@ -11,7 +11,7 @@ const VERBS = [
   "Diving",
 ] as const;
 
-export type WorkKind = "agent" | "scan" | "import" | "login" | "model";
+export type WorkKind = "agent" | "scan" | "import" | "login" | "model" | "update";
 
 const LABELS: Record<WorkKind, string> = {
   agent: "Cooking",
@@ -19,6 +19,7 @@ const LABELS: Record<WorkKind, string> = {
   import: "Importing",
   login: "Signing in",
   model: "Checking model",
+  update: "Updating",
 };
 
 export function startWork(kind: WorkKind, detail?: string): Ora {

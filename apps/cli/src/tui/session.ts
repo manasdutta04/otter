@@ -19,6 +19,12 @@ import {
   reviewRepo,
 } from "../features/workspace.js";
 import { createAndMaybePr, openPrForRepo } from "../features/create.js";
+import {
+  CLI_PACKAGE,
+  currentCliVersion,
+  fetchLatestCliVersion,
+  installLatestCli,
+} from "../features/update.js";
 import { confirmYn } from "./prompt.js";
 
 function parseFlags(arg: string): { text: string; pr: boolean; yes: boolean } {
@@ -74,12 +80,47 @@ async function handleSlash(
   ${c.brand("/model")}     ${c.dim("[name]")} Show or set model
   ${c.brand("/login")}     GitHub login
   ${c.brand("/logout")}    Clear session
+  ${c.brand("/update")}    Update CLI from npm
   ${c.brand("/clear")}     Redraw banner
   ${c.brand("/exit")}      Quit
 
   ${c.dim("Or type a freeform task (agent mode).")}
 `);
       return "ok";
+    case "update": {
+      const current = currentCliVersion();
+      const checkOnly = arg === "--check" || arg === "-c";
+      const spin = startWork("update", "checking npm…");
+      try {
+        const latest = await fetchLatestCliVersion();
+        if (latest === current) {
+          spin.succeed(c.ok(`Already on latest (${current})`));
+          return "ok";
+        }
+        spin.stop();
+        console.log(c.muted(`  Current ${current} → latest ${latest}`));
+        if (checkOnly) {
+          console.log(c.dim(`  Run /update to install ${CLI_PACKAGE}@${latest}`));
+          return "ok";
+        }
+        const ok = await confirmYn(`Install ${CLI_PACKAGE}@${latest} globally?`, true);
+        if (!ok) {
+          console.log(c.dim("Cancelled."));
+          return "ok";
+        }
+        console.log(c.muted(`  Running: npm i -g ${CLI_PACKAGE}@latest`));
+        await installLatestCli();
+        console.log(c.ok(`✔ Updated to ${latest}. Restart otter to use the new version.`));
+      } catch (err) {
+        spin.fail(c.bad(err instanceof Error ? err.message : String(err)));
+        console.log(
+          c.dim(
+            `  Manual: npm i -g ${CLI_PACKAGE}@latest   (or pnpm/yarn/bun global add)`,
+          ),
+        );
+      }
+      return "ok";
+    }
     case "clear":
       console.clear();
       await renderBanner(root);

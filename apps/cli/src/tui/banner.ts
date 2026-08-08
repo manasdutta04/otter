@@ -64,6 +64,7 @@ export async function renderBanner(workspace: string): Promise<void> {
     "",
     c.text("Session"),
     `${c.brand(pad("/help", 10))} ${c.dim("Full command list")}`,
+    `${c.brand(pad("/update", 10))} ${c.dim("Update CLI")}`,
     `${c.brand(pad("/exit", 10))} ${c.dim("Quit")}`,
   ];
 
