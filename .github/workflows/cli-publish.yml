@@ -1,4 +1,4 @@
-name: Publish otter-engg CLI
+name: Publish @otter-engg/cli
 
 on:
   push:

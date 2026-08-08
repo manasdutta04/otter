@@ -28,8 +28,8 @@ export default function GitHubDocsPage() {
           <strong>Web</strong> — Connect GitHub in the app chrome (cookie session; Docker stack).
         </li>
         <li>
-          <strong>CLI</strong> — standalone <code>otter-engg</code>: <code>otter login</code> (same
-          broker; session in <code>~/.otter/config.json</code>). No Docker required.
+          <strong>CLI</strong> — standalone <code>@otter-engg/cli</code>: <code>otter login</code>{" "}
+          (same broker; session in <code>~/.otter/config.json</code>). No Docker required.
         </li>
         <li>
           <strong>MCP</strong> — uses <code>OTTER_SESSION</code> or reads <code>~/.otter/config.json</code>{" "}

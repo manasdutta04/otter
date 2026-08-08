@@ -28,7 +28,7 @@ export default function DocsIndexPage() {
           <Link href="/docs/models">Models</Link> — Ollama and OpenAI-compatible endpoints
         </li>
         <li>
-          <Link href="/docs/cli">CLI</Link> — standalone <code>otter-engg</code> (no Docker)
+          <Link href="/docs/cli">CLI</Link> — standalone <code>@otter-engg/cli</code> (no Docker)
         </li>
       </ul>
     </>

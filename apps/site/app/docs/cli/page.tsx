@@ -5,15 +5,15 @@ export default function CliDocsPage() {
     <>
       <h1>CLI</h1>
       <p className="lead">
-        Otter CLI (<code>otter-engg</code>) is an interactive terminal product — splash, setup menus,
-        then a session prompt. No Docker required.
+        Otter CLI (<code>@otter-engg/cli</code>) is an interactive terminal product — splash, setup
+        menus, then a session prompt. No Docker required.
       </p>
 
       <h2>Install</h2>
       <pre>
-        <code>{`npm install -g otter-engg
+        <code>{`npm install -g @otter-engg/cli
 # or
-bun add -g otter-engg`}</code>
+bun add -g @otter-engg/cli`}</code>
       </pre>
 
       <h2>Start</h2>
