@@ -31,7 +31,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
-      - run: npm install
+          cache: npm
+          cache-dependency-path: apps/cli/package-lock.json
+      - run: npm ci
       - run: npm run build
 
   api:

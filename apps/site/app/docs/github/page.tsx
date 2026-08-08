@@ -15,7 +15,8 @@ export default function GitHubDocsPage() {
           created automatically in Docker.
         </li>
         <li>
-          In the product UI click <strong>Connect GitHub</strong>, or run <code>otter login</code>.
+          In the product UI click <strong>Connect GitHub</strong>, or with the standalone CLI run{" "}
+          <code>otter login</code>.
         </li>
         <li>Install / authorize the Otter GitHub App when GitHub prompts you.</li>
         <li>Import a repo and open PRs after approving coding tasks.</li>
@@ -24,15 +25,16 @@ export default function GitHubDocsPage() {
       <h2>Web · CLI · MCP</h2>
       <ul>
         <li>
-          <strong>Web</strong> — Connect GitHub in the app chrome (cookie session).
+          <strong>Web</strong> — Connect GitHub in the app chrome (cookie session; Docker stack).
         </li>
         <li>
-          <strong>CLI</strong> — <code>otter login</code> (same broker; session in{" "}
-          <code>~/.otter/config.json</code>). Docker platform must already be running.
+          <strong>CLI</strong> — standalone <code>otter-engg</code>: <code>otter login</code> (same
+          broker; session in <code>~/.otter/config.json</code>). No Docker required.
         </li>
         <li>
           <strong>MCP</strong> — uses <code>OTTER_SESSION</code> or reads <code>~/.otter/config.json</code>{" "}
-          after CLI login. Point <code>OTTER_API_URL</code> at <code>http://127.0.0.1:8000</code>.
+          after CLI login. Point <code>OTTER_API_URL</code> at the Docker API if you use MCP tools
+          against the web stack.
         </li>
       </ul>
 

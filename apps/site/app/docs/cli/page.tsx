@@ -1,59 +1,52 @@
-import { GITHUB_REPO } from "../../../lib/urls";
+import { SITE_URL } from "../../../lib/urls";
 
 export default function CliDocsPage() {
   return (
     <>
       <h1>CLI</h1>
       <p className="lead">
-        The CLI is a thin client of the same Otter API the Docker web UI uses. It does not embed
-        Postgres — start Docker first, then log in.
+        Otter CLI (<code>otter-engg</code>) is an interactive terminal product — splash, setup menus,
+        then a session prompt. No Docker required.
       </p>
 
-      <h2>Prerequisites</h2>
-      <ol>
-        <li>
-          Run the platform stack (<a href="/docs/self-host">Self-host</a>) so{" "}
-          <code>http://127.0.0.1:8000</code> is up.
-        </li>
-        <li>
-          Build or install the CLI from <code>apps/cli</code>.
-        </li>
-      </ol>
-
-      <h2>Login</h2>
+      <h2>Install</h2>
       <pre>
-        <code>{`otter login
-# Browser → Otter GitHub App (Cloudflare broker) → ~/.otter/config.json`}</code>
+        <code>{`npm install -g otter-engg
+# or
+bun add -g otter-engg`}</code>
+      </pre>
+
+      <h2>Start</h2>
+      <pre>
+        <code>{`otter`}</code>
       </pre>
       <p>
-        Same Connect flow as the web UI. See <a href="/docs/github">GitHub</a>.
+        After the welcome animation and login/model setup, you land on{" "}
+        <code>otter ›</code>. Type a task, or use slash commands.
       </p>
 
-      <h2>Useful commands</h2>
+      <h2>Inside the session</h2>
       <ul>
         <li>
-          <code>otter repos list</code> / <code>otter repos import &lt;url&gt;</code>
+          Freeform prompts — coding agent with approval
         </li>
         <li>
-          <code>otter chat</code> / <code>otter plan</code> / <code>otter review</code>
+          <code>/import owner/repo</code> · <code>/scan</code> · <code>/intel</code> ·{" "}
+          <code>/health</code> · <code>/memory</code>
         </li>
         <li>
-          <code>otter logout</code>
+          <code>/model</code> · <code>/login</code> · <code>/exit</code>
         </li>
       </ul>
 
-      <h2>MCP</h2>
+      <h2>Models</h2>
       <p>
-        After <code>otter login</code>, point your MCP client at{" "}
-        <code>python apps/mcp/server.py</code> with <code>OTTER_API_URL=http://127.0.0.1:8000</code>.
-        The server reads <code>~/.otter/config.json</code> when <code>OTTER_SESSION</code> is unset.
+        Default Ollama at <code>http://127.0.0.1:11434/v1</code>. Pick models during setup or with{" "}
+        <code>/model</code>.
       </p>
 
-      <h2>Source</h2>
       <p>
-        <a href={GITHUB_REPO} target="_blank" rel="noreferrer">
-          Repository
-        </a>
+        Site: <a href={SITE_URL}>{SITE_URL}</a>
       </p>
     </>
   );

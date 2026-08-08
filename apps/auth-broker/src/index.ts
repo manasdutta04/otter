@@ -21,6 +21,8 @@ export interface Env {
 type LoginState = {
   return_origin: string;
   cli_port?: number;
+  /** cli = standalone otter-engg; api = Docker/local API */
+  mode?: "cli" | "api";
   installation_id?: number;
   setup_action?: string | null;
   created_at: number;
@@ -37,6 +39,7 @@ type RedeemPayload = {
   };
   installation_id?: number;
   created_at: number;
+  mode?: "cli" | "api";
 };
 
 const STATE_TTL = 600; // 10 minutes
@@ -125,10 +128,8 @@ async function handleLogin(request: Request, env: Env, url: URL): Promise<Respon
     return bad("Broker is not configured (missing GITHUB_APP_CLIENT_ID / SECRET)", 503);
   }
 
-  const returnOrigin = (url.searchParams.get("return_origin") || "").replace(/\/$/, "");
-  if (!returnOrigin || !isAllowedReturnOrigin(returnOrigin, env)) {
-    return bad("Invalid or missing return_origin (must be local Otter API origin)");
-  }
+  const modeParam = (url.searchParams.get("mode") || "").toLowerCase();
+  const mode: "cli" | "api" = modeParam === "cli" ? "cli" : "api";
 
   let cliPort: number | undefined;
   const cliRaw = url.searchParams.get("cli_port");
@@ -139,10 +140,25 @@ async function handleLogin(request: Request, env: Env, url: URL): Promise<Respon
     }
   }
 
+  let returnOrigin = (url.searchParams.get("return_origin") || "").replace(/\/$/, "");
+  if (mode === "cli") {
+    if (!cliPort) {
+      return bad("CLI login requires cli_port");
+    }
+    if (!returnOrigin) {
+      returnOrigin = `http://127.0.0.1:${cliPort}`;
+    }
+  }
+
+  if (!returnOrigin || !isAllowedReturnOrigin(returnOrigin, env)) {
+    return bad("Invalid or missing return_origin (must be local Otter API origin)");
+  }
+
   const state = randomId(16);
   const loginState: LoginState = {
     return_origin: returnOrigin,
     cli_port: cliPort,
+    mode,
     created_at: Date.now(),
   };
   await env.AUTH_KV.put(`state:${state}`, JSON.stringify(loginState), {
@@ -280,10 +296,18 @@ async function handleCallback(request: Request, env: Env, url: URL): Promise<Res
     },
     installation_id: installationId,
     created_at: Date.now(),
+    mode: loginState.mode || "api",
   };
   await env.AUTH_KV.put(`redeem:${redeemCode}`, JSON.stringify(payload), {
     expirationTtl: REDEEM_TTL,
   });
+
+  // Standalone CLI: redirect straight to loopback callback (no Docker API).
+  if (loginState.mode === "cli" && loginState.cli_port) {
+    const dest = new URL(`http://127.0.0.1:${loginState.cli_port}/callback`);
+    dest.searchParams.set("code", redeemCode);
+    return Response.redirect(dest.toString(), 302);
+  }
 
   const dest = new URL(`${loginState.return_origin}/auth/github/broker/callback`);
   dest.searchParams.set("code", redeemCode);
@@ -294,17 +318,11 @@ async function handleCallback(request: Request, env: Env, url: URL): Promise<Res
 }
 
 async function handleRedeem(request: Request, env: Env): Promise<Response> {
-  let body: { code?: string; secret?: string };
+  let body: { code?: string; secret?: string; mode?: string };
   try {
-    body = (await request.json()) as { code?: string; secret?: string };
+    body = (await request.json()) as { code?: string; secret?: string; mode?: string };
   } catch {
     return bad("Invalid JSON body");
-  }
-
-  if (env.REDEEM_HMAC_SECRET) {
-    if (!body.secret || body.secret !== env.REDEEM_HMAC_SECRET) {
-      return bad("Unauthorized redeem", 401);
-    }
   }
 
   if (!body.code) {
@@ -315,8 +333,18 @@ async function handleRedeem(request: Request, env: Env): Promise<Response> {
   if (!raw) {
     return bad("Unknown or expired code", 400);
   }
-  await env.AUTH_KV.delete(`redeem:${body.code}`);
   const payload = JSON.parse(raw) as RedeemPayload;
+
+  // Only trust mode stamped on the KV redeem payload (not the request body).
+  const isCli = payload.mode === "cli";
+
+  if (env.REDEEM_HMAC_SECRET && !isCli) {
+    if (!body.secret || body.secret !== env.REDEEM_HMAC_SECRET) {
+      return bad("Unauthorized redeem", 401);
+    }
+  }
+
+  await env.AUTH_KV.delete(`redeem:${body.code}`);
   return json({
     access_token: payload.access_token,
     token_type: payload.token_type,

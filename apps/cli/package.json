@@ -1,7 +1,7 @@
 {
-  "name": "otter",
+  "name": "otter-engg",
   "version": "0.1.0",
-  "description": "Otter CLI — engineering intelligence from your terminal",
+  "description": "Otter CLI — standalone engineering intelligence from your terminal",
   "type": "module",
   "bin": {
     "otter": "./dist/cli.js"
@@ -12,20 +12,41 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "dev": "tsc -p tsconfig.json --watch",
-    "start": "node dist/cli.js"
+    "start": "node dist/cli.js",
+    "prepublishOnly": "npm run build"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=20"
   },
   "keywords": [
     "otter",
+    "otter-engg",
     "cli",
     "engineering-intelligence",
-    "codebase"
+    "codebase",
+    "agent"
   ],
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/manasdutta04/otter.git",
+    "directory": "apps/cli"
+  },
+  "dependencies": {
+    "@clack/prompts": "^1.7.0",
+    "@octokit/rest": "^21.1.1",
+    "better-sqlite3": "^11.8.1",
+    "chalk": "^5.4.1",
+    "commander": "^13.1.0",
+    "glob": "^11.0.1",
+    "open": "^10.1.0",
+    "openai": "^4.86.2",
+    "ora": "^9.4.1",
+    "simple-git": "^3.27.0"
+  },
   "devDependencies": {
-    "@types/node": "^22.10.5",
+    "@types/better-sqlite3": "^7.6.12",
+    "@types/node": "^22.20.1",
     "typescript": "^5.7.2"
   }
 }
