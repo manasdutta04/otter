@@ -1,8 +1,12 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { createRequire } from "node:module";
 
-export const PACKAGE_VERSION = "0.2.0";
+const require = createRequire(import.meta.url);
+export const PACKAGE_VERSION = String(
+  (require("../package.json") as { version?: string }).version || "0.0.0",
+);
 export const DEFAULT_BROKER_URL =
   "https://otter-auth-broker.manasdutta512.workers.dev";
 export const DEFAULT_LLM_BASE_URL = "http://127.0.0.1:11434/v1";
