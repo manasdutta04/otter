@@ -1,8 +1,8 @@
 name: Publish @otter-engg/cli
 
-# Publishes @otter-engg/cli with npm Trusted Publisher (OIDC).
-# Configure once on npmjs.com → package → Trusted Publisher → GitHub Actions:
-#   manasdutta04 / otter / cli-publish.yml
+# Publishes with GitHub secret NPM_TOKEN (npm granular token, Bypass 2FA).
+# Create token: npmjs.com → Access Tokens → Granular → otter-engg → Bypass 2FA
+# Package settings: "Require 2FA or granular token with bypass 2FA" (not "disallow tokens")
 
 on:
   push:
@@ -27,16 +27,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Do not set registry-url — it writes an .npmrc with always-auth and
-      # empty _authToken, which breaks OIDC trusted publishing (false E404).
       - uses: actions/setup-node@v4
         with:
-          node-version: "24"
+          node-version: "22"
+          registry-url: "https://registry.npmjs.org"
           cache: npm
           cache-dependency-path: apps/cli/package-lock.json
-
-      - name: Use npm with trusted publishing support
-        run: npm install -g npm@latest
 
       - name: Resolve version
         id: ver
@@ -77,6 +73,6 @@ jobs:
 
       - name: Publish to npm
         if: steps.check.outputs.exists == 'false'
-        run: |
-          rm -f .npmrc "$HOME/.npmrc"
-          npm publish --access public --provenance
+        run: npm publish --access public --provenance
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
