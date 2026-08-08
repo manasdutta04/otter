@@ -39,12 +39,23 @@ node dist/cli.js
 
 See root [CONTRIBUTING.md](../../CONTRIBUTING.md).
 
-## Publish (maintainers)
+## Publish (CI)
 
-Org: `otter-engg` on npm.
+GitHub Actions publishes `@otter-engg/cli` to npm on push.
+
+**Secret:** repo → Settings → Secrets and variables → Actions → `NPM_TOKEN`  
+(npmjs.com → Access Tokens → **Automation** token with publish rights to the `otter-engg` org)
 
 ```bash
-cd apps/cli
-npm run build
-npm publish --access public
+# 1) Bump version in apps/cli/package.json (and lockfile if needed)
+# 2) Push to main → publishes that version (skips if already on npm)
+git add apps/cli
+git commit -m "release(cli): 0.1.2"
+git push origin main
+
+# Optional explicit tag release:
+git tag cli-v0.1.2
+git push origin cli-v0.1.2
 ```
+
+Manual: Actions → **Publish @otter-engg/cli** → Run workflow.

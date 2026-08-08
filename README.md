@@ -47,7 +47,7 @@ pnpm, yarn, and bun install the **same** npm package — no separate registry pu
 | Surface | How to use |
 |---------|------------|
 | **Web UI** | Docker stack → `http://127.0.0.1:3000/app` |
-| **CLI** | [`@otter-engg/cli`](https://www.npmjs.com/package/@otter-engg/cli) → `otter` |
+| **CLI** | [`@otter-engg/cli`](https://www.npmjs.com/package/@otter-engg/cli) → `otter` (CI: push `main` / tag `cli-v*`) |
 | **Docs site** | [`apps/site`](apps/site) → [otter.manasdutta.com](https://otter.manasdutta.com) |
 | **MCP** | [`apps/mcp`](apps/mcp) — stdio bridge to the local API |
 | **VS Code** | [`apps/vscode`](apps/vscode) |

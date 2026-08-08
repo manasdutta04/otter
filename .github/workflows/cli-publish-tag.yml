@@ -1,0 +1,69 @@
+name: Publish @otter-engg/cli (tag)
+
+# Tag release path (no path filter — always runs on cli-v* tags).
+# Prefer bumping package.json on main; use tags when you want an explicit release marker.
+#
+#   git tag cli-v0.1.2
+#   git push origin cli-v0.1.2
+#
+# Secret: NPM_TOKEN
+
+on:
+  push:
+    tags:
+      - "cli-v*"
+
+concurrency:
+  group: npm-cli-publish
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/cli
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          registry-url: "https://registry.npmjs.org"
+          cache: npm
+          cache-dependency-path: apps/cli/package-lock.json
+
+      - name: Set version from tag
+        id: ver
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="${GITHUB_REF_NAME#cli-v}"
+          if [[ ! "${VERSION}" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then
+            echo "Tag must look like cli-v1.2.3 (got ${GITHUB_REF_NAME})"
+            exit 1
+          fi
+          npm version "${VERSION}" --no-git-tag-version
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+
+      - name: Skip if version already on npm
+        id: check
+        shell: bash
+        run: |
+          VERSION="${{ steps.ver.outputs.version }}"
+          if npm view "@otter-engg/cli@${VERSION}" version >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - if: steps.check.outputs.exists == 'false'
+        run: npm ci && npm run build
+
+      - if: steps.check.outputs.exists == 'false'
+        run: npm publish --access public --provenance
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

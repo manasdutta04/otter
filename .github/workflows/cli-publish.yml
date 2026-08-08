@@ -1,10 +1,28 @@
 name: Publish @otter-engg/cli
 
+# Direct npm deploy on GitHub push.
+# Secret: NPM_TOKEN (npm Automation token with publish access to @otter-engg)
+#
+#   1. Bump "version" in apps/cli/package.json
+#   2. Commit + push to main
+#        → this workflow publishes @otter-engg/cli@<version>
+#
+#   Optional tag (same publish path via tags workflow companion):
+#        git tag cli-v0.1.2 && git push origin cli-v0.1.2
+#
+#   Manual: Actions → Publish @otter-engg/cli → Run workflow
+
 on:
   push:
-    tags:
-      - "cli-v*"
+    branches: [main]
+    paths:
+      - "apps/cli/**"
+      - ".github/workflows/cli-publish.yml"
   workflow_dispatch:
+
+concurrency:
+  group: npm-cli-publish
+  cancel-in-progress: false
 
 jobs:
   publish:
@@ -17,14 +35,40 @@ jobs:
       id-token: write
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
           registry-url: "https://registry.npmjs.org"
           cache: npm
           cache-dependency-path: apps/cli/package-lock.json
-      - run: npm ci
-      - run: npm run build
-      - run: npm publish --access public
+
+      - name: Read version
+        id: ver
+        run: echo "version=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+
+      - name: Skip if version already on npm
+        id: check
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="${{ steps.ver.outputs.version }}"
+          if npm view "@otter-engg/cli@${VERSION}" version >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "@otter-engg/cli@${VERSION} already published — skipping."
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+            echo "Will publish @otter-engg/cli@${VERSION}"
+          fi
+
+      - name: Install & build
+        if: steps.check.outputs.exists == 'false'
+        run: |
+          npm ci
+          npm run build
+
+      - name: Publish to npm
+        if: steps.check.outputs.exists == 'false'
+        run: npm publish --access public --provenance
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
