@@ -19,6 +19,11 @@ export const CLI_INSTALL_PNPM = "pnpm add -g @otter-engg/cli";
 export const CLI_INSTALL_YARN = "yarn global add @otter-engg/cli";
 export const CLI_INSTALL_BUN = "bun add -g @otter-engg/cli";
 
+export const PYPI_PACKAGE = "otter-mcp";
+export const PYPI_URL = "https://pypi.org/project/otter-mcp/";
+export const MCP_INSTALL_PIP = "pip install otter-mcp";
+export const MCP_INSTALL_UVX = "uvx otter-mcp";
+
 /**
  * Marketing site origin (hosts /docker-compose.yml so users never need to clone).
  * Prefer NEXT_PUBLIC_SITE_URL in production; fall back to the public domain, then local.

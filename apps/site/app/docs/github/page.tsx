@@ -34,14 +34,12 @@ export default function GitHubDocsPage() {
           (same broker; session in <code>~/.otter/config.json</code>). No Docker required.
         </li>
         <li>
-          <strong>MCP</strong> — uses <code>OTTER_SESSION</code> or reads{" "}
-          <code>~/.otter/config.json</code> after CLI login. Point <code>OTTER_API_URL</code> at the
-          Docker API if you use MCP tools against the web stack. See{" "}
-          <code>apps/mcp</code> in the{" "}
-          <a href={GITHUB_REPO} target="_blank" rel="noreferrer">
-            repo
-          </a>
-          .
+          <strong>MCP</strong> — install{" "}
+          <a href="https://pypi.org/project/otter-mcp/" target="_blank" rel="noreferrer">
+            otter-mcp
+          </a>{" "}
+          from PyPI. For API memory/tasks, set <code>OTTER_SESSION</code> to the Web/Docker session
+          cookie (CLI GitHub login alone is not enough). See <a href="/docs/mcp">MCP docs</a>.
         </li>
       </ul>
 

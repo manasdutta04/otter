@@ -1,26 +1,36 @@
 import Link from "next/link";
-import { GITHUB_REPO } from "../../../lib/urls";
+import {
+  GITHUB_REPO,
+  MCP_INSTALL_PIP,
+  MCP_INSTALL_UVX,
+  PYPI_PACKAGE,
+  PYPI_URL,
+} from "../../../lib/urls";
 
 export default function McpDocsPage() {
   return (
     <>
       <h1>MCP</h1>
       <p className="lead">
-        Otter MCP is a stdio Model Context Protocol server: a repository brain for Cursor, Claude
-        Desktop, and Claude Code. Impact analysis, architecture guard, verification, and
-        approval-gated tasks — not a thin REST proxy.
+        Otter MCP is published on{" "}
+        <a href={PYPI_URL} target="_blank" rel="noreferrer">
+          PyPI
+        </a>{" "}
+        as <code>{PYPI_PACKAGE}</code>. It is a stdio Model Context Protocol server — a repository
+        brain for Cursor, Claude Desktop, and Claude Code: impact, architecture guard, verification,
+        and approval-gated tasks. No monorepo clone required.
       </p>
 
       <h2>Install</h2>
       <pre>
-        <code>{`pip install otter-mcp
-# or run ephemerally:
-uvx otter-mcp`}</code>
+        <code>{`${MCP_INSTALL_PIP}
+# or run without a permanent install:
+${MCP_INSTALL_UVX}`}</code>
       </pre>
       <p>
-        No monorepo clone required. Bind a repo with <code>OTTER_REPO_ROOT</code> (or{" "}
-        <code>OTTER_REPOSITORY_ID</code> under the API data directory). Optional persistence needs a
-        running API plus <code>OTTER_API_URL</code> and <code>OTTER_SESSION</code> (Web/Docker{" "}
+        Bind a repo with <code>OTTER_REPO_ROOT</code> (or <code>OTTER_REPOSITORY_ID</code> under the
+        API data directory). Optional persistence needs a running API plus{" "}
+        <code>OTTER_API_URL</code> and <code>OTTER_SESSION</code> (Web/Docker{" "}
         <code>otter_session</code> cookie). CLI GitHub login alone is not an API session.
       </p>
 
@@ -40,7 +50,7 @@ uvx otter-mcp`}</code>
       </pre>
       <p>
         Or use <code>&quot;command&quot;: &quot;otter-mcp&quot;</code> after{" "}
-        <code>pip install otter-mcp</code>. Logs stay on stderr — stdio is the MCP framing channel.
+        <code>{MCP_INSTALL_PIP}</code>. Logs stay on stderr — stdio is the MCP framing channel.
       </p>
 
       <h2>What you get</h2>
@@ -74,7 +84,10 @@ uvx otter-mcp`}</code>
       <h2>Source &amp; registry</h2>
       <ul>
         <li>
-          PyPI: <code>otter-mcp</code>
+          PyPI:{" "}
+          <a href={PYPI_URL} target="_blank" rel="noreferrer">
+            {PYPI_PACKAGE}
+          </a>
         </li>
         <li>
           MCP name: <code>io.github.manasdutta04/otter</code>

@@ -1,7 +1,7 @@
 import { Brand } from "../components/Brand";
 import { InstallTabs } from "../components/InstallTabs";
 import { PressSlot } from "../components/PressSlot";
-import { DOCKER_HUB, GITHUB_REPO, NPM_PACKAGE } from "../lib/urls";
+import { DOCKER_HUB, GITHUB_REPO, NPM_PACKAGE, PYPI_URL } from "../lib/urls";
 
 function GitHubMark({ className }: { className?: string }) {
   return (
@@ -33,7 +33,7 @@ export default function LandingPage() {
       <section className="landing-hero">
         <div className="landing-hero-copy">
           <a className="landing-badge" href="/docs/changelog">
-            New ✨ 0.2.0 — engineer core (Docker + CLI)
+            New ✨ MCP on PyPI — pip install otter-mcp
           </a>
           <h1 className="landing-headline">
             <span className="script">Easily</span> understand &amp; change code
@@ -293,11 +293,19 @@ export default function LandingPage() {
                 <a href="/docs/cli">CLI</a>
               </li>
               <li>
+                <a href="/docs/mcp">MCP</a>
+              </li>
+              <li>
                 <a href="/docs/contribute">Contribute</a>
               </li>
               <li>
                 <a href="https://www.npmjs.com/package/@otter-engg/cli" target="_blank" rel="noreferrer">
                   npm
+                </a>
+              </li>
+              <li>
+                <a href={PYPI_URL} target="_blank" rel="noreferrer">
+                  PyPI
                 </a>
               </li>
             </ul>
