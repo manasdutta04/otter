@@ -1,80 +1,73 @@
 # Otter MCP — Engineering Intelligence Layer
 
-Official [Model Context Protocol](https://modelcontextprotocol.io/) **stdio** server. External AI agents (Cursor, Claude Desktop, Claude Code) get a repository brain: impact, architecture guard, verification, and approval-gated tasks — without wrapping every REST route.
+<!-- mcp-name: io.github.manasdutta04/otter -->
 
-Core analysis lives in `packages/impact`, `packages/architecture`, and `packages/verify`. Persistence (memory, code-tasks) uses the Otter API when `OTTER_SESSION` is set.
+Official [Model Context Protocol](https://modelcontextprotocol.io/) **stdio** server. External AI agents (Cursor, Claude Desktop, Claude Code) get a repository brain: impact, architecture guard, verification, and approval-gated tasks.
+
+## Install (no monorepo clone)
+
+```bash
+pip install otter-mcp
+# or: uv pip install otter-mcp
+```
+
+Or run without a permanent install:
+
+```bash
+uvx otter-mcp
+```
+
+## Cursor / Claude (`mcp.json`)
+
+```json
+{
+  "mcpServers": {
+    "otter": {
+      "command": "uvx",
+      "args": ["otter-mcp"],
+      "env": {
+        "OTTER_REPO_ROOT": "${workspaceFolder}"
+      }
+    }
+  }
+}
+```
+
+If you prefer pip’s console script:
+
+```json
+{
+  "mcpServers": {
+    "otter": {
+      "command": "otter-mcp",
+      "env": {
+        "OTTER_REPO_ROOT": "${workspaceFolder}"
+      }
+    }
+  }
+}
+```
+
+### Optional API persistence
+
+```json
+{
+  "env": {
+    "OTTER_REPO_ROOT": "${workspaceFolder}",
+    "OTTER_API_URL": "http://127.0.0.1:8000",
+    "OTTER_SESSION": "your-web-otter-session-cookie",
+    "OTTER_REPOSITORY_ID": "imported-repo-id"
+  }
+}
+```
+
+**Auth note:** CLI `otter login` (GitHub) is **not** an API session. Export the Web/Docker `otter_session` cookie as `OTTER_SESSION`.
 
 ## Requirements
 
 - Python 3.11+
-- A local checkout (`OTTER_REPO_ROOT`) **and/or** an imported repo under `REPOSITORY_DATA_DIR/{repository_id}`
-- Optional: running Otter API + Web session for memory / code-tasks
-
-**Auth note:** CLI `otter login` (GitHub) is **not** an API session. For HTTP tools, export the Web/Docker `otter_session` cookie as `OTTER_SESSION`.
-
-## Install
-
-From the monorepo root:
-
-```bash
-pip install -e apps/mcp
-# or
-pip install "mcp>=1.6" httpx
-```
-
-## Run
-
-```bash
-export OTTER_REPO_ROOT=/path/to/your/repo   # local Cursor workspace
-# optional persistence:
-export OTTER_API_URL=http://127.0.0.1:8000
-export OTTER_SESSION=...                    # Web cookie / x-otter-session
-export OTTER_REPOSITORY_ID=...              # for API-backed tools/resources
-
-otter-mcp
-# or: python -m otter_mcp
-# or: python apps/mcp/server.py
-```
-
-## Cursor (`mcp.json`)
-
-```json
-{
-  "mcpServers": {
-    "otter": {
-      "command": "python",
-      "args": ["-m", "otter_mcp"],
-      "cwd": "C:/Coding Workspace/veridexs/apps/mcp",
-      "env": {
-        "PYTHONPATH": "C:/Coding Workspace/veridexs;C:/Coding Workspace/veridexs/apps/mcp",
-        "OTTER_REPO_ROOT": "C:/path/to/active/workspace",
-        "OTTER_API_URL": "http://127.0.0.1:8000",
-        "OTTER_SESSION": ""
-      }
-    }
-  }
-}
-```
-
-## Claude Desktop
-
-Add under `mcpServers` in the Claude Desktop config:
-
-```json
-{
-  "mcpServers": {
-    "otter": {
-      "command": "python",
-      "args": ["-m", "otter_mcp"],
-      "cwd": "/absolute/path/to/veridexs/apps/mcp",
-      "env": {
-        "PYTHONPATH": "/absolute/path/to/veridexs:/absolute/path/to/veridexs/apps/mcp",
-        "OTTER_REPO_ROOT": "/absolute/path/to/repo"
-      }
-    }
-  }
-}
-```
+- A local checkout via `OTTER_REPO_ROOT` **and/or** an imported repo under `REPOSITORY_DATA_DIR/{repository_id}`
+- Optional: running Otter API for memory / code-tasks
 
 ## Tools
 
@@ -96,14 +89,18 @@ Add under `mcpServers` in the Claude Desktop config:
 
 Writes never apply silently: `otter_task_execute` with `apply` returns `approval_required` until status is `approved`.
 
-## Resources
+## Resources & prompts
 
-- `otter://repo/overview`, `architecture`, `constitution`, `health`, `dependencies`
-- `otter://task/{id}`, `.../plan`, `.../diff`, `.../verification` (API session + `OTTER_REPOSITORY_ID`)
+- Resources: `otter://repo/overview`, `architecture`, `constitution`, `health`, `dependencies`, `otter://task/{id}`…
+- Prompts: `otter-investigate`, `otter-plan`, `otter-review`, `otter-debug`, `otter-security-review`, `otter-architecture-review`
 
-## Prompts
+## Developer install (from this monorepo)
 
-`otter-investigate`, `otter-plan`, `otter-review`, `otter-debug`, `otter-security-review`, `otter-architecture-review`
+```bash
+pip install -e apps/mcp
+export OTTER_REPO_ROOT=/path/to/repo
+otter-mcp
+```
 
 ## Security
 
@@ -111,11 +108,8 @@ Writes never apply silently: `otter_task_execute` with `apply` returns `approval
 - Path traversal rejected on `repository_id` and relative paths
 - Oversized tool JSON is truncated in responses
 
-## Tests
+## MCP Registry
 
-```bash
-cd apps/mcp
-PYTHONPATH=../..:. pytest tests -q
-```
+Package metadata: [`server.json`](./server.json). Registry name: `io.github.manasdutta04/otter`.
 
-See also site docs: `/docs/mcp`.
+See also: https://otter.manasdutta.com/docs/mcp

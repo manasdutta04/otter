@@ -6,13 +6,13 @@ import sys
 from pathlib import Path
 from typing import Any
 
-# Ensure monorepo root is importable when launched as a script.
-_ROOT = Path(__file__).resolve().parents[3]
-if str(_ROOT) not in sys.path:
-    sys.path.insert(0, str(_ROOT))
-_API = _ROOT / "apps" / "api"
-if _API.is_dir() and str(_API) not in sys.path:
-    sys.path.insert(0, str(_API))
+# Monorepo fallback when running from a git checkout without an installed wheel.
+try:
+    import packages  # noqa: F401
+except ImportError:
+    _ROOT = Path(__file__).resolve().parents[3]
+    if (_ROOT / "packages").is_dir() and str(_ROOT) not in sys.path:
+        sys.path.insert(0, str(_ROOT))
 
 from mcp.server.fastmcp import FastMCP
 

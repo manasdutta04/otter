@@ -11,11 +11,43 @@ export default function McpDocsPage() {
         approval-gated tasks — not a thin REST proxy.
       </p>
 
+      <h2>Install</h2>
+      <pre>
+        <code>{`pip install otter-mcp
+# or run ephemerally:
+uvx otter-mcp`}</code>
+      </pre>
+      <p>
+        No monorepo clone required. Bind a repo with <code>OTTER_REPO_ROOT</code> (or{" "}
+        <code>OTTER_REPOSITORY_ID</code> under the API data directory). Optional persistence needs a
+        running API plus <code>OTTER_API_URL</code> and <code>OTTER_SESSION</code> (Web/Docker{" "}
+        <code>otter_session</code> cookie). CLI GitHub login alone is not an API session.
+      </p>
+
+      <h2>Cursor / Claude</h2>
+      <pre>
+        <code>{`{
+  "mcpServers": {
+    "otter": {
+      "command": "uvx",
+      "args": ["otter-mcp"],
+      "env": {
+        "OTTER_REPO_ROOT": "\${workspaceFolder}"
+      }
+    }
+  }
+}`}</code>
+      </pre>
+      <p>
+        Or use <code>&quot;command&quot;: &quot;otter-mcp&quot;</code> after{" "}
+        <code>pip install otter-mcp</code>. Logs stay on stderr — stdio is the MCP framing channel.
+      </p>
+
       <h2>What you get</h2>
       <ul>
         <li>
-          Deterministic graph impact (`otter_impact`, `otter_dependency_impact`,{" "}
-          <code>otter_change_radar</code>)
+          Deterministic graph impact (<code>otter_impact</code>, <code>otter_dependency_impact</code>
+          , <code>otter_change_radar</code>)
         </li>
         <li>
           Evidence-backed constitution + <code>otter_guard</code> / <code>otter_why</code>
@@ -29,50 +61,6 @@ export default function McpDocsPage() {
         </li>
       </ul>
 
-      <h2>Install &amp; run</h2>
-      <pre>
-        <code>{`# from the Otter monorepo
-pip install -e apps/mcp
-export OTTER_REPO_ROOT=/path/to/your/checkout
-otter-mcp`}</code>
-      </pre>
-      <p>
-        Bind a repo with <code>OTTER_REPO_ROOT</code> (local workspace) and/or{" "}
-        <code>OTTER_REPOSITORY_ID</code> under the API data directory. Optional persistence needs a
-        running API plus <code>OTTER_API_URL</code> and <code>OTTER_SESSION</code> (Web/Docker{" "}
-        <code>otter_session</code> cookie). CLI GitHub login alone is not an API session.
-      </p>
-      <p>
-        Source and client configs:{" "}
-        <a href={`${GITHUB_REPO}/tree/main/apps/mcp`} target="_blank" rel="noreferrer">
-          apps/mcp
-        </a>
-        .
-      </p>
-
-      <h2>Cursor</h2>
-      <pre>
-        <code>{`{
-  "mcpServers": {
-    "otter": {
-      "command": "python",
-      "args": ["-m", "otter_mcp"],
-      "cwd": "/absolute/path/to/otter/apps/mcp",
-      "env": {
-        "PYTHONPATH": "/absolute/path/to/otter:/absolute/path/to/otter/apps/mcp",
-        "OTTER_REPO_ROOT": "/absolute/path/to/active/workspace"
-      }
-    }
-  }
-}`}</code>
-      </pre>
-
-      <h2>Claude Desktop</h2>
-      <p>
-        Same <code>mcpServers.otter</code> shape as Cursor. Logs must stay on stderr — the MCP
-        process uses stdio for framing.
-      </p>
-
       <h2>Approval &amp; security</h2>
       <ul>
         <li>
@@ -81,6 +69,22 @@ otter-mcp`}</code>
         </li>
         <li>No arbitrary shell tool; runners are allowlisted (npm scripts, pytest, ruff)</li>
         <li>Path traversal on repository ids and relative paths is rejected</li>
+      </ul>
+
+      <h2>Source &amp; registry</h2>
+      <ul>
+        <li>
+          PyPI: <code>otter-mcp</code>
+        </li>
+        <li>
+          MCP name: <code>io.github.manasdutta04/otter</code>
+        </li>
+        <li>
+          Source:{" "}
+          <a href={`${GITHUB_REPO}/tree/main/apps/mcp`} target="_blank" rel="noreferrer">
+            apps/mcp
+          </a>
+        </li>
       </ul>
 
       <h2>Related</h2>

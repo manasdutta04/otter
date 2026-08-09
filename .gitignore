@@ -14,3 +14,5 @@ coverage/
 data/
 .tmp-openui/
 otter-openui-ref/
+apps/mcp/packages/
+.tmp-mcp-venv/

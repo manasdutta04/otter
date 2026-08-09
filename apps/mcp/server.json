@@ -1,0 +1,48 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.manasdutta04/otter",
+  "title": "Otter",
+  "description": "Repository brain: impact, architecture guard, verify, and approval-gated tasks for AI coding agents.",
+  "repository": {
+    "url": "https://github.com/manasdutta04/otter",
+    "source": "github"
+  },
+  "version": "0.2.0",
+  "packages": [
+    {
+      "registryType": "pypi",
+      "identifier": "otter-mcp",
+      "version": "0.2.0",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "OTTER_REPO_ROOT",
+          "description": "Absolute path to the repository checkout Otter should analyze",
+          "isRequired": false,
+          "format": "string"
+        },
+        {
+          "name": "OTTER_API_URL",
+          "description": "Otter API base URL for memory and code-tasks (default http://127.0.0.1:8000)",
+          "isRequired": false,
+          "format": "string"
+        },
+        {
+          "name": "OTTER_SESSION",
+          "description": "Web/Docker otter_session cookie for API persistence (not CLI GitHub login)",
+          "isRequired": false,
+          "format": "string",
+          "isSecret": true
+        },
+        {
+          "name": "OTTER_REPOSITORY_ID",
+          "description": "Imported repository id under REPOSITORY_DATA_DIR when not using OTTER_REPO_ROOT alone",
+          "isRequired": false,
+          "format": "string"
+        }
+      ]
+    }
+  ]
+}
