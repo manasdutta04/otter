@@ -35,6 +35,9 @@ export default function DocsIndexPage() {
           <Link href="/docs/cli">CLI</Link> — <code>@otter-engg/cli</code>, slash commands
         </li>
         <li>
+          <Link href="/docs/mcp">MCP</Link> — Cursor / Claude repository brain (stdio)
+        </li>
+        <li>
           <Link href="/docs/changelog">Changelog</Link> — Docker image + npm CLI releases
         </li>
         <li>

@@ -2,11 +2,15 @@ node_modules/
 .next/
 __pycache__/
 *.py[cod]
+*.egg-info/
+.eggs/
 .venv/
 .env
 .env.local
 dist/
+build/
 coverage/
+.pytest_cache/
 data/
 .tmp-openui/
 otter-openui-ref/

@@ -118,91 +118,20 @@ def _package_has_test_script(package_json: Path) -> bool:
 
 
 def run_repository_tests(root: Path) -> TestResponse:
-    package_json = root / "package.json"
-    if package_json.exists():
-        npm = shutil.which("npm")
-        if not npm:
-            return TestResponse(
-                passed=False,
-                output=(
-                    "This repository looks like a Node project, but `npm` is not available inside the Otter API container. "
-                    "Rebuild the API image (Node 20 is required) or run tests locally / via CI."
-                ),
-            )
-        install_log = ""
-        try:
-            # Prefer reproducible install when a lockfile exists.
-            lockfile = root / "package-lock.json"
-            install_cmd = [npm, "ci"] if lockfile.exists() else [npm, "install", "--no-audit", "--no-fund"]
-            install = subprocess.run(
-                install_cmd,
-                cwd=root,
-                capture_output=True,
-                text=True,
-                timeout=240,
-            )
-            install_log = (install.stdout + "\n" + install.stderr)[-6000:]
-            if install.returncode != 0:
-                # Fall back to npm install if ci fails (common on partial clones).
-                if install_cmd[1] == "ci":
-                    install = subprocess.run(
-                        [npm, "install", "--no-audit", "--no-fund"],
-                        cwd=root,
-                        capture_output=True,
-                        text=True,
-                        timeout=240,
-                    )
-                    install_log = (install.stdout + "\n" + install.stderr)[-6000:]
-                if install.returncode != 0:
-                    return TestResponse(
-                        passed=False,
-                        output=f"npm install failed:\n{install_log}",
-                    )
-            if not _package_has_test_script(package_json):
-                return TestResponse(
-                    passed=False,
-                    output=(
-                        "Dependencies installed, but package.json has no `test` script. "
-                        "Add a test script or rely on CI for verification.\n"
-                        f"{install_log[-2000:]}"
-                    ),
-                )
-            result = subprocess.run(
-                [npm, "test", "--", "--watchAll=false"],
-                cwd=root,
-                capture_output=True,
-                text=True,
-                timeout=180,
-                env={**os.environ, "CI": "true"},
-            )
-            output = (result.stdout + "\n" + result.stderr)[-12000:]
-            return TestResponse(passed=result.returncode == 0, output=output or "npm test finished with no output")
-        except (OSError, subprocess.TimeoutExpired) as error:
-            return TestResponse(passed=False, output=f"npm test could not run: {error}\n{install_log}")
-    try:
-        probe = subprocess.run(
-            ["python", "-m", "pytest", "--version"],
-            cwd=root,
-            capture_output=True,
-            text=True,
-            timeout=20,
+    from packages.verify import run_repository_tests as shared_run_repository_tests
+
+    result = shared_run_repository_tests(root)
+    output = str(result.get("output") or "")
+    if (
+        not result.get("passed")
+        and "npm is not available" in output
+        and "Node project" in output
+    ):
+        output = (
+            "This repository looks like a Node project, but `npm` is not available inside the Otter API container. "
+            "Rebuild the API image (Node 20 is required) or run tests locally / via CI."
         )
-        if probe.returncode != 0:
-            return TestResponse(
-                passed=False,
-                output="No test runner detected (no package.json test script / pytest unavailable). Use local tests or CI.",
-            )
-        result = subprocess.run(
-            ["python", "-m", "pytest", "-q"],
-            cwd=root,
-            capture_output=True,
-            text=True,
-            timeout=120,
-        )
-        output = (result.stdout + "\n" + result.stderr)[-12000:]
-        return TestResponse(passed=result.returncode == 0, output=output)
-    except (OSError, subprocess.TimeoutExpired) as error:
-        return TestResponse(passed=False, output=str(error))
+    return TestResponse(passed=bool(result.get("passed")), output=output)
 
 @app.get("/health", response_model=HealthResponse)
 async def health() -> HealthResponse:

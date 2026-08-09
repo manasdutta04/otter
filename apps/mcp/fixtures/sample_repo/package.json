@@ -1,0 +1,9 @@
+# Sample layered app for MCP / impact / guard tests
+name: sample-app
+private: true
+dependencies:
+  express: "^4.19.0"
+  drizzle-orm: "^0.33.0"
+scripts:
+  test: "node -e \"console.log('ok')\""
+  lint: "node -e \"console.log('lint ok')\""
