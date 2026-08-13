@@ -22,7 +22,7 @@ representative evaluation of general model capability.
 - Repository count: 4
 - Task count: 20 (easy 5, medium 10, hard 5)
 - Locate / implement: 9 / 11
-- Otter commit SHA: cbde1a4dec2295f43ddda7d198a54dca365480fb (dirty working tree)
+- Otter commit SHA: 6476802
 - Python: 3.13.4
 - Node: v25.1.0
 
