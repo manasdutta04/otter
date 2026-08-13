@@ -1,8 +1,8 @@
-# Otter Benchmark v0.6 - Qwen2.5-Coder 7B
+# Otter Benchmark v0.5 - Qwen2.5-Coder 7B
 
 ## Executive Summary
 
-Qwen2.5-Coder 7B end-to-end implement success on this 20-task suite is 36.4%. The most common failure category was test failure (6 occurrences). Plan Grounding Score is deterministic string/path overlap, not human-judged planning accuracy.
+Qwen2.5-Coder 7B end-to-end implement success on this 20-task suite is 18.2%. The most common failure category was quality_gate (5 occurrences). Plan Grounding Score is deterministic string/path overlap, not human-judged planning accuracy.
 
 This is an engineering baseline on a fixed 20-task suite. It is not a statistically
 representative evaluation of general model capability.
@@ -17,33 +17,33 @@ representative evaluation of general model capability.
 - Model: qwen2.5-coder:7b
 - status: available
 - ping_ok: True
-- ping_latency_s: 1.413720900000044
+- ping_latency_s: 7.399309000000358
 - Repositories: bottle, click, sample-app, starlette
 - Repository count: 4
 - Task count: 20 (easy 5, medium 10, hard 5)
 - Locate / implement: 9 / 11
-- Otter commit SHA: ad0307c720d6f56ab3ae68b9cdf4566adde162d0 (dirty working tree)
+- Otter commit SHA: 8dfe384156c4b58d4b8adb33f32c1787303b6ac7 (dirty working tree)
 - Python: 3.13.4
 - Node: v25.1.0
 
-## v0.4 / v0.5 / v0.6 Results
+## v0.3 / v0.4 / v0.5 Results
 
-| Metric | v0.4 | v0.5 | v0.6 | v0.5 -> v0.6 |
+| Metric | v0.3 | v0.4 | v0.5 | v0.4 -> v0.5 |
 | --- | --- | --- | --- | --- |
 | Recall@5 | 93.2% | 93.2% | 93.2% | +0.0 pp |
 | Precision@5 | 43.0% | 43.0% | 43.0% | +0.0 pp |
 | Precision@|gold| | 71.5% | 71.5% | 71.5% | +0.0 pp |
 | Plan Grounding | 71.0% | 71.0% | 71.0% | +0.0 pp |
-| Patch Success | 18.2% | 27.3% | 90.9% | +63.6 pp |
-| End-to-End Success | 18.2% | 18.2% | 36.4% | +18.2 pp |
-| Mean Latency | 72.187s | 81.624s | 42.402s | -39.222s |
-| Median Latency | 14.564s | 17.389s | 37.622s | +20.233s |
-| P95 Latency | 242.539s | 273.421s | 100.815s | -172.606s |
-| Structured-output failures | 1 | 3 | 0 | -3 |
-| Test failures | 0 | 0 | 6 | 6 |
-| Wrong-file failures | 0 | 0 | 0 | 0 |
+| Patch Success | 63.6% | 18.2% | 27.3% | +9.1 pp |
+| End-to-End Success | 9.1% | 18.2% | 18.2% | +0.0 pp |
+| Mean Latency | 44.319s | 72.187s | 81.624s | +9.437s |
+| Median Latency | 15.597s | 14.564s | 17.389s | +2.825s |
+| P95 Latency | 206.399s | 242.539s | 273.421s | +30.882s |
+| Structured-output failures | 4 | 1 | 3 | 2 |
+| Test failures | 2 | 0 | 0 | 0 |
+| Wrong-file failures | 2 | 0 | 0 | 0 |
 
-Deltas are v0.5 -> v0.6. Rates use percentage points, not relative percent change.
+Deltas are v0.4 -> v0.5. Rates use percentage points, not relative percent change.
 Targets in the spec are goals, not claims. If E2E stays low, that is the result.
 
 ## Retrieval
@@ -74,17 +74,16 @@ not human-judged planning accuracy.
 
 | Metric | Qwen 7B |
 | --- | --- |
-| Patch generated (structurally valid) | 90.9% |
-| Patch applied | 90.9% |
-| Raw structured-output success | 63.6% |
-| Recovered structured-output rate | 27.3% |
-| Structured-output recovery failure | 0.0% |
-| Tests ran (pass or fail) | 7 |
-| Tests passed | 1 |
+| Patch generated (structurally valid) | 27.3% |
+| Patch applied | 27.3% |
+| Raw structured-output success | 27.3% |
+| Recovered structured-output rate | 0.0% |
+| Tests ran (pass or fail) | 1 |
+| Tests passed | 0 |
 | Tests not verifiable | 0 |
-| Test pass rate (of ran) | 14.3% |
+| Test pass rate (of ran) | 0.0% |
 | Unexpected modification rate | 0.0% |
-| Expected file accuracy | 77.7% |
+| Expected file accuracy | 77.8% |
 
 ## End-to-End Success
 
@@ -94,56 +93,57 @@ modified, and tests are `pass` or `skipped`. `not_verifiable` does not count as 
 
 | Metric | Qwen 7B |
 | --- | --- |
-| Task success rate (implement) | 36.4% |
+| Task success rate (implement) | 18.2% |
 
 ## Performance
 
 | Metric | Qwen 7B |
 | --- | --- |
-| Mean latency | 42.402s |
-| Median latency | 37.622s |
-| P95 latency | 100.815s |
-| Mean generate latency | 74.224s |
-| Mean first-attempt latency | 69.476s |
-| Mean retry latency | 51.974s |
-| Mean retrieval latency | 0.194s |
-| Mean planning latency | 0.537s |
+| Mean latency | 81.624s |
+| Median latency | 17.389s |
+| P95 latency | 273.421s |
+| Mean generate latency | 146.778s |
+| Mean first-attempt latency | 40.075s |
+| Mean retry latency | N/A |
+| Mean retrieval latency | 0.142s |
+| Mean planning latency | 0.339s |
 
 Token measurement: unavailable.
 
 ## Failure Analysis
 
-| Failure Category | v0.4 | v0.5 | v0.6 | v0.5 -> v0.6 |
+| Failure Category | v0.3 | v0.4 | v0.5 | v0.4 -> v0.5 |
 | --- | --- | --- | --- | --- |
-| Test failure | 0 | 0 | 6 | 6 |
-| Wrong file | 0 | 0 | 0 | 0 |
-| JSON malformed | 1 | 3 | 0 | -3 |
-| Wrong schema | 0 | 0 | 0 | 0 |
-| Syntax failure | 0 | 1 | 0 | -1 |
-| Not verifiable | 0 | 0 | 0 | 0 |
-| Quality gate | 8 | 5 | 1 | -4 |
-| Malformed model output | 0 | 0 | 0 | 0 |
+| Test failure | 2 | 0 | 0 | 0 |
+| Wrong file | 2 | 0 | 0 | 0 |
+| JSON malformed | 0 | 1 | 3 | 2 |
+| Wrong schema | 3 | 0 | 0 | 0 |
+| Syntax failure | 1 | 0 | 1 | 1 |
+| Not verifiable | 1 | 0 | 0 | 0 |
+| Quality gate | 0 | 8 | 5 | -3 |
+| Malformed model output | 1 | 0 | 0 | 0 |
 | Other | 0 | 0 | 0 | N/A |
 
-See `qwen-v0.6-failures.json` (7 rows).
+See `qwen-v0.5-failures.json` (9 rows).
 
 ## Quality-gate breakdown
 
 | QUALITY_GATE category | Count |
 | --- | --- |
+| destructive_rewrite | 2 |
+| edit_target_not_found | 2 |
 | incomplete_auth | 1 |
 
 ## Root Cause Analysis
 
-v0.5 still lost valid edits when a stub files[] rewrite tripped destructive_rewrite,
-failed JSON on Python triple-quotes, and required exact old_string including quotes.
-v0.6 salvages edits[], keeps good edits when files[] is destructive, scopes edits
-by symbol / quote-safe unique literals, compact-repairs JSON without resending the repo,
-and syntax-checks new Python files before apply.
+v0.4 quality-gate failures were mostly non-unique or missing edit snippets,
+because edits were applied against truncated excerpts and short old_strings.
+v0.5 applies edits to full files, allows empty old_string as append, uses
+symbol-dense excerpts, compact retries, and structured QUALITY_GATE errors.
 
 ## Regression Testing
 
-79 Otter unit tests passed (v0.5 had 57), including v0.6 JSON/anchor/syntax/auth regressions.
+Existing Otter unit tests plus v0.5 generation/edit/harness regressions (57 passed).
 
 ## Limitations
 
@@ -158,4 +158,4 @@ and syntax-checks new Python files before apply.
 
 ## Conclusion
 
-Qwen2.5-Coder 7B end-to-end implement success on this 20-task suite is 36.4%. The most common failure category was test failure (6 occurrences). Plan Grounding Score is deterministic string/path overlap, not human-judged planning accuracy.
+Qwen2.5-Coder 7B end-to-end implement success on this 20-task suite is 18.2%. The most common failure category was quality_gate (5 occurrences). Plan Grounding Score is deterministic string/path overlap, not human-judged planning accuracy.

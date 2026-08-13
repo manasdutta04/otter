@@ -21,7 +21,7 @@
       "test/test_formsdict.py"
     ],
     "hit_count": 24,
-    "latency_s": 0.14834010000049602,
+    "latency_s": 0.14989219999915804,
     "metrics": {
       "recall@3": 1.0,
       "recall@5": 1.0,
@@ -73,20 +73,23 @@
       "score_pct": 0.4,
       "success": false
     },
-    "latency_s": 0.38645199999882607,
+    "latency_s": 0.3857939000008628,
     "error": null
   },
   "patch": {
-    "ok": false,
-    "generation_succeeded": false,
-    "applied": false,
+    "ok": true,
+    "generation_succeeded": true,
+    "applied": true,
     "e2e_success": false,
     "todo_only": false,
-    "summary": "",
-    "model_reported": null,
-    "modified_files": [],
-    "expected_files_hit": false,
-    "expected_file_accuracy": 0.0,
+    "summary": "Add TimingPlugin to bottle.py and tests in test/test_plugins.py",
+    "model_reported": "qwen2.5-coder:7b",
+    "modified_files": [
+      "test/test_plugins.py",
+      "bottle.py"
+    ],
+    "expected_files_hit": true,
+    "expected_file_accuracy": 1.0,
     "unexpected_files": [],
     "context_files": [
       "bottle.py",
@@ -97,38 +100,38 @@
     "token_measurement": "unavailable",
     "usage": null,
     "syntax": {
-      "ok": false,
-      "checked": [],
-      "errors": [
-        "not applied"
-      ]
+      "ok": true,
+      "checked": [
+        "test/test_plugins.py",
+        "bottle.py"
+      ],
+      "errors": []
     },
     "expect_in_files": {
-      "ok": false,
-      "missing": [
-        "not applied"
-      ]
+      "ok": true,
+      "missing": []
     },
     "tests": {
-      "status": "skipped",
-      "passed": null,
-      "output": "not applied",
-      "command": null
+      "status": "fail",
+      "passed": false,
+      "output": "....................F                                                    [100%]\n================================== FAILURES ===================================\nC:\\Coding Workspace\\otter\\benchmarks\\workspaces\\qwen2.5-coder-7b\\task-020\\test\\test_plugins.py:225: NameError: name 'Bottle' is not defined\n=========================== short test summary info ===========================\nFAILED test/test_plugins.py::TimingPluginTest::test_timing_plugin - NameError...\n1 failed, 20 passed in 0.19s\n\n",
+      "command": "C:\\Coding Workspace\\otter\\benchmarks\\.venv\\Scripts\\python.exe -m pytest -q --tb=line -p no:cacheprovider -o addopts= -o filterwarnings= test/test_plugins.py"
     },
-    "copy_latency_s": 0.3864744000020437,
-    "context_latency_s": 0.3507888999993156,
-    "generate_latency_s": 174.39280199999848,
-    "apply_latency_s": 0.0,
-    "test_latency_s": 0.0,
-    "error": "Patch generation failed across local models (qwen2.5-coder:7b\u2026): qwen2.5-coder:7b: No JSON object found in model response",
-    "failure_category": "json_malformed",
-    "status_machine": "ready_for_approval",
-    "structured_recovery": false,
-    "raw_structured_ok": null,
-    "raw_completion_preview": "```json\n{\n  \"summary\": \"Add a Bottle plugin class TimingPlugin that records elapsed seconds for each request on the response header X-Process-Time.\",\n  \"edits\": [\n    {\n      \"path\": \"bottle.py\",\n      \"old_string\": \"\",\n      \"new_string\": \"\"\"\nclass TimingPlugin(object):\n    name = 'timing'\n\n    def apply(self, callback, route):\n        @functools.wraps(callback)\n        def wrapper(*args, **kwargs):\n            start_time = time.time()\n            result = callback(*args, **kwargs)\n            elapsed_time = time.time() - start_time\n            response = webob.Response(result)\n            response.headers['X-Process-Time'] = str(elapsed_time)\n            return response\n        return wrapper\n\"\"\"\n    }\n  ],\n  \"files\": [\n    {\n      \"path\": \"test/test_plugins.py\",\n      \"content\": \"\"\"\nimp\n\u2026\nl(TimingPlugin())\n        self.app.uninstall(plugin)\n        self.assertTrue(plugin not in self.app.plugins)\n        self.assertTrue(plugin2 in self.app.plugins)\n\n    def test_uninstall_by_type(self):\n        plugin = self.app.install(TimingPlugin())\n        plugin2 = self.app.install(TimingPlugin())\n        self.app.uninstall(TimingPlugin)\n        self.assertTrue(plugin not in self.app.plugins)\n        self.assertTrue(plugin2 not in self.app.plugins)\n\n    def test_uninstall_by_name(self):\n        plugin = self.app.install(TimingPlugin())\n        plugin2 = self.app.install(TimingPlugin())\n        plugin.name = 'myplugin'\n        self.app.uninstall('myplugin')\n        self.assertTrue(plugin not in self.app.plugins)\n        self.assertTrue(plugin2 not in self.app.plugins)\n\"\"\"\n    }\n  ]\n}\n```",
-    "first_attempt_latency_s": null,
+    "copy_latency_s": 0.4260059000007459,
+    "context_latency_s": 0.3387406999972882,
+    "generate_latency_s": 31.164561099998537,
+    "apply_latency_s": 0.0032332000009773765,
+    "test_latency_s": 0.682564700000512,
+    "error": null,
+    "failure_category": "test failure",
+    "status_machine": "approved",
+    "structured_recovery": true,
+    "raw_structured_ok": false,
+    "recovery_failed": false,
+    "raw_completion_preview": null,
+    "first_attempt_latency_s": 31.110045599998557,
     "retry_latency_s": null,
     "quality_gate": null
   },
-  "latency_s": 175.66672530000142
+  "latency_s": 33.233180600000196
 }

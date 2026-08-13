@@ -92,10 +92,21 @@ class PatchGenerationError(Exception):
         message: str,
         raw_completion: str | None = None,
         quality_gate: dict[str, object] | None = None,
+        *,
+        first_attempt_latency: float | None = None,
+        retry_latency: float | None = None,
+        raw_structured_ok: bool = False,
+        structured_recovery: bool = False,
+        recovery_failed: bool = False,
     ):
         super().__init__(message)
         self.raw_completion = raw_completion
         self.quality_gate = quality_gate
+        self.first_attempt_latency = first_attempt_latency
+        self.retry_latency = retry_latency
+        self.raw_structured_ok = raw_structured_ok
+        self.structured_recovery = structured_recovery
+        self.recovery_failed = recovery_failed
 
 
 def is_health_request(request: str) -> bool:
@@ -402,12 +413,7 @@ def validate_patch_quality(
             re.search(r"""(?:app|router)\.(post|put)\(['"][^'"]*(login|register|signup|signin|auth)""", joined_l)
             or re.search(r"""['"]/(api/)?(login|register|signup|signin|auth)""", joined_l)
         )
-        users_table = bool(
-            re.search(r"""pgTable\(\s*['"]users['"]""", joined)
-            or re.search(r"""(?:export\s+)?const\s+users\s*=""", joined)
-            or re.search(r"""class\s+User\b""", joined)
-            or re.search(r"""__tablename__\s*=\s*['"]users['"]""", joined)
-        )
+        users_table = _has_users_model(joined, originals)
         if not auth_route:
             problems.append("auth change is missing login/register routes")
         if not users_table:
@@ -447,18 +453,65 @@ def validate_patch_quality(
         raise QualityGateError(category, "; ".join(unique[:6]))
 
 
-def _salvage_truncated_json(text: str) -> dict | None:
-    """Recover whole `files[]` entries from a response cut off mid-generation.
+_USER_DOMAIN_MARKERS = (
+    "userrepository",
+    "userservice",
+    "insertuser",
+    "createuser",
+    "interface user",
+    "type user ",
+    "type user=",
+    "class user",
+)
 
-    Groq returns the partial completion in `failed_generation`; everything before the
-    truncation point is still a usable patch, so keep the complete entries.
-    """
-    decoder = json.JSONDecoder()
-    summary_match = re.search(r'"summary"\s*:\s*"((?:[^"\\]|\\.)*)"', text)
-    files_start = text.find("[", text.find('"files"')) if '"files"' in text else -1
+
+def _has_users_model(joined: str, originals: dict[str, str]) -> bool:
+    if re.search(r"""pgTable\(\s*['"]users['"]""", joined):
+        return True
+    if re.search(r"""(?:export\s+)?const\s+users\s*=""", joined):
+        return True
+    if re.search(r"""class\s+User\b""", joined):
+        return True
+    if re.search(r"""__tablename__\s*=\s*['"]users['"]""", joined):
+        return True
+    orig = "\n".join(originals.values()).lower()
+    if any(marker in orig for marker in _USER_DOMAIN_MARKERS) and (
+        "passwordhash" in joined.lower() or "password_hash" in joined.lower()
+    ):
+        return True
+    return False
+
+
+def _repair_triple_quoted_json(text: str) -> str:
+    """Turn Python-style triple-quoted JSON values into valid JSON strings."""
+
+    def repl(match: re.Match[str]) -> str:
+        return f'"{match.group("key")}": {json.dumps(match.group("body"))}'
+
+    return re.sub(
+        r'"(?P<key>old_string|new_string|content|summary)"\s*:\s*"""(?P<body>[\s\S]*?)"""',
+        repl,
+        text,
+    )
+
+
+def _repair_json_text(text: str) -> str:
+    repaired = _repair_triple_quoted_json(text)
+    if repaired != text:
+        return repaired
+    return text
+
+
+def _salvage_array_objects(text: str, key: str) -> list[dict]:
+    token = f'"{key}"'
+    key_at = text.find(token)
+    if key_at == -1:
+        return []
+    files_start = text.find("[", key_at)
     if files_start == -1:
-        return None
-    entries: list[dict[str, str]] = []
+        return []
+    decoder = json.JSONDecoder()
+    entries: list[dict] = []
     index = files_start + 1
     while index < len(text):
         brace = text.find("{", index)
@@ -468,13 +521,58 @@ def _salvage_truncated_json(text: str) -> dict | None:
             entry, offset = decoder.raw_decode(text, brace)
         except ValueError:
             break
-        if isinstance(entry, dict) and entry.get("path") and entry.get("content") is not None:
+        if isinstance(entry, dict):
             entries.append(entry)
         index = offset
-    if not entries:
+    return entries
+
+
+def _salvage_truncated_json(text: str) -> dict | None:
+    """Recover whole `files[]` entries from a response cut off mid-generation.
+
+    Groq returns the partial completion in `failed_generation`; everything before the
+    truncation point is still a usable patch, so keep the complete entries.
+    """
+    decoder = json.JSONDecoder()
+    summary_match = re.search(r'"summary"\s*:\s*"((?:[^"\\]|\\.)*)"', text)
+    files_start = text.find("[", text.find('"files"')) if '"files"' in text else -1
+    entries: list[dict[str, str]] = []
+    if files_start != -1:
+        index = files_start + 1
+        while index < len(text):
+            brace = text.find("{", index)
+            if brace == -1:
+                break
+            try:
+                entry, offset = decoder.raw_decode(text, brace)
+            except ValueError:
+                break
+            if isinstance(entry, dict) and entry.get("path") and entry.get("content") is not None:
+                entries.append(entry)
+            index = offset
+    edits = _salvage_array_objects(text, "edits") or _salvage_array_objects(text, "changes")
+    if not entries and not edits:
         return None
     summary = summary_match.group(1) if summary_match else "Recovered partial patch"
-    return {"summary": json.loads(f'"{summary}"'), "files": entries, "truncated": True}
+    recovered: dict[str, object] = {
+        "summary": json.loads(f'"{summary}"'),
+        "_local_repair": True,
+    }
+    if edits:
+        recovered["edits"] = edits
+    if entries and not edits:
+        recovered["files"] = entries
+        recovered["truncated"] = True
+    elif entries and edits:
+        # Keep only complete files[] entries when edits already carry the change.
+        complete = [
+            item
+            for item in entries
+            if isinstance(item, dict) and item.get("path") and item.get("content") is not None
+        ]
+        if complete:
+            recovered["files"] = complete
+    return recovered
 
 
 def _strip_code_fences(text: str) -> str:
@@ -488,8 +586,7 @@ def _strip_code_fences(text: str) -> str:
     return raw.strip()
 
 
-def _extract_json_object(content: str) -> dict:
-    text = _strip_code_fences(content or "")
+def _try_load_json_dict(text: str) -> dict | None:
     try:
         data = json.loads(text)
         if isinstance(data, dict):
@@ -513,6 +610,28 @@ def _extract_json_object(content: str) -> dict:
                 return data
         except json.JSONDecodeError:
             pass
+    return None
+
+
+def _extract_json_object(content: str) -> dict:
+    text = _strip_code_fences(content or "")
+    data = _try_load_json_dict(text)
+    if data is not None:
+        return data
+    repaired = _repair_json_text(text)
+    if repaired != text:
+        data = _try_load_json_dict(repaired)
+        if data is not None:
+            data["_local_repair"] = True
+            return data
+        text = repaired
+    stripped_commas = re.sub(r",\s*([}\]])", r"\1", text)
+    if stripped_commas != text:
+        data = _try_load_json_dict(stripped_commas)
+        if data is not None:
+            data["_local_repair"] = True
+            return data
+        text = stripped_commas
     salvaged = _salvage_truncated_json(text)
     if salvaged is not None:
         return salvaged
@@ -616,10 +735,16 @@ def _normalize_patch(
 ) -> dict[str, object]:
     originals = originals or {}
     summary = strip_llm_summary_prefix(str(result.get("summary") or "").strip())
-    if result.get("truncated"):
+    local_repair = bool(result.pop("_local_repair", False))
+    if result.get("truncated") and not result.get("edits") and not result.get("changes"):
         from packages.agent.patch import QualityGateError
 
         raise QualityGateError("truncated_patch", "Truncated patch JSON; refusing partial full-file salvage. Use edits.")
+    if result.get("truncated") and (result.get("edits") or result.get("changes")):
+        result = dict(result)
+        result["files"] = []
+        result["truncated"] = False
+        local_repair = True
     if not summary:
         raise ValueError("Invalid patch shape: missing summary")
 
@@ -658,6 +783,7 @@ def _normalize_patch(
         "files": normalized_files,
         "source": "llm",
         "truncated": False,
+        "_local_repair": local_repair,
     }
 
 
@@ -673,20 +799,48 @@ def _is_retryable_validation_error(error: BaseException | str) -> bool:
 
 
 def _retry_user_message(error: str, excerpts: dict[str, str] | None = None) -> str:
-    blocks: list[str] = []
-    for path, body in list((excerpts or {}).items())[:4]:
-        blocks.append(f"FILE: {path}\n{body[:1600]}")
-    excerpt_block = ("\n\n".join(blocks) + "\n\n") if blocks else ""
+    """Compact structural repair. Never resend repository context."""
+    del excerpts
+    return _json_repair_user_message(error, "")
+
+
+def _json_repair_user_message(error: str, raw: str) -> str:
+    preview = (raw or "")[:2000]
     return (
-        f"QUALITY/SCHEMA ERROR:\n{error}\n\n"
-        "Return ONLY corrected JSON. No markdown.\n"
-        "Use edits with a verbatim unique old_string (4+ lines) copied from FILE below, "
-        "or old_string \"\" to append at end of that file. "
-        "files[] only for paths that do not exist yet. No package.json.\n\n"
-        f"{excerpt_block}"
-        '{"summary":"...","edits":[{"path":"...","old_string":"...","new_string":"..."}],'
-        '"files":[{"path":"...","content":"..."}]}'
+        f"STRUCTURAL JSON ERROR:\n{error}\n\n"
+        "Fix formatting only. Do not change the intended code.\n"
+        "Return ONLY JSON. No markdown. No code fences. No repository files.\n"
+        '{"summary":"...","edits":[{"path":"...","symbol":"...","old_string":"...","new_string":"..."}]}\n'
+        + (f"Previous response to repair:\n{preview}\n" if preview else "")
     )
+
+
+def _syntax_repair_user_message(error: str, broken_files: list[dict[str, str]]) -> str:
+    blocks = []
+    for item in broken_files[:3]:
+        body = str(item.get("content") or "")[:2500]
+        blocks.append(f"BROKEN FILE: {item.get('path')}\n{body}")
+    return (
+        f"PYTHON SYNTAX ERROR:\n{error}\n\n"
+        "Fix only the syntax in the broken generated file(s). Do not rewrite unrelated code.\n"
+        "Return ONLY JSON. No markdown.\n"
+        '{"summary":"...","files":[{"path":"...","content":"..."}]}\n\n'
+        + "\n\n".join(blocks)
+    )
+
+
+_GATE_NO_RETRY = {
+    "destructive_rewrite",
+    "incomplete_auth",
+    "unexpected_dependency",
+    "edit_target_not_found",
+    "edit_target_not_unique",
+    "ambiguous_anchor",
+    "invented_architecture",
+    "low_quality",
+    "missing_files_edits",
+    "truncated_patch",
+}
 
 
 def _format_llm_error(model_id: str, error: object, *, timeout_s: float | None = None) -> str:
@@ -1053,19 +1207,23 @@ async def generate_patch(
     auth_rules = ""
     if _is_auth_request(request):
         auth_rules = (
-            "Auth constraints: add a users model/table, hash passwords, real login/register routes. "
+            "Auth: keep the existing user repository/model; add passwordHash; hash with node:crypto "
+            "or a declared dependencies{} package; add real login/register routes. "
             "No plaintext, no TODOs, no invented ORM APIs.\n"
         )
     prompt = (
-        "SYSTEM TASK: modify an existing repository with the smallest correct change.\n"
-        "Return ONLY JSON (no markdown, no prose):\n"
-        '{"summary":"...","edits":[{"path":"...","old_string":"...","new_string":"..."}],'
+        "SYSTEM TASK: smallest correct change to an existing repository.\n"
+        "Return ONLY JSON. No markdown. No fences. No prose.\n"
+        '{"summary":"...","edits":[{"path":"...","symbol":"...","old_string":"...","new_string":"..."}],'
         '"files":[{"path":"...","content":"..."}],"dependencies":{}}\n'
         "Rules:\n"
-        "- edits for existing files. old_string must be copied VERBATIM from a FILE block and be unique "
-        "(use 4+ lines). old_string \"\" appends new_string at end of that file.\n"
-        "- files[] only for brand-new paths that are not in TARGET FILES.\n"
-        "- Modify only TARGET FILES. Preserve unrelated code. No package.json. No TODOs. No invented APIs.\n"
+        "- Existing files: edits only. symbol = unique function/class/const name.\n"
+        "- old_string = shortest unique snippet inside that symbol; copy quotes exactly.\n"
+        "- old_string \"\" appends at end of file (or after symbol when symbol is set).\n"
+        "- files[] ONLY for brand-new paths not in TARGET FILES. Never rewrite an existing file.\n"
+        "- Never paste a whole existing test module. Add tests with edits.\n"
+        "- Preserve unrelated code and functions. No TODOs. No package.json bodies.\n"
+        "- New npm imports: put the package in dependencies{}. Prefer node:crypto for hashing.\n"
         f"{auth_rules}"
         f"TASK:\n{request}\n"
         f"TARGET FILES: {json.dumps(target_paths)}\n"
@@ -1087,7 +1245,7 @@ async def generate_patch(
     last_error = "unknown LLM error"
     last_raw = ""
     local = _is_ollama_base(base)
-    timeout = 300.0 if local else 120.0
+    timeout = 180.0 if local else 120.0
     request_base = _resolve_base_url(base)
     first_attempt_latency: float | None = None
     retry_latency: float | None = None
@@ -1118,9 +1276,9 @@ async def generate_patch(
                     "role": "system",
                     "content": (
                         "You are a senior software engineer modifying an existing repository. "
-                        "Return only JSON with summary plus edits and/or files. "
-                        "Prefer targeted edits. Never rewrite a library file as a stub. "
-                        "No markdown fences. No package.json. No TODOs."
+                        "Return only compact JSON: summary plus edits (and files[] only for new paths). "
+                        "Use symbol + short unique old_string. Preserve existing code. "
+                        "Never rewrite a whole file. No markdown. No package.json. No TODOs."
                     ),
                 },
                 {"role": "user", "content": prompt},
@@ -1155,9 +1313,14 @@ async def generate_patch(
                 last_raw = content
 
             recovered = False
+            recovery_failed = False
             try:
                 patch = _parse_and_normalize(content)
             except ValueError as error:
+                from packages.agent.patch import QualityGateError
+
+                if isinstance(error, QualityGateError) and error.category in _GATE_NO_RETRY:
+                    raise
                 if not _is_retryable_validation_error(error):
                     raise
                 recovered = True
@@ -1168,31 +1331,42 @@ async def generate_patch(
                         "num_ctx": OLLAMA_NUM_CTX,
                         "num_predict": min(MAX_COMPLETION_TOKENS, 1024),
                     }
+                if isinstance(error, QualityGateError) and error.category == "syntax_error":
+                    repair_prompt = _syntax_repair_user_message(
+                        str(error),
+                        [
+                            {
+                                "path": error.file or "",
+                                "content": str(error.details.get("content") or last_raw),
+                            }
+                        ],
+                    )
+                else:
+                    repair_prompt = _json_repair_user_message(str(error), last_raw)
                 retry_payload["messages"] = [
                     payload["messages"][0],
-                    {
-                        "role": "user",
-                        "content": _retry_user_message(str(error), excerpts=excerpts),
-                    },
-                    {"role": "assistant", "content": last_raw[:2500]},
-                    {
-                        "role": "user",
-                        "content": "That JSON failed validation. Return ONLY the corrected JSON object.",
-                    },
+                    {"role": "user", "content": repair_prompt},
                 ]
                 retry_started = time.perf_counter()
                 repaired = await _post_completion(retry_payload)
                 retry_latency = time.perf_counter() - retry_started
                 if repaired.status_code >= 400:
                     body = (repaired.text or "")[:500]
+                    recovery_failed = True
                     raise ValueError(f"validation retry HTTP {repaired.status_code}: {body or 'empty body'}")
                 content = str(repaired.json()["choices"][0]["message"]["content"] or "")
                 last_raw = content
-                patch = _parse_and_normalize(content)
+                try:
+                    patch = _parse_and_normalize(content)
+                except ValueError:
+                    recovery_failed = True
+                    raise
+            local_repair = bool(patch.pop("_local_repair", False))
             patch["summary"] = strip_llm_summary_prefix(str(patch["summary"]))
             patch["model"] = model_id
-            patch["structured_recovery"] = recovered
-            patch["raw_structured_ok"] = not recovered
+            patch["structured_recovery"] = recovered or local_repair
+            patch["raw_structured_ok"] = not recovered and not local_repair
+            patch["recovery_failed"] = recovery_failed
             patch["first_attempt_latency"] = first_attempt_latency
             patch["retry_latency"] = retry_latency
             return patch
@@ -1215,6 +1389,11 @@ async def generate_patch(
         f"Patch generation failed across local models ({', '.join(candidates[:4])}…): {last_error}",
         raw_completion=_raw_preview(last_raw),
         quality_gate=quality_gate,
+        first_attempt_latency=first_attempt_latency,
+        retry_latency=retry_latency,
+        raw_structured_ok=False,
+        structured_recovery=False,
+        recovery_failed=bool(retry_latency),
     )
 
 

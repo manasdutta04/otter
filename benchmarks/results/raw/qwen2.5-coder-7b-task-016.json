@@ -17,7 +17,7 @@
       "package.json"
     ],
     "hit_count": 6,
-    "latency_s": 0.0037403999995149206,
+    "latency_s": 0.005805699998745695,
     "metrics": {
       "recall@3": 0.75,
       "recall@5": 1.0,
@@ -68,20 +68,25 @@
       "score_pct": 0.7,
       "success": false
     },
-    "latency_s": 0.012151199996878859,
+    "latency_s": 0.014634800001658732,
     "error": null
   },
   "patch": {
-    "ok": false,
-    "generation_succeeded": false,
-    "applied": false,
-    "e2e_success": false,
+    "ok": true,
+    "generation_succeeded": true,
+    "applied": true,
+    "e2e_success": true,
     "todo_only": false,
-    "summary": "",
-    "model_reported": null,
-    "modified_files": [],
-    "expected_files_hit": false,
-    "expected_file_accuracy": 0.0,
+    "summary": "Add GET /users/:id route and related service/repository functions.",
+    "model_reported": "qwen2.5-coder:7b",
+    "modified_files": [
+      "src/services/userService.ts",
+      "src/routes/users.ts",
+      "src/repositories/userRepository.ts",
+      "tests/user.test.ts"
+    ],
+    "expected_files_hit": true,
+    "expected_file_accuracy": 1.0,
     "unexpected_files": [],
     "context_files": [
       "src/services/userService.ts",
@@ -94,40 +99,41 @@
     "token_measurement": "unavailable",
     "usage": null,
     "syntax": {
-      "ok": false,
-      "checked": [],
-      "errors": [
-        "not applied"
-      ]
+      "ok": true,
+      "checked": [
+        "src/services/userService.ts",
+        "src/routes/users.ts",
+        "src/repositories/userRepository.ts",
+        "tests/user.test.ts"
+      ],
+      "errors": [],
+      "note": "no TypeScript compiler in suite; syntax skipped"
     },
     "expect_in_files": {
-      "ok": false,
-      "missing": [
-        "not applied"
-      ]
+      "ok": true,
+      "missing": []
     },
     "tests": {
       "status": "skipped",
       "passed": null,
-      "output": "not applied",
+      "output": "no gold tests",
       "command": null
     },
-    "copy_latency_s": 0.01739879999877303,
-    "context_latency_s": 0.034795600000506965,
-    "generate_latency_s": 98.0922290999988,
-    "apply_latency_s": 0.0,
-    "test_latency_s": 0.0,
-    "error": "Patch generation failed across local models (qwen2.5-coder:7b\u2026): qwen2.5-coder:7b: QUALITY_GATE:\n    category: edit_target_not_found\n    file: src/routes/users.ts\n    reason: old_string was not found in the file; copy a verbatim unique snippet from context",
-    "failure_category": "quality_gate",
-    "status_machine": "ready_for_approval",
+    "copy_latency_s": 0.0212403000004997,
+    "context_latency_s": 0.025631100001191953,
+    "generate_latency_s": 48.37233359999664,
+    "apply_latency_s": 0.006422799997380935,
+    "test_latency_s": 5.099998816149309e-06,
+    "error": null,
+    "failure_category": null,
+    "status_machine": "approved",
     "structured_recovery": false,
-    "raw_structured_ok": null,
-    "raw_completion_preview": "```json\n{\n  \"summary\": \"Add GET /users/:id route to load a user through the service and repository layers.\",\n  \"edits\": [\n    {\n      \"path\": \"src/services/userService.ts\",\n      \"old_string\": \"\",\n      \"new_string\": \"import { getUserById } from '../repositories/userRepository.js';\\n\\nexport async function createUser(email: string) {\\n  return insertUser(email);\\n}\\n\"\n    },\n    {\n      \"path\": \"src/repositories/userRepository.ts\",\n      \"old_string\": \"export async function insertUser(email: string) {\",\n      \"new_string\": \"export async function getUserById(id: string) {\\n  // Mock implementation for demonstration\\n  return id === '1' ? { id, email: 'a@b.com' } : null;\\n}\\n\\nexport async function insertUser(email: string) {\"\n    },\n    {\n      \"path\": \"src/routes/users.ts\",\n      \"old_string\": \"app.post('/users', async (req, res) => {\",\n      \"new_string\": \"import express from 'express';\\nimport { createUser, getUserById } from '../services/userService.js';\\n\\nexport function registerUserRoutes(app: express.Express) {\\n  app.post('/users', async (req, res) => {\\n    const user = await createUser(req.body.email);\\n    res.json(user);\\n  });\\n\\n  app.get('/users/:id', async (req, res) => {\\n    const user = await getUserById(req.params.id);\\n    if (!user) {\\n      return res.status(404).json({ error: 'not_found' });\\n    }\\n    res.json(user);\\n  });\\n}\\n\"\n    }\n  ],\n  \"files\": [],\n  \"dependencies\": {}\n}\n```",
-    "first_attempt_latency_s": null,
+    "raw_structured_ok": true,
+    "recovery_failed": false,
+    "raw_completion_preview": null,
+    "first_attempt_latency_s": 48.37114229999861,
     "retry_latency_s": null,
-    "quality_gate": {
-      "message": "qwen2.5-coder:7b: QUALITY_GATE:\n    category: edit_target_not_found\n    file: src/routes/users.ts\n    reason: old_string was not found in the file; copy a verbatim unique snippet from context"
-    }
+    "quality_gate": null
   },
-  "latency_s": 98.16049780000321
+  "latency_s": 48.47300049999831
 }

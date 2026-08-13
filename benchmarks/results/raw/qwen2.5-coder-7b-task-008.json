@@ -16,7 +16,7 @@
       "package.json"
     ],
     "hit_count": 5,
-    "latency_s": 0.004286600000341423,
+    "latency_s": 0.003986600000644103,
     "metrics": {
       "recall@3": 1.0,
       "recall@5": 1.0,
@@ -67,7 +67,7 @@
       "score_pct": 0.8,
       "success": true
     },
-    "latency_s": 0.012621599998965394,
+    "latency_s": 0.01220830000238493,
     "error": null
   },
   "patch": {
@@ -76,7 +76,7 @@
     "applied": true,
     "e2e_success": true,
     "todo_only": false,
-    "summary": "Add a GET /version API endpoint that returns JSON {\"version\":\"1.0.0\"} with HTTP 200.",
+    "summary": "Add GET /version API endpoint",
     "model_reported": "qwen2.5-coder:7b",
     "modified_files": [
       "src/routes/users.ts"
@@ -112,20 +112,21 @@
       "output": "no gold tests",
       "command": null
     },
-    "copy_latency_s": 0.017229900000529597,
-    "context_latency_s": 0.02169040000080713,
-    "generate_latency_s": 19.38852930000212,
-    "apply_latency_s": 0.001790199999959441,
-    "test_latency_s": 8.39999847812578e-06,
+    "copy_latency_s": 0.01997060000212514,
+    "context_latency_s": 0.020682899998064386,
+    "generate_latency_s": 83.78638430000137,
+    "apply_latency_s": 0.00185090000013588,
+    "test_latency_s": 6.79999720887281e-06,
     "error": null,
     "failure_category": null,
     "status_machine": "approved",
     "structured_recovery": false,
     "raw_structured_ok": true,
+    "recovery_failed": false,
     "raw_completion_preview": null,
-    "first_attempt_latency_s": 19.38778540000203,
+    "first_attempt_latency_s": 83.785644399999,
     "retry_latency_s": null,
     "quality_gate": null
   },
-  "latency_s": 19.460927100000845
+  "latency_s": 83.85997100000168
 }

@@ -17,7 +17,7 @@
       "package.json"
     ],
     "hit_count": 6,
-    "latency_s": 0.005393699997512158,
+    "latency_s": 0.0245578000030946,
     "metrics": {
       "recall@3": 0.6666666666666666,
       "recall@5": 1.0,
@@ -71,7 +71,7 @@
       "score_pct": 0.6,
       "success": false
     },
-    "latency_s": 0.01374480000231415,
+    "latency_s": 0.019573000001400942,
     "error": null
   },
   "patch": {
@@ -116,20 +116,21 @@
       "output": "no gold tests",
       "command": null
     },
-    "copy_latency_s": 0.020917699999699835,
-    "context_latency_s": 0.020639899998059263,
-    "generate_latency_s": 15.239241799998126,
-    "apply_latency_s": 0.0015376000010292046,
-    "test_latency_s": 4.400000761961564e-06,
+    "copy_latency_s": 0.0880765000001702,
+    "context_latency_s": 0.0764980000021751,
+    "generate_latency_s": 69.85036010000113,
+    "apply_latency_s": 0.0014267999977164436,
+    "test_latency_s": 9.000003046821803e-06,
     "error": null,
     "failure_category": null,
     "status_machine": "approved",
     "structured_recovery": false,
     "raw_structured_ok": true,
+    "recovery_failed": false,
     "raw_completion_preview": null,
-    "first_attempt_latency_s": 15.229259399999137,
+    "first_attempt_latency_s": 69.83663829999932,
     "retry_latency_s": null,
     "quality_gate": null
   },
-  "latency_s": 15.317583500000183
+  "latency_s": 70.08120939999935
 }

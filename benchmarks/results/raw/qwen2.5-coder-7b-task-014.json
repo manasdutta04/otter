@@ -21,7 +21,7 @@
       "tests/test_authentication.py"
     ],
     "hit_count": 24,
-    "latency_s": 0.26930060000086087,
+    "latency_s": 0.26871550000214484,
     "metrics": {
       "recall@3": 1.0,
       "recall@5": 1.0,
@@ -78,20 +78,23 @@
       "score_pct": 0.8,
       "success": true
     },
-    "latency_s": 0.6027943000008236,
+    "latency_s": 0.861687399999937,
     "error": null
   },
   "patch": {
-    "ok": false,
-    "generation_succeeded": false,
-    "applied": false,
+    "ok": true,
+    "generation_succeeded": true,
+    "applied": true,
     "e2e_success": false,
     "todo_only": false,
-    "summary": "",
-    "model_reported": null,
-    "modified_files": [],
-    "expected_files_hit": false,
-    "expected_file_accuracy": 0.0,
+    "summary": "Add Config.get_bool method and test",
+    "model_reported": "qwen2.5-coder:7b",
+    "modified_files": [
+      "tests/test_config.py",
+      "starlette/config.py"
+    ],
+    "expected_files_hit": true,
+    "expected_file_accuracy": 1.0,
     "unexpected_files": [],
     "context_files": [
       "starlette/config.py",
@@ -102,40 +105,38 @@
     "token_measurement": "unavailable",
     "usage": null,
     "syntax": {
-      "ok": false,
-      "checked": [],
-      "errors": [
-        "not applied"
-      ]
+      "ok": true,
+      "checked": [
+        "tests/test_config.py",
+        "starlette/config.py"
+      ],
+      "errors": []
     },
     "expect_in_files": {
-      "ok": false,
-      "missing": [
-        "not applied"
-      ]
+      "ok": true,
+      "missing": []
     },
     "tests": {
-      "status": "skipped",
-      "passed": null,
-      "output": "not applied",
-      "command": null
+      "status": "fail",
+      "passed": false,
+      "output": "..F..F                                                                   [100%]\n================================== FAILURES ===================================\nC:\\Users\\ASUS\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\re\\_parser.py:397: re.PatternError: incomplete escape \\U at position 15\nC:\\Coding Workspace\\otter\\benchmarks\\workspaces\\qwen2.5-coder-7b\\task-014\\tests\\test_config.py:159: Failed: DID NOT RAISE <class 'ValueError'>\n============================== warnings summary ===============================\nstarlette\\formparsers.py:12\n  C:\\Coding Workspace\\otter\\benchmarks\\workspaces\\qwen2.5-coder-7b\\task-014\\starlette\\formparsers.py:12: PendingDeprecationWarning: Please use `import python_multipart` instead.\n    import multipart\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n=========================== short test summary info ===========================\nFAILED tests/test_config.py::test_missing_env_file_raises - re.PatternError: ...\nFAILED tests/test_config.py::test_get_bool - Failed: DID NOT RAISE <class 'Va...\n2 failed, 4 passed, 1 warning in 0.16s\n\n",
+      "command": "C:\\Coding Workspace\\otter\\benchmarks\\.venv\\Scripts\\python.exe -m pytest -q --tb=line -p no:cacheprovider -o addopts= -o filterwarnings= tests/test_config.py"
     },
-    "copy_latency_s": 0.1984396999978344,
-    "context_latency_s": 1.0755489000002854,
-    "generate_latency_s": 66.481676899999,
-    "apply_latency_s": 0.0,
-    "test_latency_s": 0.0,
-    "error": "Patch generation failed across local models (qwen2.5-coder:7b\u2026): qwen2.5-coder:7b: QUALITY_GATE:\n    category: destructive_rewrite\n    file: tests/test_config.py\n    reason: tests/test_config.py proposed content is much shorter than the original (163 vs 5008 chars; deletion_ratio=0.77)",
-    "failure_category": "quality_gate",
-    "status_machine": "ready_for_approval",
+    "copy_latency_s": 0.49036290000003646,
+    "context_latency_s": 1.979611399998248,
+    "generate_latency_s": 153.12218470000153,
+    "apply_latency_s": 0.003763100001378916,
+    "test_latency_s": 1.1130314000001817,
+    "error": null,
+    "failure_category": "test failure",
+    "status_machine": "approved",
     "structured_recovery": false,
-    "raw_structured_ok": null,
-    "raw_completion_preview": "```json\n{\n  \"summary\": \"Added Config.get_bool method and test in tests/test_config.py\",\n  \"edits\": [\n    {\n      \"path\": \"starlette/config.py\",\n      \"old_string\": \"\",\n      \"new_string\": \"\\n    def get_bool(self, key: str, default=False) -> bool:\\n        value = self(key, cast=str, default=default)\\n        if value.lower() in ('1', 'true', 'yes', 'on'):\\n            return True\\n        elif value.lower() in ('0', 'false', 'no', 'off'):\\n            return False\\n        else:\\n            raise ValueError(f'Invalid boolean value: {value}')\\n\"\n    }\n  ],\n  \"files\": [\n    {\n      \"path\": \"tests/test_config.py\",\n      \"content\": \"import pytest\\nfrom starlette.config import Config, Secret, URL, undefined\\nfrom starlette.datastructures import CommaSeparatedStrings\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\"\n    }\n  ]\n}\n```",
-    "first_attempt_latency_s": null,
+    "raw_structured_ok": true,
+    "recovery_failed": false,
+    "raw_completion_preview": null,
+    "first_attempt_latency_s": 153.11472969999886,
     "retry_latency_s": null,
-    "quality_gate": {
-      "message": "qwen2.5-coder:7b: QUALITY_GATE:\n    category: destructive_rewrite\n    file: tests/test_config.py\n    reason: tests/test_config.py proposed content is much shorter than the original (163 vs 5008 chars; deletion_ratio=0.77)"
-    }
+    "quality_gate": null
   },
-  "latency_s": 68.62991560000228
+  "latency_s": 157.86959509999724
 }

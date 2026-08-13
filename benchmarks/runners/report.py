@@ -150,6 +150,7 @@ def aggregate_model(model_result: dict[str, Any]) -> dict[str, Any]:
     applied = [r for r in implement if (r.get("patch") or {}).get("applied")]
     recovered = [r for r in implement if (r.get("patch") or {}).get("structured_recovery")]
     raw_ok = [r for r in implement if (r.get("patch") or {}).get("raw_structured_ok")]
+    recovery_failed = [r for r in implement if (r.get("patch") or {}).get("recovery_failed")]
     test_ran = [r for r in implement if (r.get("patch") or {}).get("tests", {}).get("status") in {"pass", "fail"}]
     test_pass = [r for r in test_ran if (r.get("patch") or {}).get("tests", {}).get("passed")]
     test_nv = [r for r in implement if (r.get("patch") or {}).get("tests", {}).get("status") in {"not_verifiable", "infrastructure_error"}]
@@ -184,6 +185,7 @@ def aggregate_model(model_result: dict[str, Any]) -> dict[str, Any]:
         "patch_applied_rate": (len(applied) / len(implement)) if implement else None,
         "raw_structured_ok_rate": (len(raw_ok) / len(implement)) if implement else None,
         "structured_recovery_rate": (len(recovered) / len(implement)) if implement else None,
+        "structured_recovery_failure_rate": (len(recovery_failed) / len(implement)) if implement else None,
         "test_pass_rate": (len(test_pass) / len(test_ran)) if test_ran else None,
         "test_not_verifiable": len(test_nv),
         "test_ran": len(test_ran),
@@ -392,7 +394,7 @@ def write_report_md(
     )
 
     lines = [
-        "# Otter Benchmark v0.5 - Qwen2.5-Coder 7B",
+        "# Otter Benchmark v0.6 - Qwen2.5-Coder 7B",
         "",
         "## Executive Summary",
         "",
@@ -421,7 +423,7 @@ def write_report_md(
         f"- Python: {env.get('python')}",
         f"- Node: {env.get('node')}",
         "",
-        "## v0.3 / v0.4 / v0.5 Results",
+        "## v0.4 / v0.5 / v0.6 Results",
         "",
     ]
     if b_q or v03_q:
@@ -430,7 +432,7 @@ def write_report_md(
         lines += [
             _md_table(
                 [
-                    ["Metric", "v0.3", "v0.4", "v0.5", "v0.4 -> v0.5"],
+                    ["Metric", "v0.4", "v0.5", "v0.6", "v0.5 -> v0.6"],
                     ["Recall@5", _fmt_pct(b_q.get("recall@5")), _fmt_pct(v03_q.get("recall@5")), _fmt_pct(qwen.get("recall@5")), _pp_delta(v03_q.get("recall@5"), qwen.get("recall@5"))],
                     ["Precision@5", _fmt_pct(b_q.get("precision@5")), _fmt_pct(v03_q.get("precision@5")), _fmt_pct(qwen.get("precision@5")), _pp_delta(v03_q.get("precision@5"), qwen.get("precision@5"))],
                     ["Precision@|gold|", _fmt_pct(b_q.get("precision_at_gold")), _fmt_pct(v03_q.get("precision_at_gold")), _fmt_pct(qwen.get("precision_at_gold")), _pp_delta(v03_q.get("precision_at_gold"), qwen.get("precision_at_gold"))],
@@ -446,7 +448,7 @@ def write_report_md(
                 ]
             ),
             "",
-            "Deltas are v0.4 -> v0.5. Rates use percentage points, not relative percent change.",
+            "Deltas are v0.5 -> v0.6. Rates use percentage points, not relative percent change.",
             "Targets in the spec are goals, not claims. If E2E stays low, that is the result.",
             "",
         ]
@@ -493,6 +495,7 @@ def write_report_md(
                 ["Patch applied", _fmt_pct(qwen.get("patch_applied_rate"))],
                 ["Raw structured-output success", _fmt_pct(qwen.get("raw_structured_ok_rate"))],
                 ["Recovered structured-output rate", _fmt_pct(qwen.get("structured_recovery_rate"))],
+                ["Structured-output recovery failure", _fmt_pct(qwen.get("structured_recovery_failure_rate"))],
                 ["Tests ran (pass or fail)", str(qwen.get("test_ran"))],
                 ["Tests passed", str(qwen.get("test_pass_count"))],
                 ["Tests not verifiable", str(qwen.get("test_not_verifiable"))],
@@ -532,7 +535,7 @@ def write_report_md(
         "",
         _md_table(
             [
-                ["Failure Category", "v0.3", "v0.4", "v0.5", "v0.4 -> v0.5"],
+                ["Failure Category", "v0.4", "v0.5", "v0.6", "v0.5 -> v0.6"],
                 ["Test failure", str(b_fail.get("test failure", 0)), str(v03_fail.get("test failure", 0)), str(q_fail.get("test failure", 0)), str(q_fail.get("test failure", 0) - v03_fail.get("test failure", 0))],
                 ["Wrong file", str(b_fail.get("incorrect file selection", 0)), str(v03_fail.get("incorrect file selection", 0)), str(q_fail.get("incorrect file selection", 0)), str(q_fail.get("incorrect file selection", 0) - v03_fail.get("incorrect file selection", 0))],
                 ["JSON malformed", str(b_fail.get("json_malformed", 0)), str(v03_fail.get("json_malformed", 0)), str(q_fail.get("json_malformed", 0)), str(q_fail.get("json_malformed", 0) - v03_fail.get("json_malformed", 0))],
@@ -545,7 +548,7 @@ def write_report_md(
             ]
         ),
         "",
-        f"See `qwen-v0.5-failures.json` ({len(failures)} rows).",
+        f"See `qwen-v0.6-failures.json` ({len(failures)} rows).",
         "",
         "## Quality-gate breakdown",
         "",
@@ -553,14 +556,15 @@ def write_report_md(
         "",
         "## Root Cause Analysis",
         "",
-        "v0.4 quality-gate failures were mostly non-unique or missing edit snippets,",
-        "because edits were applied against truncated excerpts and short old_strings.",
-        "v0.5 applies edits to full files, allows empty old_string as append, uses",
-        "symbol-dense excerpts, compact retries, and structured QUALITY_GATE errors.",
+        "v0.5 still lost valid edits when a stub files[] rewrite tripped destructive_rewrite,",
+        "failed JSON on Python triple-quotes, and required exact old_string including quotes.",
+        "v0.6 salvages edits[], keeps good edits when files[] is destructive, scopes edits",
+        "by symbol / quote-safe unique literals, compact-repairs JSON without resending the repo,",
+        "and syntax-checks new Python files before apply.",
         "",
         "## Regression Testing",
         "",
-        "Existing Otter unit tests plus v0.5 generation/edit/harness regressions (57 passed).",
+        "Existing Otter unit tests plus v0.6 generation/edit/JSON/anchor regressions.",
         "",
         "## Limitations",
         "",
@@ -605,7 +609,7 @@ def write_all(
         "dataset": dataset,
         "aggregates": aggregates,
         "table": comparison_table(aggregates.get(MODEL_A) or {}),
-        "note": "v0.5 is Qwen-only. Retrieval and planning are heuristic Otter stages.",
+        "note": "v0.6 is Qwen-only. Retrieval and planning are heuristic Otter stages.",
     }
     (results_dir / "comparison.json").write_text(json.dumps(comparison, indent=2), encoding="utf-8")
     (results_dir / "failures.json").write_text(json.dumps(failures, indent=2), encoding="utf-8")
@@ -614,8 +618,8 @@ def write_all(
         (results_dir / f"{slug}.json").write_text(json.dumps(payload, indent=2), encoding="utf-8")
         (raw_dir / f"{slug}.json").write_text(json.dumps(payload, indent=2), encoding="utf-8")
     qwen_payload = all_results.get(MODEL_A) or next(iter(all_results.values()), {})
-    (results_dir / "qwen-v0.5-results.json").write_text(json.dumps(qwen_payload, indent=2), encoding="utf-8")
-    (results_dir / "qwen-v0.5-failures.json").write_text(json.dumps(failures, indent=2), encoding="utf-8")
+    (results_dir / "qwen-v0.6-results.json").write_text(json.dumps(qwen_payload, indent=2), encoding="utf-8")
+    (results_dir / "qwen-v0.6-failures.json").write_text(json.dumps(failures, indent=2), encoding="utf-8")
 
     def _load_history(path: Path) -> dict[str, Any] | None:
         if not path.is_file():
@@ -631,26 +635,26 @@ def write_all(
         return None
 
     baseline = None
-    for candidate in (results_dir / "qwen-v0.3-baseline.json", results_dir / "qwen-v0.3.json"):
+    for candidate in (results_dir / "qwen-v0.4-baseline.json", results_dir / "qwen-v0.4-results.json"):
         baseline = _load_history(candidate)
         if baseline is not None:
             break
-    v03_fail_path = results_dir / "qwen-v0.3-failures.json"
-    if baseline is not None and v03_fail_path.is_file():
+    v04_fail_path = results_dir / "qwen-v0.4-failures.json"
+    if baseline is not None and v04_fail_path.is_file():
         try:
-            baseline["failures"] = json.loads(v03_fail_path.read_text(encoding="utf-8"))
+            baseline["failures"] = json.loads(v04_fail_path.read_text(encoding="utf-8"))
         except (OSError, json.JSONDecodeError, TypeError):
             pass
 
-    v04 = None
-    for candidate in (results_dir / "qwen-v0.4-baseline.json", results_dir / "qwen-v0.4-results.json"):
-        v04 = _load_history(candidate)
-        if v04 is not None:
+    v05 = None
+    for candidate in (results_dir / "qwen-v0.5-baseline.json", results_dir / "qwen-v0.5-results.json"):
+        v05 = _load_history(candidate)
+        if v05 is not None:
             break
-    v04_fail_path = results_dir / "qwen-v0.4-failures.json"
-    if v04 is not None and v04_fail_path.is_file():
+    v05_fail_path = results_dir / "qwen-v0.5-failures.json"
+    if v05 is not None and v05_fail_path.is_file():
         try:
-            v04["failures"] = json.loads(v04_fail_path.read_text(encoding="utf-8"))
+            v05["failures"] = json.loads(v05_fail_path.read_text(encoding="utf-8"))
         except (OSError, json.JSONDecodeError, TypeError):
             pass
     write_report_md(
@@ -662,6 +666,6 @@ def write_all(
         aggregates=aggregates,
         failures=failures,
         baseline=baseline,
-        v03=v04,
+        v03=v05,
     )
-    shutil.copyfile(results_dir / "report.md", results_dir / "qwen-v0.5-report.md")
+    shutil.copyfile(results_dir / "report.md", results_dir / "qwen-v0.6-report.md")

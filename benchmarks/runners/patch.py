@@ -297,6 +297,11 @@ async def run_patch(
     raw_completion = None
     quality_gate = None
     proposal: dict[str, Any] | None = None
+    fail_first_attempt = None
+    fail_retry = None
+    fail_raw_ok = None
+    fail_recovered = False
+    fail_recovery_failed = False
     try:
         with pin_model(model):
             proposal = await generate_patch(
@@ -309,6 +314,11 @@ async def run_patch(
         generate_error = str(error)
         raw_completion = getattr(error, "raw_completion", None)
         quality_gate = getattr(error, "quality_gate", None)
+        fail_first_attempt = getattr(error, "first_attempt_latency", None)
+        fail_retry = getattr(error, "retry_latency", None)
+        fail_raw_ok = getattr(error, "raw_structured_ok", False)
+        fail_recovered = getattr(error, "structured_recovery", False)
+        fail_recovery_failed = getattr(error, "recovery_failed", False)
     except Exception as error:  # noqa: BLE001
         generate_error = str(error)
     generate_s = time.perf_counter() - gen_started
@@ -408,10 +418,11 @@ async def run_patch(
         "error": generate_error or quality_error or apply_error,
         "failure_category": category,
         "status_machine": status,
-        "structured_recovery": bool((proposal or {}).get("structured_recovery")),
-        "raw_structured_ok": (proposal or {}).get("raw_structured_ok"),
+        "structured_recovery": bool((proposal or {}).get("structured_recovery") or fail_recovered),
+        "raw_structured_ok": (proposal or {}).get("raw_structured_ok") if proposal else fail_raw_ok,
+        "recovery_failed": bool((proposal or {}).get("recovery_failed") or fail_recovery_failed),
         "raw_completion_preview": raw_completion,
-        "first_attempt_latency_s": (proposal or {}).get("first_attempt_latency"),
-        "retry_latency_s": (proposal or {}).get("retry_latency"),
+        "first_attempt_latency_s": (proposal or {}).get("first_attempt_latency") if proposal else fail_first_attempt,
+        "retry_latency_s": (proposal or {}).get("retry_latency") if proposal else fail_retry,
         "quality_gate": quality_gate,
     }

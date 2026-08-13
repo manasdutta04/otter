@@ -21,7 +21,7 @@
       "test/test_wsgi.py"
     ],
     "hit_count": 24,
-    "latency_s": 0.15892849999727332,
+    "latency_s": 0.16762649999873247,
     "metrics": {
       "recall@3": 1.0,
       "recall@5": 1.0,
@@ -74,8 +74,8 @@
       "score_pct": 0.7,
       "success": false
     },
-    "latency_s": 0.45558119999986957,
+    "latency_s": 0.43407460000162246,
     "error": null
   },
-  "latency_s": 0.6154897999986133
+  "latency_s": 0.6026670999999624
 }

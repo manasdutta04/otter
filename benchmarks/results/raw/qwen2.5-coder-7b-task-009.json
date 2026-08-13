@@ -21,7 +21,7 @@
       "github/workflows/run_tests.yml"
     ],
     "hit_count": 24,
-    "latency_s": 0.14044730000023264,
+    "latency_s": 0.14629539999805274,
     "metrics": {
       "recall@3": 1.0,
       "recall@5": 1.0,
@@ -78,8 +78,8 @@
       "score_pct": 0.8,
       "success": true
     },
-    "latency_s": 0.39681130000099074,
+    "latency_s": 0.39431340000010096,
     "error": null
   },
-  "latency_s": 0.5382008000015048
+  "latency_s": 0.5422718000008899
 }

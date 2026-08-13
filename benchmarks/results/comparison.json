@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-13T08:29:58.709759+00:00",
+  "generated_at": "2026-08-13T09:18:14.475201+00:00",
   "environment": {
     "os": "Windows 11 (10.0.26200)",
     "cpu": "AMD64 Family 23 Model 96 Stepping 1, AuthenticAMD",
@@ -8,9 +8,9 @@
     "ollama": "ollama version is 0.20.2",
     "python": "3.13.4",
     "node": "v25.1.0",
-    "otter_commit": "8dfe384156c4b58d4b8adb33f32c1787303b6ac7",
+    "otter_commit": "ad0307c720d6f56ab3ae68b9cdf4566adde162d0",
     "otter_dirty": true,
-    "collected_at": "2026-08-13T08:29:58.709127+00:00"
+    "collected_at": "2026-08-13T09:18:14.474534+00:00"
   },
   "probe": {
     "healthy": true,
@@ -35,7 +35,7 @@
     "hard": 5,
     "locate": 9,
     "implement": 11,
-    "version": "Otter Benchmark v0.5"
+    "version": "Otter Benchmark v0.6"
   },
   "aggregates": {
     "qwen2.5-coder:7b": {
@@ -51,54 +51,55 @@
       "precision_at_gold": 0.715,
       "plan_grounding_pct": 0.71,
       "plan_success_rate": 0.55,
-      "patch_success_rate": 0.2727272727272727,
-      "patch_applied_rate": 0.2727272727272727,
-      "raw_structured_ok_rate": 0.2727272727272727,
-      "structured_recovery_rate": 0.0,
-      "test_pass_rate": 0.0,
+      "patch_success_rate": 0.9090909090909091,
+      "patch_applied_rate": 0.9090909090909091,
+      "raw_structured_ok_rate": 0.6363636363636364,
+      "structured_recovery_rate": 0.2727272727272727,
+      "structured_recovery_failure_rate": 0.0,
+      "test_pass_rate": 0.14285714285714285,
       "test_not_verifiable": 0,
-      "test_ran": 1,
-      "test_pass_count": 0,
+      "test_ran": 7,
+      "test_pass_count": 1,
       "unexpected_file_rate": 0.0,
-      "expected_file_accuracy": 0.7777777777777778,
-      "e2e_success_rate": 0.18181818181818182,
+      "expected_file_accuracy": 0.7766666666666666,
+      "e2e_success_rate": 0.36363636363636365,
       "locate_count": 9,
       "implement_count": 11,
       "latency": {
         "retrieval": {
-          "mean": 0.14206422999941423,
-          "median": 0.14773604999936651,
-          "p95": 0.2792646000016248,
+          "mean": 0.19441178000015497,
+          "median": 0.15875934999894525,
+          "p95": 0.5158597999979975,
           "n": 20
         },
         "planning": {
-          "mean": 0.3392246350003916,
-          "median": 0.41573765000066487,
-          "p95": 0.5995623999988311,
+          "mean": 0.5370882200000778,
+          "median": 0.4330358500010334,
+          "p95": 1.3857282000026316,
           "n": 20
         },
         "generation": {
-          "mean": 146.7781266727275,
-          "median": 98.0922290999988,
-          "p95": 421.5793530999981,
+          "mean": 74.22406073636375,
+          "median": 70.82732040000337,
+          "p95": 153.12218470000153,
           "n": 11
         },
         "first_attempt": {
-          "mean": 40.07512783333368,
-          "median": 19.38778540000203,
-          "p95": 85.60833869999988,
-          "n": 3
+          "mean": 69.4761458636362,
+          "median": 69.83663829999932,
+          "p95": 153.11472969999886,
+          "n": 11
         },
         "retry": {
-          "mean": null,
-          "median": null,
-          "p95": null,
-          "n": 0
+          "mean": 51.9735279000015,
+          "median": 51.9735279000015,
+          "p95": 51.9735279000015,
+          "n": 1
         },
         "total": {
-          "mean": 81.62429173000037,
-          "median": 17.389255300000514,
-          "p95": 273.4214061999992,
+          "mean": 42.40240831999963,
+          "median": 37.62225144999866,
+          "p95": 100.81527769999957,
           "n": 20
         },
         "model_ping": null
@@ -134,32 +135,32 @@
     ],
     [
       "Patch Success Rate",
-      "27.3%"
+      "90.9%"
     ],
     [
       "Test Pass Rate",
-      "0.0%"
+      "14.3%"
     ],
     [
       "End-to-End Success",
-      "18.2%"
+      "36.4%"
     ],
     [
       "Mean Latency",
-      "81.624s"
+      "42.402s"
     ],
     [
       "Median Latency",
-      "17.389s"
+      "37.622s"
     ],
     [
       "P95 Latency",
-      "273.421s"
+      "100.815s"
     ],
     [
       "Avg Context Size",
       "3089 chars"
     ]
   ],
-  "note": "v0.5 is Qwen-only. Retrieval and planning are heuristic Otter stages."
+  "note": "v0.6 is Qwen-only. Retrieval and planning are heuristic Otter stages."
 }

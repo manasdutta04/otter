@@ -21,7 +21,7 @@
       "test/test_app.py"
     ],
     "hit_count": 24,
-    "latency_s": 0.147131999998237,
+    "latency_s": 0.14337430000159657,
     "metrics": {
       "recall@3": 1.0,
       "recall@5": 1.0,
@@ -78,20 +78,23 @@
       "score_pct": 0.8,
       "success": true
     },
-    "latency_s": 0.434664000000339,
+    "latency_s": 0.43199710000044433,
     "error": null
   },
   "patch": {
-    "ok": false,
-    "generation_succeeded": false,
-    "applied": false,
+    "ok": true,
+    "generation_succeeded": true,
+    "applied": true,
     "e2e_success": false,
     "todo_only": false,
-    "summary": "",
-    "model_reported": null,
-    "modified_files": [],
-    "expected_files_hit": false,
-    "expected_file_accuracy": 0.0,
+    "summary": "Add is_valid_email function and unittest",
+    "model_reported": "qwen2.5-coder:7b",
+    "modified_files": [
+      "test/test_html_helper.py",
+      "bottle.py"
+    ],
+    "expected_files_hit": true,
+    "expected_file_accuracy": 1.0,
     "unexpected_files": [],
     "context_files": [
       "bottle.py",
@@ -102,38 +105,38 @@
     "token_measurement": "unavailable",
     "usage": null,
     "syntax": {
-      "ok": false,
-      "checked": [],
-      "errors": [
-        "not applied"
-      ]
+      "ok": true,
+      "checked": [
+        "test/test_html_helper.py",
+        "bottle.py"
+      ],
+      "errors": []
     },
     "expect_in_files": {
-      "ok": false,
-      "missing": [
-        "not applied"
-      ]
+      "ok": true,
+      "missing": []
     },
     "tests": {
-      "status": "skipped",
-      "passed": null,
-      "output": "not applied",
-      "command": null
+      "status": "fail",
+      "passed": false,
+      "output": ".E                                                                       [100%]\n=================================== ERRORS ====================================\n____________________ ERROR at setup of test_is_valid_email ____________________\nfile C:\\Coding Workspace\\otter\\benchmarks\\workspaces\\qwen2.5-coder-7b\\task-010\\test\\test_html_helper.py, line 23\n  def test_is_valid_email(self):\nE       fixture 'self' not found\n>       available fixtures: capfd, capfdbinary, caplog, capsys, capsysbinary, doctest_namespace, monkeypatch, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory\n>       use 'pytest --fixtures [testpath]' for help on them.\n\nC:\\Coding Workspace\\otter\\benchmarks\\workspaces\\qwen2.5-coder-7b\\task-010\\test\\test_html_helper.py:23\n=========================== short test summary info ===========================\nERROR test/test_html_helper.py::test_is_valid_email\n1 passed, 1 error in 0.31s\n\n",
+      "command": "C:\\Coding Workspace\\otter\\benchmarks\\.venv\\Scripts\\python.exe -m pytest -q --tb=line -p no:cacheprovider -o addopts= -o filterwarnings= test/test_html_helper.py"
     },
-    "copy_latency_s": 0.528193400001328,
-    "context_latency_s": 0.3264590999970096,
-    "generate_latency_s": 421.5793530999981,
-    "apply_latency_s": 0.0,
-    "test_latency_s": 0.0,
-    "error": "Patch generation failed across local models (qwen2.5-coder:7b\u2026): qwen2.5-coder:7b: No JSON object found in model response",
-    "failure_category": "json_malformed",
-    "status_machine": "ready_for_approval",
+    "copy_latency_s": 0.4059056000005512,
+    "context_latency_s": 0.33497300000090036,
+    "generate_latency_s": 70.82732040000337,
+    "apply_latency_s": 0.0034938999997393694,
+    "test_latency_s": 0.9368572999992466,
+    "error": null,
+    "failure_category": "test failure",
+    "status_machine": "approved",
     "structured_recovery": false,
-    "raw_structured_ok": null,
-    "raw_completion_preview": "```json\n{\n  \"summary\": \"Added is_valid_email function to bottle.py and a unittest for it in test/test_html_helper.py.\",\n  \"edits\": [\n    {\n      \"path\": \"bottle.py\",\n      \"old_string\": \"\",\n      \"new_string\": \"\"\"\ndef is_valid_email(value):\n    if not isinstance(value, str) or value.count('@') != 1:\n        return False\n    local, domain = value.split('@')\n    return local and domain\n\"\"\"\n    }\n  ],\n  \"files\": [\n    {\n      \"path\": \"test/test_html_helper.py\",\n      \"content\": \"\"\"\nimport unittest\n\nfrom bottle import _parse_http_header, is_valid_email\n\n\nclass TestHttpUtils(unittest.TestCase):\n\n    # TODO: Move more of the low level http stuff here.\n\n    def test_accept_header(self):\n        self.assertEqual(_parse_http_header(\n                'text/xml, text/whitespace ,'\n                'app\n\u2026\n.assertFalse(is_valid_email('a@ b.c '))\n        self.assertFalse(is_valid_email('a@b.c '))\n        self.assertFalse(is_valid_email('a@ b.c '))\n        self.assertFalse(is_valid_email('a@b.c '))\n        self.assertFalse(is_valid_email('a@ b.c '))\n        self.assertFalse(is_valid_email('a@b.c '))\n        self.assertFalse(is_valid_email('a@ b.c '))\n        self.assertFalse(is_valid_email('a@b.c '))\n        self.assertFalse(is_valid_email('a@ b.c '))\n        self.assertFalse(is_valid_email('a@b.c '))\n        self.assertFalse(is_valid_email('a@ b.c '))\n        self.assertFalse(is_valid_email('a@b.c '))\n        self.assertFalse(is_valid_email('a@ b.c '))\n        self.assertFalse(is_valid_email('a@b.c '))\n        self.assertFalse(is_valid_email('a@ b.c '))\n        self.assertFalse(is_valid_email",
-    "first_attempt_latency_s": null,
+    "raw_structured_ok": true,
+    "recovery_failed": false,
+    "raw_completion_preview": null,
+    "first_attempt_latency_s": 70.77222140000231,
     "retry_latency_s": null,
     "quality_gate": null
   },
-  "latency_s": 423.0176867000009
+  "latency_s": 73.16537239999889
 }

@@ -6,7 +6,7 @@
     "status": "available",
     "ping": {
       "ok": true,
-      "latency_s": 7.399309000000358,
+      "latency_s": 1.413720900000044,
       "error": null,
       "usage": {
         "prompt_tokens": 36,
@@ -35,7 +35,7 @@
           "src/middleware/auth.ts"
         ],
         "hit_count": 5,
-        "latency_s": 0.0061867000003985595,
+        "latency_s": 0.007925899997644592,
         "metrics": {
           "recall@3": 0.0,
           "recall@5": 1.0,
@@ -90,10 +90,10 @@
           "score_pct": 0.8,
           "success": true
         },
-        "latency_s": 0.019059100002777996,
+        "latency_s": 0.02118029999837745,
         "error": null
       },
-      "latency_s": 0.025299999997514533
+      "latency_s": 0.029185499999584863
     },
     {
       "id": "task-002",
@@ -114,7 +114,7 @@
           "package.json"
         ],
         "hit_count": 6,
-        "latency_s": 0.0033089999997173436,
+        "latency_s": 0.007183100002293941,
         "metrics": {
           "recall@3": 1.0,
           "recall@5": 1.0,
@@ -168,10 +168,10 @@
           "score_pct": 0.8,
           "success": true
         },
-        "latency_s": 0.012474299997847993,
+        "latency_s": 0.018529299999499926,
         "error": null
       },
-      "latency_s": 0.015842000000702683
+      "latency_s": 0.0258109999995213
     },
     {
       "id": "task-003",
@@ -196,7 +196,7 @@
           "test/test_wsgi.py"
         ],
         "hit_count": 24,
-        "latency_s": 0.15892849999727332,
+        "latency_s": 0.16762649999873247,
         "metrics": {
           "recall@3": 1.0,
           "recall@5": 1.0,
@@ -249,10 +249,10 @@
           "score_pct": 0.7,
           "success": false
         },
-        "latency_s": 0.45558119999986957,
+        "latency_s": 0.43407460000162246,
         "error": null
       },
-      "latency_s": 0.6154897999986133
+      "latency_s": 0.6026670999999624
     },
     {
       "id": "task-004",
@@ -277,7 +277,7 @@
           "src/click/__init__.py"
         ],
         "hit_count": 24,
-        "latency_s": 0.25038750000021537,
+        "latency_s": 0.2197941999984323,
         "metrics": {
           "recall@3": 0.0,
           "recall@5": 1.0,
@@ -334,10 +334,10 @@
           "score_pct": 0.8,
           "success": true
         },
-        "latency_s": 0.5447027000009257,
+        "latency_s": 1.2228725999993912,
         "error": null
       },
-      "latency_s": 0.7965492999974231
+      "latency_s": 1.4457664000001387
     },
     {
       "id": "task-005",
@@ -362,7 +362,7 @@
           "tests/middleware/test_middleware.py"
         ],
         "hit_count": 24,
-        "latency_s": 0.30491889999757404,
+        "latency_s": 0.7421299999987241,
         "metrics": {
           "recall@3": 1.0,
           "recall@5": 1.0,
@@ -424,10 +424,10 @@
           "score_pct": 0.7,
           "success": false
         },
-        "latency_s": 0.5995623999988311,
+        "latency_s": 1.5508957999991253,
         "error": null
       },
-      "latency_s": 0.9061380000021018
+      "latency_s": 2.298578499998257
     },
     {
       "id": "task-006",
@@ -446,7 +446,7 @@
           "tests/user.test.ts"
         ],
         "hit_count": 4,
-        "latency_s": 0.004048899998451816,
+        "latency_s": 0.004963800001860363,
         "metrics": {
           "recall@3": 1.0,
           "recall@5": 1.0,
@@ -499,10 +499,10 @@
           "score_pct": 0.8,
           "success": true
         },
-        "latency_s": 0.011928900003113085,
+        "latency_s": 0.1004369999973278,
         "error": null
       },
-      "latency_s": 0.01605760000165901
+      "latency_s": 0.10550320000038482
     },
     {
       "id": "task-007",
@@ -523,7 +523,7 @@
           "package.json"
         ],
         "hit_count": 6,
-        "latency_s": 0.005393699997512158,
+        "latency_s": 0.0245578000030946,
         "metrics": {
           "recall@3": 0.6666666666666666,
           "recall@5": 1.0,
@@ -577,7 +577,7 @@
           "score_pct": 0.6,
           "success": false
         },
-        "latency_s": 0.01374480000231415,
+        "latency_s": 0.019573000001400942,
         "error": null
       },
       "patch": {
@@ -622,22 +622,23 @@
           "output": "no gold tests",
           "command": null
         },
-        "copy_latency_s": 0.020917699999699835,
-        "context_latency_s": 0.020639899998059263,
-        "generate_latency_s": 15.239241799998126,
-        "apply_latency_s": 0.0015376000010292046,
-        "test_latency_s": 4.400000761961564e-06,
+        "copy_latency_s": 0.0880765000001702,
+        "context_latency_s": 0.0764980000021751,
+        "generate_latency_s": 69.85036010000113,
+        "apply_latency_s": 0.0014267999977164436,
+        "test_latency_s": 9.000003046821803e-06,
         "error": null,
         "failure_category": null,
         "status_machine": "approved",
         "structured_recovery": false,
         "raw_structured_ok": true,
+        "recovery_failed": false,
         "raw_completion_preview": null,
-        "first_attempt_latency_s": 15.229259399999137,
+        "first_attempt_latency_s": 69.83663829999932,
         "retry_latency_s": null,
         "quality_gate": null
       },
-      "latency_s": 15.317583500000183
+      "latency_s": 70.08120939999935
     },
     {
       "id": "task-008",
@@ -657,7 +658,7 @@
           "package.json"
         ],
         "hit_count": 5,
-        "latency_s": 0.004286600000341423,
+        "latency_s": 0.003986600000644103,
         "metrics": {
           "recall@3": 1.0,
           "recall@5": 1.0,
@@ -708,7 +709,7 @@
           "score_pct": 0.8,
           "success": true
         },
-        "latency_s": 0.012621599998965394,
+        "latency_s": 0.01220830000238493,
         "error": null
       },
       "patch": {
@@ -717,7 +718,7 @@
         "applied": true,
         "e2e_success": true,
         "todo_only": false,
-        "summary": "Add a GET /version API endpoint that returns JSON {\"version\":\"1.0.0\"} with HTTP 200.",
+        "summary": "Add GET /version API endpoint",
         "model_reported": "qwen2.5-coder:7b",
         "modified_files": [
           "src/routes/users.ts"
@@ -753,22 +754,23 @@
           "output": "no gold tests",
           "command": null
         },
-        "copy_latency_s": 0.017229900000529597,
-        "context_latency_s": 0.02169040000080713,
-        "generate_latency_s": 19.38852930000212,
-        "apply_latency_s": 0.001790199999959441,
-        "test_latency_s": 8.39999847812578e-06,
+        "copy_latency_s": 0.01997060000212514,
+        "context_latency_s": 0.020682899998064386,
+        "generate_latency_s": 83.78638430000137,
+        "apply_latency_s": 0.00185090000013588,
+        "test_latency_s": 6.79999720887281e-06,
         "error": null,
         "failure_category": null,
         "status_machine": "approved",
         "structured_recovery": false,
         "raw_structured_ok": true,
+        "recovery_failed": false,
         "raw_completion_preview": null,
-        "first_attempt_latency_s": 19.38778540000203,
+        "first_attempt_latency_s": 83.785644399999,
         "retry_latency_s": null,
         "quality_gate": null
       },
-      "latency_s": 19.460927100000845
+      "latency_s": 83.85997100000168
     },
     {
       "id": "task-009",
@@ -793,7 +795,7 @@
           "github/workflows/run_tests.yml"
         ],
         "hit_count": 24,
-        "latency_s": 0.14044730000023264,
+        "latency_s": 0.14629539999805274,
         "metrics": {
           "recall@3": 1.0,
           "recall@5": 1.0,
@@ -850,10 +852,10 @@
           "score_pct": 0.8,
           "success": true
         },
-        "latency_s": 0.39681130000099074,
+        "latency_s": 0.39431340000010096,
         "error": null
       },
-      "latency_s": 0.5382008000015048
+      "latency_s": 0.5422718000008899
     },
     {
       "id": "task-010",
@@ -878,7 +880,7 @@
           "test/test_app.py"
         ],
         "hit_count": 24,
-        "latency_s": 0.147131999998237,
+        "latency_s": 0.14337430000159657,
         "metrics": {
           "recall@3": 1.0,
           "recall@5": 1.0,
@@ -935,20 +937,23 @@
           "score_pct": 0.8,
           "success": true
         },
-        "latency_s": 0.434664000000339,
+        "latency_s": 0.43199710000044433,
         "error": null
       },
       "patch": {
-        "ok": false,
-        "generation_succeeded": false,
-        "applied": false,
+        "ok": true,
+        "generation_succeeded": true,
+        "applied": true,
         "e2e_success": false,
         "todo_only": false,
-        "summary": "",
-        "model_reported": null,
-        "modified_files": [],
-        "expected_files_hit": false,
-        "expected_file_accuracy": 0.0,
+        "summary": "Add is_valid_email function and unittest",
+        "model_reported": "qwen2.5-coder:7b",
+        "modified_files": [
+          "test/test_html_helper.py",
+          "bottle.py"
+        ],
+        "expected_files_hit": true,
+        "expected_file_accuracy": 1.0,
         "unexpected_files": [],
         "context_files": [
           "bottle.py",
@@ -959,40 +964,40 @@
         "token_measurement": "unavailable",
         "usage": null,
         "syntax": {
-          "ok": false,
-          "checked": [],
-          "errors": [
-            "not applied"
-          ]
+          "ok": true,
+          "checked": [
+            "test/test_html_helper.py",
+            "bottle.py"
+          ],
+          "errors": []
         },
         "expect_in_files": {
-          "ok": false,
-          "missing": [
-            "not applied"
-          ]
+          "ok": true,
+          "missing": []
         },
         "tests": {
-          "status": "skipped",
-          "passed": null,
-          "output": "not applied",
-          "command": null
+          "status": "fail",
+          "passed": false,
+          "output": ".E                                                                       [100%]\n=================================== ERRORS ====================================\n____________________ ERROR at setup of test_is_valid_email ____________________\nfile C:\\Coding Workspace\\otter\\benchmarks\\workspaces\\qwen2.5-coder-7b\\task-010\\test\\test_html_helper.py, line 23\n  def test_is_valid_email(self):\nE       fixture 'self' not found\n>       available fixtures: capfd, capfdbinary, caplog, capsys, capsysbinary, doctest_namespace, monkeypatch, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory\n>       use 'pytest --fixtures [testpath]' for help on them.\n\nC:\\Coding Workspace\\otter\\benchmarks\\workspaces\\qwen2.5-coder-7b\\task-010\\test\\test_html_helper.py:23\n=========================== short test summary info ===========================\nERROR test/test_html_helper.py::test_is_valid_email\n1 passed, 1 error in 0.31s\n\n",
+          "command": "C:\\Coding Workspace\\otter\\benchmarks\\.venv\\Scripts\\python.exe -m pytest -q --tb=line -p no:cacheprovider -o addopts= -o filterwarnings= test/test_html_helper.py"
         },
-        "copy_latency_s": 0.528193400001328,
-        "context_latency_s": 0.3264590999970096,
-        "generate_latency_s": 421.5793530999981,
-        "apply_latency_s": 0.0,
-        "test_latency_s": 0.0,
-        "error": "Patch generation failed across local models (qwen2.5-coder:7b\u2026): qwen2.5-coder:7b: No JSON object found in model response",
-        "failure_category": "json_malformed",
-        "status_machine": "ready_for_approval",
+        "copy_latency_s": 0.4059056000005512,
+        "context_latency_s": 0.33497300000090036,
+        "generate_latency_s": 70.82732040000337,
+        "apply_latency_s": 0.0034938999997393694,
+        "test_latency_s": 0.9368572999992466,
+        "error": null,
+        "failure_category": "test failure",
+        "status_machine": "approved",
         "structured_recovery": false,
-        "raw_structured_ok": null,
-        "raw_completion_preview": "```json\n{\n  \"summary\": \"Added is_valid_email function to bottle.py and a unittest for it in test/test_html_helper.py.\",\n  \"edits\": [\n    {\n      \"path\": \"bottle.py\",\n      \"old_string\": \"\",\n      \"new_string\": \"\"\"\ndef is_valid_email(value):\n    if not isinstance(value, str) or value.count('@') != 1:\n        return False\n    local, domain = value.split('@')\n    return local and domain\n\"\"\"\n    }\n  ],\n  \"files\": [\n    {\n      \"path\": \"test/test_html_helper.py\",\n      \"content\": \"\"\"\nimport unittest\n\nfrom bottle import _parse_http_header, is_valid_email\n\n\nclass TestHttpUtils(unittest.TestCase):\n\n    # TODO: Move more of the low level http stuff here.\n\n    def test_accept_header(self):\n        self.assertEqual(_parse_http_header(\n                'text/xml, text/whitespace ,'\n                'app\n\u2026\n.assertFalse(is_valid_email('a@ b.c '))\n        self.assertFalse(is_valid_email('a@b.c '))\n        self.assertFalse(is_valid_email('a@ b.c '))\n        self.assertFalse(is_valid_email('a@b.c '))\n        self.assertFalse(is_valid_email('a@ b.c '))\n        self.assertFalse(is_valid_email('a@b.c '))\n        self.assertFalse(is_valid_email('a@ b.c '))\n        self.assertFalse(is_valid_email('a@b.c '))\n        self.assertFalse(is_valid_email('a@ b.c '))\n        self.assertFalse(is_valid_email('a@b.c '))\n        self.assertFalse(is_valid_email('a@ b.c '))\n        self.assertFalse(is_valid_email('a@b.c '))\n        self.assertFalse(is_valid_email('a@ b.c '))\n        self.assertFalse(is_valid_email('a@b.c '))\n        self.assertFalse(is_valid_email('a@ b.c '))\n        self.assertFalse(is_valid_email",
-        "first_attempt_latency_s": null,
+        "raw_structured_ok": true,
+        "recovery_failed": false,
+        "raw_completion_preview": null,
+        "first_attempt_latency_s": 70.77222140000231,
         "retry_latency_s": null,
         "quality_gate": null
       },
-      "latency_s": 423.0176867000009
+      "latency_s": 73.16537239999889
     },
     {
       "id": "task-011",
@@ -1017,7 +1022,7 @@
           "src/click/_compat.py"
         ],
         "hit_count": 24,
-        "latency_s": 0.22610849999909988,
+        "latency_s": 0.48867559999780497,
         "metrics": {
           "recall@3": 1.0,
           "recall@5": 1.0,
@@ -1074,10 +1079,10 @@
           "score_pct": 0.8,
           "success": true
         },
-        "latency_s": 0.5690740999998525,
+        "latency_s": 1.3857282000026316,
         "error": null
       },
-      "latency_s": 0.7968316000005871
+      "latency_s": 1.8840022000003955
     },
     {
       "id": "task-012",
@@ -1102,7 +1107,7 @@
           "tests/test_command_decorators.py"
         ],
         "hit_count": 24,
-        "latency_s": 0.23105199999918113,
+        "latency_s": 0.5158597999979975,
         "metrics": {
           "recall@3": 1.0,
           "recall@5": 1.0,
@@ -1159,20 +1164,24 @@
           "score_pct": 0.8,
           "success": true
         },
-        "latency_s": 0.5529569999998785,
+        "latency_s": 1.2718107999971835,
         "error": null
       },
       "patch": {
-        "ok": false,
-        "generation_succeeded": false,
-        "applied": false,
+        "ok": true,
+        "generation_succeeded": true,
+        "applied": true,
         "e2e_success": false,
         "todo_only": false,
-        "summary": "",
-        "model_reported": null,
-        "modified_files": [],
-        "expected_files_hit": false,
-        "expected_file_accuracy": 0.0,
+        "summary": "Add EmailParamType class and unit test",
+        "model_reported": "qwen2.5-coder:7b",
+        "modified_files": [
+          "src/click/__init__.py",
+          "tests/test_types.py",
+          "src/click/types.py"
+        ],
+        "expected_files_hit": true,
+        "expected_file_accuracy": 1.0,
         "unexpected_files": [],
         "context_files": [
           "src/click/types.py",
@@ -1185,40 +1194,41 @@
         "token_measurement": "unavailable",
         "usage": null,
         "syntax": {
-          "ok": false,
-          "checked": [],
-          "errors": [
-            "not applied"
-          ]
+          "ok": true,
+          "checked": [
+            "src/click/__init__.py",
+            "tests/test_types.py",
+            "src/click/types.py"
+          ],
+          "errors": []
         },
         "expect_in_files": {
-          "ok": false,
-          "missing": [
-            "not applied"
-          ]
+          "ok": true,
+          "missing": []
         },
         "tests": {
-          "status": "skipped",
-          "passed": null,
-          "output": "not applied",
-          "command": null
+          "status": "fail",
+          "passed": false,
+          "output": ".................................s....sF                                 [100%]\n================================== FAILURES ===================================\nC:\\Coding Workspace\\otter\\benchmarks\\workspaces\\qwen2.5-coder-7b\\task-012\\tests\\test_types.py:248: NameError: name 'EmailParamType' is not defined\n=========================== short test summary info ===========================\nFAILED tests/test_types.py::test_email_param_type - NameError: name 'EmailPar...\n1 failed, 37 passed, 2 skipped in 0.26s\n\n",
+          "command": "C:\\Coding Workspace\\otter\\benchmarks\\.venv\\Scripts\\python.exe -m pytest -q --tb=line -p no:cacheprovider -o addopts= -o filterwarnings= tests/test_types.py"
         },
-        "copy_latency_s": 0.268478200003301,
-        "context_latency_s": 0.787674800001696,
-        "generate_latency_s": 271.57896150000306,
-        "apply_latency_s": 0.0,
-        "test_latency_s": 0.0,
-        "error": "Patch generation failed across local models (qwen2.5-coder:7b\u2026): qwen2.5-coder:7b: No JSON object found in model response",
-        "failure_category": "json_malformed",
-        "status_machine": "ready_for_approval",
-        "structured_recovery": false,
-        "raw_structured_ok": null,
-        "raw_completion_preview": "```json\n{\n  \"summary\": \"Add EmailParamType class and unit test.\",\n  \"edits\": [\n    {\n      \"path\": \"src/click/types.py\",\n      \"old_string\": \"\",\n      \"new_string\": \"\"\"\nclass EmailParamType(ParamType):\n    name = 'email'\n\n    def convert(self, value: str, param: t.Optional['Parameter'], ctx: t.Optional['Context']) -> str:\n        if '@' in value:\n            return value\n        else:\n            raise click.BadParameter(f\"Invalid email address: {value}\")\n\"\"\"\n    },\n    {\n      \"path\": \"src/click/__init__.py\",\n      \"old_string\": \"\",\n      \"new_string\": \"\"\"\nfrom .types import BOOL as BOOL\nfrom .types import Choice as Choice\nfrom .types import DateTime as DateTime\nfrom .types import File as File\nfrom .types import FLOAT as FLOAT\nfrom .types import FloatRange as FloatRange\nfrom .types import\n\u2026\npe, value, expect):\n    assert type.convert(value, None, None) == expect\n\n\n@pytest.mark.parametrize(\n    (\"type\", \"value\", \"expect\"),\n    [\n        (click.IntRange(0, 5), \"6\", \"6 is not in the range 0<=x<=5.\"),\n        (click.IntRange(5), \"4\", \"4 is not in the range x>=5.\"),\n        (click.IntRange(max=5), \"6\", \"6 is not in the range x<=5.\"),\n        (click.IntRange(0, 5, min_open=True), 0, \"0<x<=5\"),\n        (click.IntRange(0, 5, max_open=True), 5, \"0<=x<5\"),\n        (click.FloatRange(0.5, min_open=True), 0.5, \"x>0.5\"),\n        (click.FloatRange(max=1.5, max_open=True), 1.5, \"x<1.5\"),\n    ],\n)\ndef test_range_fail(type, value, expect):\n    with pytest.raises(click.BadParameter) as exc_info:\n        type.convert(value, None, None)\n    assert str(exc_info.value) == expect\n\"\"\"\n    }\n  ]\n}\n```",
-        "first_attempt_latency_s": null,
+        "copy_latency_s": 0.594565600000351,
+        "context_latency_s": 1.537109299999429,
+        "generate_latency_s": 93.50306099999943,
+        "apply_latency_s": 0.006421699999918928,
+        "test_latency_s": 1.0327017999989039,
+        "error": null,
+        "failure_category": "test failure",
+        "status_machine": "approved",
+        "structured_recovery": true,
+        "raw_structured_ok": false,
+        "recovery_failed": false,
+        "raw_completion_preview": null,
+        "first_attempt_latency_s": 93.48383069999909,
         "retry_latency_s": null,
         "quality_gate": null
       },
-      "latency_s": 273.4214061999992
+      "latency_s": 98.51901640000142
     },
     {
       "id": "task-013",
@@ -1243,7 +1253,7 @@
           "github/ISSUE_TEMPLATE/config.yml"
         ],
         "hit_count": 24,
-        "latency_s": 0.2558413000006112,
+        "latency_s": 0.265248600000632,
         "metrics": {
           "recall@3": 1.0,
           "recall@5": 1.0,
@@ -1300,10 +1310,10 @@
           "score_pct": 0.8,
           "success": true
         },
-        "latency_s": 0.5821608000005654,
+        "latency_s": 0.5806611000007251,
         "error": null
       },
-      "latency_s": 0.8405701000010595
+      "latency_s": 0.8478141000014148
     },
     {
       "id": "task-014",
@@ -1328,7 +1338,7 @@
           "tests/test_authentication.py"
         ],
         "hit_count": 24,
-        "latency_s": 0.26930060000086087,
+        "latency_s": 0.26871550000214484,
         "metrics": {
           "recall@3": 1.0,
           "recall@5": 1.0,
@@ -1385,20 +1395,23 @@
           "score_pct": 0.8,
           "success": true
         },
-        "latency_s": 0.6027943000008236,
+        "latency_s": 0.861687399999937,
         "error": null
       },
       "patch": {
-        "ok": false,
-        "generation_succeeded": false,
-        "applied": false,
+        "ok": true,
+        "generation_succeeded": true,
+        "applied": true,
         "e2e_success": false,
         "todo_only": false,
-        "summary": "",
-        "model_reported": null,
-        "modified_files": [],
-        "expected_files_hit": false,
-        "expected_file_accuracy": 0.0,
+        "summary": "Add Config.get_bool method and test",
+        "model_reported": "qwen2.5-coder:7b",
+        "modified_files": [
+          "tests/test_config.py",
+          "starlette/config.py"
+        ],
+        "expected_files_hit": true,
+        "expected_file_accuracy": 1.0,
         "unexpected_files": [],
         "context_files": [
           "starlette/config.py",
@@ -1409,42 +1422,40 @@
         "token_measurement": "unavailable",
         "usage": null,
         "syntax": {
-          "ok": false,
-          "checked": [],
-          "errors": [
-            "not applied"
-          ]
+          "ok": true,
+          "checked": [
+            "tests/test_config.py",
+            "starlette/config.py"
+          ],
+          "errors": []
         },
         "expect_in_files": {
-          "ok": false,
-          "missing": [
-            "not applied"
-          ]
+          "ok": true,
+          "missing": []
         },
         "tests": {
-          "status": "skipped",
-          "passed": null,
-          "output": "not applied",
-          "command": null
+          "status": "fail",
+          "passed": false,
+          "output": "..F..F                                                                   [100%]\n================================== FAILURES ===================================\nC:\\Users\\ASUS\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\re\\_parser.py:397: re.PatternError: incomplete escape \\U at position 15\nC:\\Coding Workspace\\otter\\benchmarks\\workspaces\\qwen2.5-coder-7b\\task-014\\tests\\test_config.py:159: Failed: DID NOT RAISE <class 'ValueError'>\n============================== warnings summary ===============================\nstarlette\\formparsers.py:12\n  C:\\Coding Workspace\\otter\\benchmarks\\workspaces\\qwen2.5-coder-7b\\task-014\\starlette\\formparsers.py:12: PendingDeprecationWarning: Please use `import python_multipart` instead.\n    import multipart\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n=========================== short test summary info ===========================\nFAILED tests/test_config.py::test_missing_env_file_raises - re.PatternError: ...\nFAILED tests/test_config.py::test_get_bool - Failed: DID NOT RAISE <class 'Va...\n2 failed, 4 passed, 1 warning in 0.16s\n\n",
+          "command": "C:\\Coding Workspace\\otter\\benchmarks\\.venv\\Scripts\\python.exe -m pytest -q --tb=line -p no:cacheprovider -o addopts= -o filterwarnings= tests/test_config.py"
         },
-        "copy_latency_s": 0.1984396999978344,
-        "context_latency_s": 1.0755489000002854,
-        "generate_latency_s": 66.481676899999,
-        "apply_latency_s": 0.0,
-        "test_latency_s": 0.0,
-        "error": "Patch generation failed across local models (qwen2.5-coder:7b\u2026): qwen2.5-coder:7b: QUALITY_GATE:\n    category: destructive_rewrite\n    file: tests/test_config.py\n    reason: tests/test_config.py proposed content is much shorter than the original (163 vs 5008 chars; deletion_ratio=0.77)",
-        "failure_category": "quality_gate",
-        "status_machine": "ready_for_approval",
+        "copy_latency_s": 0.49036290000003646,
+        "context_latency_s": 1.979611399998248,
+        "generate_latency_s": 153.12218470000153,
+        "apply_latency_s": 0.003763100001378916,
+        "test_latency_s": 1.1130314000001817,
+        "error": null,
+        "failure_category": "test failure",
+        "status_machine": "approved",
         "structured_recovery": false,
-        "raw_structured_ok": null,
-        "raw_completion_preview": "```json\n{\n  \"summary\": \"Added Config.get_bool method and test in tests/test_config.py\",\n  \"edits\": [\n    {\n      \"path\": \"starlette/config.py\",\n      \"old_string\": \"\",\n      \"new_string\": \"\\n    def get_bool(self, key: str, default=False) -> bool:\\n        value = self(key, cast=str, default=default)\\n        if value.lower() in ('1', 'true', 'yes', 'on'):\\n            return True\\n        elif value.lower() in ('0', 'false', 'no', 'off'):\\n            return False\\n        else:\\n            raise ValueError(f'Invalid boolean value: {value}')\\n\"\n    }\n  ],\n  \"files\": [\n    {\n      \"path\": \"tests/test_config.py\",\n      \"content\": \"import pytest\\nfrom starlette.config import Config, Secret, URL, undefined\\nfrom starlette.datastructures import CommaSeparatedStrings\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\"\n    }\n  ]\n}\n```",
-        "first_attempt_latency_s": null,
+        "raw_structured_ok": true,
+        "recovery_failed": false,
+        "raw_completion_preview": null,
+        "first_attempt_latency_s": 153.11472969999886,
         "retry_latency_s": null,
-        "quality_gate": {
-          "message": "qwen2.5-coder:7b: QUALITY_GATE:\n    category: destructive_rewrite\n    file: tests/test_config.py\n    reason: tests/test_config.py proposed content is much shorter than the original (163 vs 5008 chars; deletion_ratio=0.77)"
-        }
+        "quality_gate": null
       },
-      "latency_s": 68.62991560000228
+      "latency_s": 157.86959509999724
     },
     {
       "id": "task-015",
@@ -1469,7 +1480,7 @@
           "test/test_stpl.py"
         ],
         "hit_count": 24,
-        "latency_s": 0.14386069999818574,
+        "latency_s": 0.20198870000240277,
         "metrics": {
           "recall@3": 0.5,
           "recall@5": 0.5,
@@ -1526,20 +1537,22 @@
           "score_pct": 0.5,
           "success": false
         },
-        "latency_s": 0.38433070000246516,
+        "latency_s": 0.7859922999996343,
         "error": null
       },
       "patch": {
-        "ok": false,
-        "generation_succeeded": false,
-        "applied": false,
-        "e2e_success": false,
+        "ok": true,
+        "generation_succeeded": true,
+        "applied": true,
+        "e2e_success": true,
         "todo_only": false,
-        "summary": "",
-        "model_reported": null,
-        "modified_files": [],
-        "expected_files_hit": false,
-        "expected_file_accuracy": 0.0,
+        "summary": "Modify bottle.auth_basic to change response body text when check callback returns False.",
+        "model_reported": "qwen2.5-coder:7b",
+        "modified_files": [
+          "bottle.py"
+        ],
+        "expected_files_hit": true,
+        "expected_file_accuracy": 0.5,
         "unexpected_files": [],
         "context_files": [
           "bottle.py",
@@ -1550,42 +1563,39 @@
         "token_measurement": "unavailable",
         "usage": null,
         "syntax": {
-          "ok": false,
-          "checked": [],
-          "errors": [
-            "not applied"
-          ]
+          "ok": true,
+          "checked": [
+            "bottle.py"
+          ],
+          "errors": []
         },
         "expect_in_files": {
-          "ok": false,
-          "missing": [
-            "not applied"
-          ]
+          "ok": true,
+          "missing": []
         },
         "tests": {
-          "status": "skipped",
-          "passed": null,
-          "output": "not applied",
-          "command": null
+          "status": "pass",
+          "passed": true,
+          "output": ".                                                                        [100%]\n1 passed in 0.18s\n\n",
+          "command": "C:\\Coding Workspace\\otter\\benchmarks\\.venv\\Scripts\\python.exe -m pytest -q --tb=line -p no:cacheprovider -o addopts= -o filterwarnings= test/test_auth.py"
         },
-        "copy_latency_s": 0.3695253000005323,
-        "context_latency_s": 0.3689922999983537,
-        "generate_latency_s": 23.451143199999933,
-        "apply_latency_s": 0.0,
-        "test_latency_s": 0.0,
-        "error": "Patch generation failed across local models (qwen2.5-coder:7b\u2026): qwen2.5-coder:7b: QUALITY_GATE:\n    category: edit_target_not_found\n    file: bottle.py\n    reason: old_string was not found in the file; copy a verbatim unique snippet from context",
-        "failure_category": "quality_gate",
-        "status_machine": "ready_for_approval",
+        "copy_latency_s": 1.0167981999984477,
+        "context_latency_s": 0.5959540000003472,
+        "generate_latency_s": 38.43875250000201,
+        "apply_latency_s": 0.003509400001348695,
+        "test_latency_s": 0.8702922999982547,
+        "error": null,
+        "failure_category": null,
+        "status_machine": "approved",
         "structured_recovery": false,
-        "raw_structured_ok": null,
-        "raw_completion_preview": "```json\n{\n  \"summary\": \"Modify bottle.auth_basic to change the response body text when check callback returns False.\",\n  \"edits\": [\n    {\n      \"path\": \"bottle.py\",\n      \"old_string\": \"return 'Access denied'\",\n      \"new_string\": \"return 'Authentication required'\"\n    }\n  ],\n  \"files\": [],\n  \"dependencies\": {}\n}\n```",
-        "first_attempt_latency_s": null,
+        "raw_structured_ok": true,
+        "recovery_failed": false,
+        "raw_completion_preview": null,
+        "first_attempt_latency_s": 38.353357400003006,
         "retry_latency_s": null,
-        "quality_gate": {
-          "message": "qwen2.5-coder:7b: QUALITY_GATE:\n    category: edit_target_not_found\n    file: bottle.py\n    reason: old_string was not found in the file; copy a verbatim unique snippet from context"
-        }
+        "quality_gate": null
       },
-      "latency_s": 24.718914599998243
+      "latency_s": 42.01132229999712
     },
     {
       "id": "task-016",
@@ -1606,7 +1616,7 @@
           "package.json"
         ],
         "hit_count": 6,
-        "latency_s": 0.0037403999995149206,
+        "latency_s": 0.005805699998745695,
         "metrics": {
           "recall@3": 0.75,
           "recall@5": 1.0,
@@ -1657,20 +1667,25 @@
           "score_pct": 0.7,
           "success": false
         },
-        "latency_s": 0.012151199996878859,
+        "latency_s": 0.014634800001658732,
         "error": null
       },
       "patch": {
-        "ok": false,
-        "generation_succeeded": false,
-        "applied": false,
-        "e2e_success": false,
+        "ok": true,
+        "generation_succeeded": true,
+        "applied": true,
+        "e2e_success": true,
         "todo_only": false,
-        "summary": "",
-        "model_reported": null,
-        "modified_files": [],
-        "expected_files_hit": false,
-        "expected_file_accuracy": 0.0,
+        "summary": "Add GET /users/:id route and related service/repository functions.",
+        "model_reported": "qwen2.5-coder:7b",
+        "modified_files": [
+          "src/services/userService.ts",
+          "src/routes/users.ts",
+          "src/repositories/userRepository.ts",
+          "tests/user.test.ts"
+        ],
+        "expected_files_hit": true,
+        "expected_file_accuracy": 1.0,
         "unexpected_files": [],
         "context_files": [
           "src/services/userService.ts",
@@ -1683,42 +1698,43 @@
         "token_measurement": "unavailable",
         "usage": null,
         "syntax": {
-          "ok": false,
-          "checked": [],
-          "errors": [
-            "not applied"
-          ]
+          "ok": true,
+          "checked": [
+            "src/services/userService.ts",
+            "src/routes/users.ts",
+            "src/repositories/userRepository.ts",
+            "tests/user.test.ts"
+          ],
+          "errors": [],
+          "note": "no TypeScript compiler in suite; syntax skipped"
         },
         "expect_in_files": {
-          "ok": false,
-          "missing": [
-            "not applied"
-          ]
+          "ok": true,
+          "missing": []
         },
         "tests": {
           "status": "skipped",
           "passed": null,
-          "output": "not applied",
+          "output": "no gold tests",
           "command": null
         },
-        "copy_latency_s": 0.01739879999877303,
-        "context_latency_s": 0.034795600000506965,
-        "generate_latency_s": 98.0922290999988,
-        "apply_latency_s": 0.0,
-        "test_latency_s": 0.0,
-        "error": "Patch generation failed across local models (qwen2.5-coder:7b\u2026): qwen2.5-coder:7b: QUALITY_GATE:\n    category: edit_target_not_found\n    file: src/routes/users.ts\n    reason: old_string was not found in the file; copy a verbatim unique snippet from context",
-        "failure_category": "quality_gate",
-        "status_machine": "ready_for_approval",
+        "copy_latency_s": 0.0212403000004997,
+        "context_latency_s": 0.025631100001191953,
+        "generate_latency_s": 48.37233359999664,
+        "apply_latency_s": 0.006422799997380935,
+        "test_latency_s": 5.099998816149309e-06,
+        "error": null,
+        "failure_category": null,
+        "status_machine": "approved",
         "structured_recovery": false,
-        "raw_structured_ok": null,
-        "raw_completion_preview": "```json\n{\n  \"summary\": \"Add GET /users/:id route to load a user through the service and repository layers.\",\n  \"edits\": [\n    {\n      \"path\": \"src/services/userService.ts\",\n      \"old_string\": \"\",\n      \"new_string\": \"import { getUserById } from '../repositories/userRepository.js';\\n\\nexport async function createUser(email: string) {\\n  return insertUser(email);\\n}\\n\"\n    },\n    {\n      \"path\": \"src/repositories/userRepository.ts\",\n      \"old_string\": \"export async function insertUser(email: string) {\",\n      \"new_string\": \"export async function getUserById(id: string) {\\n  // Mock implementation for demonstration\\n  return id === '1' ? { id, email: 'a@b.com' } : null;\\n}\\n\\nexport async function insertUser(email: string) {\"\n    },\n    {\n      \"path\": \"src/routes/users.ts\",\n      \"old_string\": \"app.post('/users', async (req, res) => {\",\n      \"new_string\": \"import express from 'express';\\nimport { createUser, getUserById } from '../services/userService.js';\\n\\nexport function registerUserRoutes(app: express.Express) {\\n  app.post('/users', async (req, res) => {\\n    const user = await createUser(req.body.email);\\n    res.json(user);\\n  });\\n\\n  app.get('/users/:id', async (req, res) => {\\n    const user = await getUserById(req.params.id);\\n    if (!user) {\\n      return res.status(404).json({ error: 'not_found' });\\n    }\\n    res.json(user);\\n  });\\n}\\n\"\n    }\n  ],\n  \"files\": [],\n  \"dependencies\": {}\n}\n```",
-        "first_attempt_latency_s": null,
+        "raw_structured_ok": true,
+        "recovery_failed": false,
+        "raw_completion_preview": null,
+        "first_attempt_latency_s": 48.37114229999861,
         "retry_latency_s": null,
-        "quality_gate": {
-          "message": "qwen2.5-coder:7b: QUALITY_GATE:\n    category: edit_target_not_found\n    file: src/routes/users.ts\n    reason: old_string was not found in the file; copy a verbatim unique snippet from context"
-        }
+        "quality_gate": null
       },
-      "latency_s": 98.16049780000321
+      "latency_s": 48.47300049999831
     },
     {
       "id": "task-017",
@@ -1739,7 +1755,7 @@
           "package.json"
         ],
         "hit_count": 6,
-        "latency_s": 0.0034713999993982725,
+        "latency_s": 0.0038395000010496005,
         "metrics": {
           "recall@3": 0.6,
           "recall@5": 1.0,
@@ -1793,7 +1809,7 @@
           "score_pct": 0.6,
           "success": false
         },
-        "latency_s": 0.012555400000564987,
+        "latency_s": 0.011798499999713385,
         "error": null
       },
       "patch": {
@@ -1837,24 +1853,25 @@
           "output": "not applied",
           "command": null
         },
-        "copy_latency_s": 0.016638100001728162,
-        "context_latency_s": 0.019550799999706214,
-        "generate_latency_s": 218.1831557000005,
+        "copy_latency_s": 0.01784380000026431,
+        "context_latency_s": 0.020038700000441168,
+        "generate_latency_s": 72.66367309999987,
         "apply_latency_s": 0.0,
         "test_latency_s": 0.0,
-        "error": "Patch generation failed across local models (qwen2.5-coder:7b\u2026): qwen2.5-coder:7b: QUALITY_GATE:\n    category: incomplete_auth\n    reason: imports `bcrypt` but it is not in package.json / known repo packages; auth change is missing a users model/table (do not reuse domain tables like cards)",
+        "error": "Patch generation failed across local models (qwen2.5-coder:7b\u2026): qwen2.5-coder:7b: QUALITY_GATE:\n    category: incomplete_auth\n    reason: auth change is missing login/register routes",
         "failure_category": "quality_gate",
         "status_machine": "ready_for_approval",
         "structured_recovery": false,
-        "raw_structured_ok": null,
-        "raw_completion_preview": "```json\n{\n  \"summary\": \"Add POST /users/login route to verify email and password, hash passwords on create-user path, and update tests.\",\n  \"edits\": [\n    {\n      \"path\": \"src/repositories/userRepository.ts\",\n      \"old_string\": \"\",\n      \"new_string\": \"import bcrypt from 'bcrypt';\\n\\nexport async function insertUser(email: string, passwordHash: string) {\\n  return { id: \\\"1\\\", email, passwordHash };\\n}\\n\"\n    },\n    {\n      \"path\": \"src/services/userService.ts\",\n      \"old_string\": \"\",\n      \"new_string\": \"import bcrypt from 'bcrypt';\\n\\nexport async function createUser(email: string, password: string) {\\n  const salt = await bcrypt.genSalt(10);\\n  const passwordHash = await bcrypt.hash(password, salt);\\n  return insertUser(email, passwordHash);\\n}\\n\"\n    },\n    {\n      \"path\": \"src/route\n\u2026\ntUser(email, passwordHash);\\n}\\n\\nexport async function loginUser(email: string, password: string) {\\n  const user = await getUserByEmail(email);\\n  if (user && await bcrypt.compare(password, user.passwordHash)) {\\n    return { id: user.id, email: user.email };\\n  }\\n  return null;\\n}\\n\"\n    },\n    {\n      \"path\": \"tests/user.test.ts\",\n      \"old_string\": \"\",\n      \"new_string\": \"import { createUser, loginUser } from \\\"../src/services/userService.js\\\";\\n\\nexport async function testCreateUser() {\\n  const user = await createUser(\\\"a@b.com\\\", \\\"password123\\\");\\n  if (!user.email) throw new Error(\\\"missing email\\\");\\n}\\n\\nexport async function testLoginUser() {\\n  const user = await loginUser(\\\"a@b.com\\\", \\\"password123\\\");\\n  if (!user) throw new Error(\\\"login failed\\\");\\n}\\n\"\n    }\n  ]\n}\n```",
-        "first_attempt_latency_s": null,
+        "raw_structured_ok": false,
+        "recovery_failed": false,
+        "raw_completion_preview": "```json\n{\n  \"summary\": \"Add passwordHash to userRepository, update createUser to hash passwords, add login route and tests.\",\n  \"edits\": [\n    {\n      \"path\": \"src/repositories/userRepository.ts\",\n      \"symbol\": \"User\",\n      \"old_string\": \"\",\n      \"new_string\": \", passwordHash: string\"\n    },\n    {\n      \"path\": \"src/repositories/userRepository.ts\",\n      \"symbol\": \"insertUser\",\n      \"old_string\": \"{ id: \\\"1\\\", email }\",\n      \"new_string\": \"{ id: \\\"1\\\", email, passwordHash }\"\n    },\n    {\n      \"path\": \"src/services/userService.ts\",\n      \"symbol\": \"createUser\",\n      \"old_string\": \"return insertUser(email);\",\n      \"new_string\": \"const { email, password } = req.body;\\nif (!password) throw new Error(\\\"missing password\\\");\\nconst passwordHash = await hashPassword(password);\\nreturn ins\n\u2026\n const user = await createUser(req.body.email);\\n    res.json(user);\\n  } catch (error) {\\n    res.status(401).json({ error: \\\"unauthorized\\\" });\\n  }\\n}\"\n    }\n  ],\n  \"files\": [\n    {\n      \"path\": \"tests/user.test.ts\",\n      \"content\": \"import { createUser, hashPassword } from \\\"../src/services/userService.js\\\";\\n\\nexport async function testCreateUser() {\\n  const user = await createUser(\\\"a@b.com\\\");\\n  if (!user.email) throw new Error(\\\"missing email\\\");\\n}\\n\\nexport async function testLoginUser() {\\n  const password = \\\"password123\\\";\\n  const hashedPassword = await hashPassword(password);\\n  const user = await createUser({ email: \\\"a@b.com\\\", password });\\n  if (!user.email) throw new Error(\\\"missing email\\\");\\n}\\n\"\n    }\n  ],\n  \"dependencies\": {\n    \"node:crypto\": \"^1.0.0\"\n  }\n}\n```",
+        "first_attempt_latency_s": 72.66030809999938,
         "retry_latency_s": null,
         "quality_gate": {
-          "message": "qwen2.5-coder:7b: QUALITY_GATE:\n    category: incomplete_auth\n    reason: imports `bcrypt` but it is not in package.json / known repo packages; auth change is missing a users model/table (do not reuse domain tables like cards)"
+          "message": "qwen2.5-coder:7b: QUALITY_GATE:\n    category: incomplete_auth\n    reason: auth change is missing login/register routes"
         }
       },
-      "latency_s": 218.2355607999998
+      "latency_s": 72.717401599999
     },
     {
       "id": "task-018",
@@ -1879,7 +1896,7 @@
           "tests/middleware/test_session.py"
         ],
         "hit_count": 24,
-        "latency_s": 0.2792646000016248,
+        "latency_s": 0.278484300000855,
         "metrics": {
           "recall@3": 0.3333333333333333,
           "recall@5": 0.3333333333333333,
@@ -1936,7 +1953,7 @@
           "score_pct": 0.5,
           "success": false
         },
-        "latency_s": 0.5883983999992779,
+        "latency_s": 0.6005886999992072,
         "error": null
       },
       "patch": {
@@ -1945,15 +1962,13 @@
         "applied": true,
         "e2e_success": false,
         "todo_only": false,
-        "summary": "Add RequestIdMiddleware in starlette/middleware/request_id.py and export it from starlette/middleware/__init__.py. Add tests for the new middleware.",
+        "summary": "Fixed syntax error in starlette/middleware/__init__.py",
         "model_reported": "qwen2.5-coder:7b",
         "modified_files": [
-          "starlette/middleware/__init__.py",
-          "starlette/middleware/request_id.py",
-          "tests/middleware/test_request_id.py"
+          "starlette/middleware/__init__.py"
         ],
         "expected_files_hit": true,
-        "expected_file_accuracy": 1.0,
+        "expected_file_accuracy": 0.3333333333333333,
         "unexpected_files": [],
         "context_files": [
           "starlette/middleware/__init__.py",
@@ -1966,42 +1981,41 @@
         "token_measurement": "unavailable",
         "usage": null,
         "syntax": {
-          "ok": false,
+          "ok": true,
           "checked": [
-            "starlette/middleware/__init__.py",
-            "starlette/middleware/request_id.py",
-            "tests/middleware/test_request_id.py"
+            "starlette/middleware/__init__.py"
           ],
-          "errors": [
-            "tests/middleware/test_request_id.py: '(' was never closed (tests/middleware/test_request_id.py, line 21)"
-          ]
+          "errors": []
         },
         "expect_in_files": {
-          "ok": true,
-          "missing": []
+          "ok": false,
+          "missing": [
+            "starlette/middleware/request_id.py (file missing)"
+          ]
         },
         "tests": {
           "status": "fail",
           "passed": false,
-          "output": "\n=================================== ERRORS ====================================\n____________ ERROR collecting tests/middleware/test_request_id.py _____________\n..\\..\\..\\.venv\\Lib\\site-packages\\_pytest\\python.py:493: in importtestmodule\n    mod = import_path(\n..\\..\\..\\.venv\\Lib\\site-packages\\_pytest\\pathlib.py:587: in import_path\n    importlib.import_module(module_name)\nC:\\Users\\ASUS\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\importlib\\__init__.py:88: in import_module\n    return _bootstrap._gcd_import(name[level:], package, level)\n<frozen importlib._bootstrap>:1387: in _gcd_import\n    ???\n<frozen importlib._bootstrap>:1360: in _find_and_load\n    ???\n<frozen importlib._bootstrap>:1331: in _find_and_load_unlocked\n    ???\n<frozen importlib._bootstrap>:935: in _load_unlocked\n    ???\n..\\..\\..\\.venv\\Lib\\site-packages\\_pytest\\assertion\\rewrite.py:175: in exec_module\n    source_stat, co = _rewrite_test(fn, self.config)\n..\\..\\..\\.venv\\Lib\\site-packages\\_pytest\\assertion\\rewrite.py:355: in _rewrite_test\n    tree = ast.parse(source, filename=strfn)\nC:\\Users\\ASUS\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\ast.py:50: in parse\n    return compile(source, filename, mode, flags,\nE     File \"C:\\Coding Workspace\\otter\\benchmarks\\workspaces\\qwen2.5-coder-7b\\task-018\\tests\\middleware\\test_request_id.py\", line 21\nE       await send({'type': 'http.response.body', 'body': b'Hello, world!'}\nE                 ^\nE   SyntaxError: '(' was never closed\n============================== warnings summary ===============================\nstarlette\\formparsers.py:12\n  C:\\Coding Workspace\\otter\\benchmarks\\workspaces\\qwen2.5-coder-7b\\task-018\\starlette\\formparsers.py:12: PendingDeprecationWarning: Please use `import python_multipart` instead.\n    import multipart\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n=========================== short test summary info ===========================\nERROR tests/middleware/test_request_id.py\n!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!\n1 warning, 1 error in 0.33s\n\n",
+          "output": "\n============================== warnings summary ===============================\nstarlette\\formparsers.py:12\n  C:\\Coding Workspace\\otter\\benchmarks\\workspaces\\qwen2.5-coder-7b\\task-018\\starlette\\formparsers.py:12: PendingDeprecationWarning: Please use `import python_multipart` instead.\n    import multipart\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n1 warning in 0.00s\n\nERROR: file or directory not found: tests/middleware/test_request_id.py\n\n",
           "command": "C:\\Coding Workspace\\otter\\benchmarks\\.venv\\Scripts\\python.exe -m pytest -q --tb=line -p no:cacheprovider -o addopts= -o filterwarnings= tests/middleware/test_request_id.py"
         },
-        "copy_latency_s": 0.19780700000046636,
-        "context_latency_s": 0.933632200001739,
-        "generate_latency_s": 85.60934510000152,
-        "apply_latency_s": 0.005589300002611708,
-        "test_latency_s": 1.2376928000012413,
+        "copy_latency_s": 0.21092180000050575,
+        "context_latency_s": 1.0398784999997588,
+        "generate_latency_s": 97.80406429999857,
+        "apply_latency_s": 0.001180800001748139,
+        "test_latency_s": 0.8754501000003074,
         "error": null,
-        "failure_category": "syntax failure",
+        "failure_category": "test failure",
         "status_machine": "approved",
-        "structured_recovery": false,
-        "raw_structured_ok": true,
+        "structured_recovery": true,
+        "raw_structured_ok": false,
+        "recovery_failed": false,
         "raw_completion_preview": null,
-        "first_attempt_latency_s": 85.60833869999988,
-        "retry_latency_s": null,
+        "first_attempt_latency_s": 45.82773819999784,
+        "retry_latency_s": 51.9735279000015,
         "quality_gate": null
       },
-      "latency_s": 88.89341739999873
+      "latency_s": 100.81527769999957
     },
     {
       "id": "task-019",
@@ -2026,7 +2040,7 @@
           "src/click/decorators.py"
         ],
         "hit_count": 24,
-        "latency_s": 0.2552658999993582,
+        "latency_s": 0.2418881000012334,
         "metrics": {
           "recall@3": 0.6,
           "recall@5": 0.8,
@@ -2083,20 +2097,24 @@
           "score_pct": 0.7,
           "success": false
         },
-        "latency_s": 0.5924685000027239,
+        "latency_s": 0.6369873000003281,
         "error": null
       },
       "patch": {
-        "ok": false,
-        "generation_succeeded": false,
-        "applied": false,
+        "ok": true,
+        "generation_succeeded": true,
+        "applied": true,
         "e2e_success": false,
         "todo_only": false,
-        "summary": "",
-        "model_reported": null,
-        "modified_files": [],
-        "expected_files_hit": false,
-        "expected_file_accuracy": 0.0,
+        "summary": "Add require_email_option decorator helper in src/click/decorators.py and EmailParamType in src/click/types.py",
+        "model_reported": "qwen2.5-coder:7b",
+        "modified_files": [
+          "src/click/__init__.py",
+          "src/click/types.py",
+          "tests/test_types.py"
+        ],
+        "expected_files_hit": true,
+        "expected_file_accuracy": 0.6,
         "unexpected_files": [],
         "context_files": [
           "src/click/__init__.py",
@@ -2109,42 +2127,43 @@
         "token_measurement": "unavailable",
         "usage": null,
         "syntax": {
-          "ok": false,
-          "checked": [],
-          "errors": [
-            "not applied"
-          ]
+          "ok": true,
+          "checked": [
+            "src/click/__init__.py",
+            "src/click/types.py",
+            "tests/test_types.py"
+          ],
+          "errors": []
         },
         "expect_in_files": {
           "ok": false,
           "missing": [
-            "not applied"
+            "src/click/decorators.py missing 'email'"
           ]
         },
         "tests": {
-          "status": "skipped",
-          "passed": null,
-          "output": "not applied",
-          "command": null
+          "status": "fail",
+          "passed": false,
+          "output": "\nImportError while loading conftest 'C:\\Coding Workspace\\otter\\benchmarks\\workspaces\\qwen2.5-coder-7b\\task-019\\tests\\conftest.py'.\ntests\\conftest.py:3: in <module>\n    from click.testing import CliRunner\nsrc\\click\\__init__.py:76: in <module>\n    from .decorators import require_email_option\nE   ImportError: cannot import name 'require_email_option' from 'click.decorators' (C:\\Coding Workspace\\otter\\benchmarks\\workspaces\\qwen2.5-coder-7b\\task-019\\src\\click\\decorators.py)\n",
+          "command": "C:\\Coding Workspace\\otter\\benchmarks\\.venv\\Scripts\\python.exe -m pytest -q --tb=line -p no:cacheprovider -o addopts= -o filterwarnings= tests/test_options.py"
         },
-        "copy_latency_s": 0.23923509999804082,
-        "context_latency_s": 0.7605557999995654,
-        "generate_latency_s": 220.56295570000293,
-        "apply_latency_s": 0.0,
-        "test_latency_s": 0.0,
-        "error": "Patch generation failed across local models (qwen2.5-coder:7b\u2026): qwen2.5-coder:7b: QUALITY_GATE:\n    category: destructive_rewrite\n    file: src/click/__init__.py\n    reason: src/click/__init__.py dropped 39/75 lines (deletion_ratio=0.52)",
-        "failure_category": "quality_gate",
-        "status_machine": "ready_for_approval",
+        "copy_latency_s": 0.23875739999857615,
+        "context_latency_s": 0.774879399999918,
+        "generate_latency_s": 56.931972999998834,
+        "apply_latency_s": 0.0046767999992880505,
+        "test_latency_s": 0.6469466000016837,
+        "error": null,
+        "failure_category": "test failure",
+        "status_machine": "approved",
         "structured_recovery": false,
-        "raw_structured_ok": null,
-        "raw_completion_preview": "```json\n{\n  \"summary\": \"Add a click.option decorator helper require_email_option() in src/click/decorators.py that adds a required --email option using an email ParamType (add EmailParamType in src/click/types.py if it does not exist). Invalid values without '@' must fail parsing. Export what is needed from src/click/__init__.py. Add tests in tests/test_options.py and tests/test_types.py as appropriate.\",\n  \"edits\": [\n    {\n      \"path\": \"src/click/decorators.py\",\n      \"old_string\": \"\",\n      \"new_string\": \"from .types import EmailParamType\\n\\n@option('--email', type=EmailParamType(), required=True)\\ndef require_email_option(f):\\n    return f\"\n    },\n    {\n      \"path\": \"src/click/types.py\",\n      \"old_string\": \"\",\n      \"new_string\": \"class EmailParamType(ParamType):\\n    name = 'email'\\\n\u2026\nls import get_current_context as get_current_context\\nfrom .parser import OptionParser as OptionParser\\nfrom .termui import clear as clear\\nfrom .termui import confirm as confirm\\nfrom .termui import echo_via_pager as echo_via_pager\\nfrom .termui import edit as edit\\nfrom .termui import pause_echo as pause_echo\\nfrom .termui import progressbar as progressbar\\nfrom .termui import prompt as prompt\\nfrom .termui import secho as secho\\nfrom .termui import style as style\\nfrom .utils import get_terminal_size as get_terminal_size\\nfrom .utils import iter_items as iter_items\\nfrom .utils import iter_slices as iter_slices\\nfrom .utils import isatty as isatty\\nfrom .utils import open_file as open_file\\nfrom .utils import run_command as run_command\\nfrom .utils import which as which\"\n    }\n  ]\n}\n```",
-        "first_attempt_latency_s": null,
+        "raw_structured_ok": true,
+        "recovery_failed": false,
+        "raw_completion_preview": null,
+        "first_attempt_latency_s": 56.92194840000229,
         "retry_latency_s": null,
-        "quality_gate": {
-          "message": "qwen2.5-coder:7b: QUALITY_GATE:\n    category: destructive_rewrite\n    file: src/click/__init__.py\n    reason: src/click/__init__.py dropped 39/75 lines (deletion_ratio=0.52)"
-        }
+        "quality_gate": null
       },
-      "latency_s": 222.4122204000014
+      "latency_s": 59.52121959999931
     },
     {
       "id": "task-020",
@@ -2169,7 +2188,7 @@
           "test/test_formsdict.py"
         ],
         "hit_count": 24,
-        "latency_s": 0.14834010000049602,
+        "latency_s": 0.14989219999915804,
         "metrics": {
           "recall@3": 1.0,
           "recall@5": 1.0,
@@ -2221,20 +2240,23 @@
           "score_pct": 0.4,
           "success": false
         },
-        "latency_s": 0.38645199999882607,
+        "latency_s": 0.3857939000008628,
         "error": null
       },
       "patch": {
-        "ok": false,
-        "generation_succeeded": false,
-        "applied": false,
+        "ok": true,
+        "generation_succeeded": true,
+        "applied": true,
         "e2e_success": false,
         "todo_only": false,
-        "summary": "",
-        "model_reported": null,
-        "modified_files": [],
-        "expected_files_hit": false,
-        "expected_file_accuracy": 0.0,
+        "summary": "Add TimingPlugin to bottle.py and tests in test/test_plugins.py",
+        "model_reported": "qwen2.5-coder:7b",
+        "modified_files": [
+          "test/test_plugins.py",
+          "bottle.py"
+        ],
+        "expected_files_hit": true,
+        "expected_file_accuracy": 1.0,
         "unexpected_files": [],
         "context_files": [
           "bottle.py",
@@ -2245,40 +2267,40 @@
         "token_measurement": "unavailable",
         "usage": null,
         "syntax": {
-          "ok": false,
-          "checked": [],
-          "errors": [
-            "not applied"
-          ]
+          "ok": true,
+          "checked": [
+            "test/test_plugins.py",
+            "bottle.py"
+          ],
+          "errors": []
         },
         "expect_in_files": {
-          "ok": false,
-          "missing": [
-            "not applied"
-          ]
+          "ok": true,
+          "missing": []
         },
         "tests": {
-          "status": "skipped",
-          "passed": null,
-          "output": "not applied",
-          "command": null
+          "status": "fail",
+          "passed": false,
+          "output": "....................F                                                    [100%]\n================================== FAILURES ===================================\nC:\\Coding Workspace\\otter\\benchmarks\\workspaces\\qwen2.5-coder-7b\\task-020\\test\\test_plugins.py:225: NameError: name 'Bottle' is not defined\n=========================== short test summary info ===========================\nFAILED test/test_plugins.py::TimingPluginTest::test_timing_plugin - NameError...\n1 failed, 20 passed in 0.19s\n\n",
+          "command": "C:\\Coding Workspace\\otter\\benchmarks\\.venv\\Scripts\\python.exe -m pytest -q --tb=line -p no:cacheprovider -o addopts= -o filterwarnings= test/test_plugins.py"
         },
-        "copy_latency_s": 0.3864744000020437,
-        "context_latency_s": 0.3507888999993156,
-        "generate_latency_s": 174.39280199999848,
-        "apply_latency_s": 0.0,
-        "test_latency_s": 0.0,
-        "error": "Patch generation failed across local models (qwen2.5-coder:7b\u2026): qwen2.5-coder:7b: No JSON object found in model response",
-        "failure_category": "json_malformed",
-        "status_machine": "ready_for_approval",
-        "structured_recovery": false,
-        "raw_structured_ok": null,
-        "raw_completion_preview": "```json\n{\n  \"summary\": \"Add a Bottle plugin class TimingPlugin that records elapsed seconds for each request on the response header X-Process-Time.\",\n  \"edits\": [\n    {\n      \"path\": \"bottle.py\",\n      \"old_string\": \"\",\n      \"new_string\": \"\"\"\nclass TimingPlugin(object):\n    name = 'timing'\n\n    def apply(self, callback, route):\n        @functools.wraps(callback)\n        def wrapper(*args, **kwargs):\n            start_time = time.time()\n            result = callback(*args, **kwargs)\n            elapsed_time = time.time() - start_time\n            response = webob.Response(result)\n            response.headers['X-Process-Time'] = str(elapsed_time)\n            return response\n        return wrapper\n\"\"\"\n    }\n  ],\n  \"files\": [\n    {\n      \"path\": \"test/test_plugins.py\",\n      \"content\": \"\"\"\nimp\n\u2026\nl(TimingPlugin())\n        self.app.uninstall(plugin)\n        self.assertTrue(plugin not in self.app.plugins)\n        self.assertTrue(plugin2 in self.app.plugins)\n\n    def test_uninstall_by_type(self):\n        plugin = self.app.install(TimingPlugin())\n        plugin2 = self.app.install(TimingPlugin())\n        self.app.uninstall(TimingPlugin)\n        self.assertTrue(plugin not in self.app.plugins)\n        self.assertTrue(plugin2 not in self.app.plugins)\n\n    def test_uninstall_by_name(self):\n        plugin = self.app.install(TimingPlugin())\n        plugin2 = self.app.install(TimingPlugin())\n        plugin.name = 'myplugin'\n        self.app.uninstall('myplugin')\n        self.assertTrue(plugin not in self.app.plugins)\n        self.assertTrue(plugin2 not in self.app.plugins)\n\"\"\"\n    }\n  ]\n}\n```",
-        "first_attempt_latency_s": null,
+        "copy_latency_s": 0.4260059000007459,
+        "context_latency_s": 0.3387406999972882,
+        "generate_latency_s": 31.164561099998537,
+        "apply_latency_s": 0.0032332000009773765,
+        "test_latency_s": 0.682564700000512,
+        "error": null,
+        "failure_category": "test failure",
+        "status_machine": "approved",
+        "structured_recovery": true,
+        "raw_structured_ok": false,
+        "recovery_failed": false,
+        "raw_completion_preview": null,
+        "first_attempt_latency_s": 31.110045599998557,
         "retry_latency_s": null,
         "quality_gate": null
       },
-      "latency_s": 175.66672530000142
+      "latency_s": 33.233180600000196
     }
   ]
 }

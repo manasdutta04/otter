@@ -21,7 +21,7 @@
       "tests/test_command_decorators.py"
     ],
     "hit_count": 24,
-    "latency_s": 0.23105199999918113,
+    "latency_s": 0.5158597999979975,
     "metrics": {
       "recall@3": 1.0,
       "recall@5": 1.0,
@@ -78,20 +78,24 @@
       "score_pct": 0.8,
       "success": true
     },
-    "latency_s": 0.5529569999998785,
+    "latency_s": 1.2718107999971835,
     "error": null
   },
   "patch": {
-    "ok": false,
-    "generation_succeeded": false,
-    "applied": false,
+    "ok": true,
+    "generation_succeeded": true,
+    "applied": true,
     "e2e_success": false,
     "todo_only": false,
-    "summary": "",
-    "model_reported": null,
-    "modified_files": [],
-    "expected_files_hit": false,
-    "expected_file_accuracy": 0.0,
+    "summary": "Add EmailParamType class and unit test",
+    "model_reported": "qwen2.5-coder:7b",
+    "modified_files": [
+      "src/click/__init__.py",
+      "tests/test_types.py",
+      "src/click/types.py"
+    ],
+    "expected_files_hit": true,
+    "expected_file_accuracy": 1.0,
     "unexpected_files": [],
     "context_files": [
       "src/click/types.py",
@@ -104,38 +108,39 @@
     "token_measurement": "unavailable",
     "usage": null,
     "syntax": {
-      "ok": false,
-      "checked": [],
-      "errors": [
-        "not applied"
-      ]
+      "ok": true,
+      "checked": [
+        "src/click/__init__.py",
+        "tests/test_types.py",
+        "src/click/types.py"
+      ],
+      "errors": []
     },
     "expect_in_files": {
-      "ok": false,
-      "missing": [
-        "not applied"
-      ]
+      "ok": true,
+      "missing": []
     },
     "tests": {
-      "status": "skipped",
-      "passed": null,
-      "output": "not applied",
-      "command": null
+      "status": "fail",
+      "passed": false,
+      "output": ".................................s....sF                                 [100%]\n================================== FAILURES ===================================\nC:\\Coding Workspace\\otter\\benchmarks\\workspaces\\qwen2.5-coder-7b\\task-012\\tests\\test_types.py:248: NameError: name 'EmailParamType' is not defined\n=========================== short test summary info ===========================\nFAILED tests/test_types.py::test_email_param_type - NameError: name 'EmailPar...\n1 failed, 37 passed, 2 skipped in 0.26s\n\n",
+      "command": "C:\\Coding Workspace\\otter\\benchmarks\\.venv\\Scripts\\python.exe -m pytest -q --tb=line -p no:cacheprovider -o addopts= -o filterwarnings= tests/test_types.py"
     },
-    "copy_latency_s": 0.268478200003301,
-    "context_latency_s": 0.787674800001696,
-    "generate_latency_s": 271.57896150000306,
-    "apply_latency_s": 0.0,
-    "test_latency_s": 0.0,
-    "error": "Patch generation failed across local models (qwen2.5-coder:7b\u2026): qwen2.5-coder:7b: No JSON object found in model response",
-    "failure_category": "json_malformed",
-    "status_machine": "ready_for_approval",
-    "structured_recovery": false,
-    "raw_structured_ok": null,
-    "raw_completion_preview": "```json\n{\n  \"summary\": \"Add EmailParamType class and unit test.\",\n  \"edits\": [\n    {\n      \"path\": \"src/click/types.py\",\n      \"old_string\": \"\",\n      \"new_string\": \"\"\"\nclass EmailParamType(ParamType):\n    name = 'email'\n\n    def convert(self, value: str, param: t.Optional['Parameter'], ctx: t.Optional['Context']) -> str:\n        if '@' in value:\n            return value\n        else:\n            raise click.BadParameter(f\"Invalid email address: {value}\")\n\"\"\"\n    },\n    {\n      \"path\": \"src/click/__init__.py\",\n      \"old_string\": \"\",\n      \"new_string\": \"\"\"\nfrom .types import BOOL as BOOL\nfrom .types import Choice as Choice\nfrom .types import DateTime as DateTime\nfrom .types import File as File\nfrom .types import FLOAT as FLOAT\nfrom .types import FloatRange as FloatRange\nfrom .types import\n\u2026\npe, value, expect):\n    assert type.convert(value, None, None) == expect\n\n\n@pytest.mark.parametrize(\n    (\"type\", \"value\", \"expect\"),\n    [\n        (click.IntRange(0, 5), \"6\", \"6 is not in the range 0<=x<=5.\"),\n        (click.IntRange(5), \"4\", \"4 is not in the range x>=5.\"),\n        (click.IntRange(max=5), \"6\", \"6 is not in the range x<=5.\"),\n        (click.IntRange(0, 5, min_open=True), 0, \"0<x<=5\"),\n        (click.IntRange(0, 5, max_open=True), 5, \"0<=x<5\"),\n        (click.FloatRange(0.5, min_open=True), 0.5, \"x>0.5\"),\n        (click.FloatRange(max=1.5, max_open=True), 1.5, \"x<1.5\"),\n    ],\n)\ndef test_range_fail(type, value, expect):\n    with pytest.raises(click.BadParameter) as exc_info:\n        type.convert(value, None, None)\n    assert str(exc_info.value) == expect\n\"\"\"\n    }\n  ]\n}\n```",
-    "first_attempt_latency_s": null,
+    "copy_latency_s": 0.594565600000351,
+    "context_latency_s": 1.537109299999429,
+    "generate_latency_s": 93.50306099999943,
+    "apply_latency_s": 0.006421699999918928,
+    "test_latency_s": 1.0327017999989039,
+    "error": null,
+    "failure_category": "test failure",
+    "status_machine": "approved",
+    "structured_recovery": true,
+    "raw_structured_ok": false,
+    "recovery_failed": false,
+    "raw_completion_preview": null,
+    "first_attempt_latency_s": 93.48383069999909,
     "retry_latency_s": null,
     "quality_gate": null
   },
-  "latency_s": 273.4214061999992
+  "latency_s": 98.51901640000142
 }

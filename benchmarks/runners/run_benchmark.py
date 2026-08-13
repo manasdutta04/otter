@@ -105,7 +105,7 @@ def dataset_summary(tasks: list[dict[str, Any]], repos: dict[str, Any]) -> dict[
         "hard": diffs.count("hard"),
         "locate": sum(1 for t in tasks if t.get("kind") == "locate"),
         "implement": sum(1 for t in tasks if t.get("kind") == "implement"),
-        "version": "Otter Benchmark v0.5",
+        "version": "Otter Benchmark v0.6",
     }
 
 

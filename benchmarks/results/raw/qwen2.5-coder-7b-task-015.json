@@ -21,7 +21,7 @@
       "test/test_stpl.py"
     ],
     "hit_count": 24,
-    "latency_s": 0.14386069999818574,
+    "latency_s": 0.20198870000240277,
     "metrics": {
       "recall@3": 0.5,
       "recall@5": 0.5,
@@ -78,20 +78,22 @@
       "score_pct": 0.5,
       "success": false
     },
-    "latency_s": 0.38433070000246516,
+    "latency_s": 0.7859922999996343,
     "error": null
   },
   "patch": {
-    "ok": false,
-    "generation_succeeded": false,
-    "applied": false,
-    "e2e_success": false,
+    "ok": true,
+    "generation_succeeded": true,
+    "applied": true,
+    "e2e_success": true,
     "todo_only": false,
-    "summary": "",
-    "model_reported": null,
-    "modified_files": [],
-    "expected_files_hit": false,
-    "expected_file_accuracy": 0.0,
+    "summary": "Modify bottle.auth_basic to change response body text when check callback returns False.",
+    "model_reported": "qwen2.5-coder:7b",
+    "modified_files": [
+      "bottle.py"
+    ],
+    "expected_files_hit": true,
+    "expected_file_accuracy": 0.5,
     "unexpected_files": [],
     "context_files": [
       "bottle.py",
@@ -102,40 +104,37 @@
     "token_measurement": "unavailable",
     "usage": null,
     "syntax": {
-      "ok": false,
-      "checked": [],
-      "errors": [
-        "not applied"
-      ]
+      "ok": true,
+      "checked": [
+        "bottle.py"
+      ],
+      "errors": []
     },
     "expect_in_files": {
-      "ok": false,
-      "missing": [
-        "not applied"
-      ]
+      "ok": true,
+      "missing": []
     },
     "tests": {
-      "status": "skipped",
-      "passed": null,
-      "output": "not applied",
-      "command": null
+      "status": "pass",
+      "passed": true,
+      "output": ".                                                                        [100%]\n1 passed in 0.18s\n\n",
+      "command": "C:\\Coding Workspace\\otter\\benchmarks\\.venv\\Scripts\\python.exe -m pytest -q --tb=line -p no:cacheprovider -o addopts= -o filterwarnings= test/test_auth.py"
     },
-    "copy_latency_s": 0.3695253000005323,
-    "context_latency_s": 0.3689922999983537,
-    "generate_latency_s": 23.451143199999933,
-    "apply_latency_s": 0.0,
-    "test_latency_s": 0.0,
-    "error": "Patch generation failed across local models (qwen2.5-coder:7b\u2026): qwen2.5-coder:7b: QUALITY_GATE:\n    category: edit_target_not_found\n    file: bottle.py\n    reason: old_string was not found in the file; copy a verbatim unique snippet from context",
-    "failure_category": "quality_gate",
-    "status_machine": "ready_for_approval",
+    "copy_latency_s": 1.0167981999984477,
+    "context_latency_s": 0.5959540000003472,
+    "generate_latency_s": 38.43875250000201,
+    "apply_latency_s": 0.003509400001348695,
+    "test_latency_s": 0.8702922999982547,
+    "error": null,
+    "failure_category": null,
+    "status_machine": "approved",
     "structured_recovery": false,
-    "raw_structured_ok": null,
-    "raw_completion_preview": "```json\n{\n  \"summary\": \"Modify bottle.auth_basic to change the response body text when check callback returns False.\",\n  \"edits\": [\n    {\n      \"path\": \"bottle.py\",\n      \"old_string\": \"return 'Access denied'\",\n      \"new_string\": \"return 'Authentication required'\"\n    }\n  ],\n  \"files\": [],\n  \"dependencies\": {}\n}\n```",
-    "first_attempt_latency_s": null,
+    "raw_structured_ok": true,
+    "recovery_failed": false,
+    "raw_completion_preview": null,
+    "first_attempt_latency_s": 38.353357400003006,
     "retry_latency_s": null,
-    "quality_gate": {
-      "message": "qwen2.5-coder:7b: QUALITY_GATE:\n    category: edit_target_not_found\n    file: bottle.py\n    reason: old_string was not found in the file; copy a verbatim unique snippet from context"
-    }
+    "quality_gate": null
   },
-  "latency_s": 24.718914599998243
+  "latency_s": 42.01132229999712
 }

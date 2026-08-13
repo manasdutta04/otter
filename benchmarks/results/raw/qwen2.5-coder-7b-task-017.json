@@ -17,7 +17,7 @@
       "package.json"
     ],
     "hit_count": 6,
-    "latency_s": 0.0034713999993982725,
+    "latency_s": 0.0038395000010496005,
     "metrics": {
       "recall@3": 0.6,
       "recall@5": 1.0,
@@ -71,7 +71,7 @@
       "score_pct": 0.6,
       "success": false
     },
-    "latency_s": 0.012555400000564987,
+    "latency_s": 0.011798499999713385,
     "error": null
   },
   "patch": {
@@ -115,22 +115,23 @@
       "output": "not applied",
       "command": null
     },
-    "copy_latency_s": 0.016638100001728162,
-    "context_latency_s": 0.019550799999706214,
-    "generate_latency_s": 218.1831557000005,
+    "copy_latency_s": 0.01784380000026431,
+    "context_latency_s": 0.020038700000441168,
+    "generate_latency_s": 72.66367309999987,
     "apply_latency_s": 0.0,
     "test_latency_s": 0.0,
-    "error": "Patch generation failed across local models (qwen2.5-coder:7b\u2026): qwen2.5-coder:7b: QUALITY_GATE:\n    category: incomplete_auth\n    reason: imports `bcrypt` but it is not in package.json / known repo packages; auth change is missing a users model/table (do not reuse domain tables like cards)",
+    "error": "Patch generation failed across local models (qwen2.5-coder:7b\u2026): qwen2.5-coder:7b: QUALITY_GATE:\n    category: incomplete_auth\n    reason: auth change is missing login/register routes",
     "failure_category": "quality_gate",
     "status_machine": "ready_for_approval",
     "structured_recovery": false,
-    "raw_structured_ok": null,
-    "raw_completion_preview": "```json\n{\n  \"summary\": \"Add POST /users/login route to verify email and password, hash passwords on create-user path, and update tests.\",\n  \"edits\": [\n    {\n      \"path\": \"src/repositories/userRepository.ts\",\n      \"old_string\": \"\",\n      \"new_string\": \"import bcrypt from 'bcrypt';\\n\\nexport async function insertUser(email: string, passwordHash: string) {\\n  return { id: \\\"1\\\", email, passwordHash };\\n}\\n\"\n    },\n    {\n      \"path\": \"src/services/userService.ts\",\n      \"old_string\": \"\",\n      \"new_string\": \"import bcrypt from 'bcrypt';\\n\\nexport async function createUser(email: string, password: string) {\\n  const salt = await bcrypt.genSalt(10);\\n  const passwordHash = await bcrypt.hash(password, salt);\\n  return insertUser(email, passwordHash);\\n}\\n\"\n    },\n    {\n      \"path\": \"src/route\n\u2026\ntUser(email, passwordHash);\\n}\\n\\nexport async function loginUser(email: string, password: string) {\\n  const user = await getUserByEmail(email);\\n  if (user && await bcrypt.compare(password, user.passwordHash)) {\\n    return { id: user.id, email: user.email };\\n  }\\n  return null;\\n}\\n\"\n    },\n    {\n      \"path\": \"tests/user.test.ts\",\n      \"old_string\": \"\",\n      \"new_string\": \"import { createUser, loginUser } from \\\"../src/services/userService.js\\\";\\n\\nexport async function testCreateUser() {\\n  const user = await createUser(\\\"a@b.com\\\", \\\"password123\\\");\\n  if (!user.email) throw new Error(\\\"missing email\\\");\\n}\\n\\nexport async function testLoginUser() {\\n  const user = await loginUser(\\\"a@b.com\\\", \\\"password123\\\");\\n  if (!user) throw new Error(\\\"login failed\\\");\\n}\\n\"\n    }\n  ]\n}\n```",
-    "first_attempt_latency_s": null,
+    "raw_structured_ok": false,
+    "recovery_failed": false,
+    "raw_completion_preview": "```json\n{\n  \"summary\": \"Add passwordHash to userRepository, update createUser to hash passwords, add login route and tests.\",\n  \"edits\": [\n    {\n      \"path\": \"src/repositories/userRepository.ts\",\n      \"symbol\": \"User\",\n      \"old_string\": \"\",\n      \"new_string\": \", passwordHash: string\"\n    },\n    {\n      \"path\": \"src/repositories/userRepository.ts\",\n      \"symbol\": \"insertUser\",\n      \"old_string\": \"{ id: \\\"1\\\", email }\",\n      \"new_string\": \"{ id: \\\"1\\\", email, passwordHash }\"\n    },\n    {\n      \"path\": \"src/services/userService.ts\",\n      \"symbol\": \"createUser\",\n      \"old_string\": \"return insertUser(email);\",\n      \"new_string\": \"const { email, password } = req.body;\\nif (!password) throw new Error(\\\"missing password\\\");\\nconst passwordHash = await hashPassword(password);\\nreturn ins\n\u2026\n const user = await createUser(req.body.email);\\n    res.json(user);\\n  } catch (error) {\\n    res.status(401).json({ error: \\\"unauthorized\\\" });\\n  }\\n}\"\n    }\n  ],\n  \"files\": [\n    {\n      \"path\": \"tests/user.test.ts\",\n      \"content\": \"import { createUser, hashPassword } from \\\"../src/services/userService.js\\\";\\n\\nexport async function testCreateUser() {\\n  const user = await createUser(\\\"a@b.com\\\");\\n  if (!user.email) throw new Error(\\\"missing email\\\");\\n}\\n\\nexport async function testLoginUser() {\\n  const password = \\\"password123\\\";\\n  const hashedPassword = await hashPassword(password);\\n  const user = await createUser({ email: \\\"a@b.com\\\", password });\\n  if (!user.email) throw new Error(\\\"missing email\\\");\\n}\\n\"\n    }\n  ],\n  \"dependencies\": {\n    \"node:crypto\": \"^1.0.0\"\n  }\n}\n```",
+    "first_attempt_latency_s": 72.66030809999938,
     "retry_latency_s": null,
     "quality_gate": {
-      "message": "qwen2.5-coder:7b: QUALITY_GATE:\n    category: incomplete_auth\n    reason: imports `bcrypt` but it is not in package.json / known repo packages; auth change is missing a users model/table (do not reuse domain tables like cards)"
+      "message": "qwen2.5-coder:7b: QUALITY_GATE:\n    category: incomplete_auth\n    reason: auth change is missing login/register routes"
     }
   },
-  "latency_s": 218.2355607999998
+  "latency_s": 72.717401599999
 }

@@ -11,6 +11,11 @@ _NAME_RE = re.compile(
     r"^(?:export\s+)?(?:async\s+)?(?:def|class|function|const|let|var)\s+(\w+)",
     re.MULTILINE,
 )
+_SYMBOL_RE = re.compile(
+    r"^(?P<indent>[ \t]*)(?:export\s+)?(?:async\s+)?(?:def|class|function|const|let|var)\s+(?P<name>\w+)",
+    re.MULTILINE,
+)
+_QUOTED_RE = re.compile(r"""(['"])([^'"]+)\1""")
 
 
 class QualityGateError(ValueError):
@@ -70,15 +75,47 @@ def normalize_patch_proposal(proposal: dict[str, Any]) -> dict[str, Any]:
             continue
         flat_files.append(item)
 
+    for change in proposal.get("changes") or []:
+        if not isinstance(change, dict):
+            continue
+        path = str(change.get("path") or change.get("file") or "").replace("\\", "/")
+        operation = str(change.get("operation") or "replace").lower()
+        content = change.get("content", change.get("new_string", change.get("new", "")))
+        if operation == "create" and path:
+            flat_files.append({"path": path, "content": str(content)})
+            continue
+        old = change.get("old_string", change.get("old", ""))
+        if operation == "append":
+            old = ""
+        edits.append(
+            {
+                "path": path,
+                "old_string": old,
+                "new_string": content,
+                "symbol": change.get("symbol") or change.get("anchor"),
+            }
+        )
+
     normalized_edits: list[dict[str, Any]] = []
     for edit in edits:
         if not isinstance(edit, dict):
             continue
+        operation = str(edit.get("operation") or "").lower()
+        old = str(edit.get("old_string", edit.get("old", "")))
+        if operation == "append":
+            old = ""
+        path = str(edit.get("path") or edit.get("file") or "").replace("\\", "/")
+        if operation == "create" and path:
+            flat_files.append(
+                {"path": path, "content": str(edit.get("new_string", edit.get("new", edit.get("content", ""))))}
+            )
+            continue
         normalized_edits.append(
             {
-                "path": str(edit.get("path") or "").replace("\\", "/"),
-                "old_string": str(edit.get("old_string", edit.get("old", ""))),
-                "new_string": str(edit.get("new_string", edit.get("new", ""))),
+                "path": path,
+                "old_string": old,
+                "new_string": str(edit.get("new_string", edit.get("new", edit.get("content", "")))),
+                "symbol": str(edit.get("symbol") or edit.get("anchor") or "").strip() or None,
             }
         )
     return {"summary": summary, "files": flat_files, "edits": normalized_edits}
@@ -86,6 +123,59 @@ def normalize_patch_proposal(proposal: dict[str, Any]) -> dict[str, Any]:
 
 def _line_rstrip(text: str) -> str:
     return "\n".join(line.rstrip() for line in text.replace("\r\n", "\n").split("\n"))
+
+
+def _quote_variants(text: str) -> list[str]:
+    """Exact string plus a single quote-style swap. Not a fuzzy matcher."""
+    variants = [text]
+    swapped: list[str] = []
+    for char in text:
+        if char == "'":
+            swapped.append('"')
+        elif char == '"':
+            swapped.append("'")
+        else:
+            swapped.append(char)
+    swapped_text = "".join(swapped)
+    if swapped_text != text:
+        variants.append(swapped_text)
+    return variants
+
+
+def _symbol_region(content: str, symbol: str) -> tuple[int, int] | None:
+    """Return the unique def/class/function/const span named `symbol`, or None if missing/ambiguous."""
+    name = (symbol or "").strip()
+    if not name:
+        return None
+    matches = [match for match in _SYMBOL_RE.finditer(content) if match.group("name") == name]
+    if len(matches) != 1:
+        return None
+    start = matches[0].start()
+    indent = len(matches[0].group("indent"))
+    end = len(content)
+    for match in _SYMBOL_RE.finditer(content, matches[0].end()):
+        if len(match.group("indent")) <= indent:
+            end = match.start()
+            break
+    return start, end
+
+
+def _quoted_literal_swap(content: str, old: str, new: str) -> str | None:
+    """Replace a uniquely quoted literal when old/new each contain exactly one quoted string."""
+    old_lits = _QUOTED_RE.findall(old)
+    new_lits = _QUOTED_RE.findall(new)
+    if len(old_lits) != 1 or len(new_lits) != 1:
+        return None
+    needle = old_lits[0][1]
+    replacement = new_lits[0][1]
+    if not needle or needle == replacement:
+        return None
+    pattern = re.compile(r"""(['"])(""" + re.escape(needle) + r""")\1""")
+    matches = list(pattern.finditer(content))
+    if len(matches) != 1:
+        return None
+    match = matches[0]
+    return content[: match.start(2)] + replacement + content[match.end(2) :]
 
 
 def _locate_span(content: str, old: str, excerpt: str | None) -> tuple[int, int] | None:
@@ -143,38 +233,77 @@ def apply_edits_to_originals(
         path = str(edit.get("path") or "").replace("\\", "/")
         old = str(edit.get("old_string", edit.get("old", "")))
         new = str(edit.get("new_string", edit.get("new", "")))
+        symbol = str(edit.get("symbol") or edit.get("anchor") or "").strip()
         if not path:
             continue
         current = working.get(path)
         if current is None:
-            if old == "":
+            if old == "" and not symbol:
                 working[path] = new
                 changed.add(path)
             continue
+        region: tuple[int, int] | None = None
+        search = current
+        if symbol:
+            region = _symbol_region(current, symbol)
+            if region is None:
+                count = len([m for m in _SYMBOL_RE.finditer(current) if m.group("name") == symbol])
+                if count > 1:
+                    raise QualityGateError(
+                        "ambiguous_anchor",
+                        f"symbol `{symbol}` is ambiguous ({count} matches); refuse to guess",
+                        file=path,
+                        occurrences=count,
+                    )
+                # Missing symbol: fall back to a file-wide unique snippet, do not guess a location.
+                region = None
+            else:
+                search = current[region[0] : region[1]]
         if old == "":
-            # Explicit append: model is adding a new symbol at end of file.
-            addition = new if new.startswith("\n") else "\n" + new
-            working[path] = current.rstrip() + addition
-            if not working[path].endswith("\n"):
-                working[path] += "\n"
+            if region is not None:
+                insert_at = region[1]
+                addition = new if new.startswith("\n") else "\n" + new
+                working[path] = current[:insert_at].rstrip() + addition + current[insert_at:]
+            else:
+                addition = new if new.startswith("\n") else "\n" + new
+                working[path] = current.rstrip() + addition
+                if not working[path].endswith("\n"):
+                    working[path] += "\n"
             changed.add(path)
             continue
-        span = _locate_span(current, old, excerpts.get(path))
+        span = None
+        matched_old = old
+        for variant in _quote_variants(old):
+            span = _locate_span(search, variant, None if symbol else excerpts.get(path))
+            if span is not None:
+                matched_old = variant
+                break
         if span is None:
-            count = current.count(old)
+            swapped = _quoted_literal_swap(search, old, new)
+            if swapped is not None:
+                if region is not None:
+                    working[path] = current[: region[0]] + swapped + current[region[1] :]
+                else:
+                    working[path] = swapped
+                changed.add(path)
+                continue
+            count = search.count(matched_old)
             if count == 0:
                 raise QualityGateError(
                     "edit_target_not_found",
-                    "old_string was not found in the file; copy a verbatim unique snippet from context",
+                    "old_string was not found in the file; use a unique symbol + snippet",
                     file=path,
                 )
             raise QualityGateError(
                 "edit_target_not_unique",
-                f"old_string appears {count} times; include more surrounding lines so the match is unique",
+                f"old_string appears {count} times; include a unique symbol or more surrounding lines",
                 file=path,
                 occurrences=count,
             )
         start, end = span
+        if region is not None:
+            start += region[0]
+            end += region[0]
         working[path] = current[:start] + new + current[end:]
         changed.add(path)
     return [{"path": p, "content": working[p]} for p in changed]
@@ -280,12 +409,32 @@ def materialize_safe_patch(
                 continue
         by_path[path] = proposed
 
-    if errors and not by_path:
-        raise errors[0]
+    if errors and by_path:
+        leftover = [
+            error
+            for error in errors
+            if not (isinstance(error, QualityGateError) and error.category == "destructive_rewrite")
+        ]
+        if not leftover:
+            errors = []
+        else:
+            errors = leftover
     if errors:
         raise errors[0]
     if not by_path:
         raise QualityGateError("missing_files_edits", "Invalid patch shape: missing files/edits")
+    for path, body in by_path.items():
+        if not path.endswith(".py"):
+            continue
+        try:
+            ast.parse(body)
+        except SyntaxError as error:
+            raise QualityGateError(
+                "syntax_error",
+                f"{path} Python syntax error: {error.msg} (line {error.lineno})",
+                file=path,
+                content=body[:4000],
+            ) from error
     return [{"path": path, "content": body} for path, body in by_path.items()]
 
 
@@ -303,8 +452,9 @@ def prefer_targeted_files(
 
 def edit_prompt_addon() -> str:
     return (
-        "For files already in context, return edits with exact old_string snippets "
-        "(or empty old_string to append). Use files[] only for brand-new paths."
+        "For existing files return edits with a unique symbol (function/class/const) "
+        "and the shortest unique old_string inside it, or old_string \"\" to append. "
+        "Use files[] only for brand-new paths. Never rewrite an existing file."
     )
 
 

@@ -21,7 +21,7 @@
       "src/click/_compat.py"
     ],
     "hit_count": 24,
-    "latency_s": 0.22610849999909988,
+    "latency_s": 0.48867559999780497,
     "metrics": {
       "recall@3": 1.0,
       "recall@5": 1.0,
@@ -78,8 +78,8 @@
       "score_pct": 0.8,
       "success": true
     },
-    "latency_s": 0.5690740999998525,
+    "latency_s": 1.3857282000026316,
     "error": null
   },
-  "latency_s": 0.7968316000005871
+  "latency_s": 1.8840022000003955
 }

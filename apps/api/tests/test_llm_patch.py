@@ -520,16 +520,18 @@ def test_stub_rewrite_of_existing_library_is_rejected():
 
 
 def test_retry_prompt_contains_validation_error():
-    from app.llm import _is_retryable_validation_error, _retry_user_message
+    from app.llm import _is_retryable_validation_error, _json_repair_user_message, _retry_user_message
 
     message = _retry_user_message("Python syntax error in bottle.py")
     assert "Python syntax error in bottle.py" in message
     assert "edits" in message.lower()
     assert _is_retryable_validation_error(ValueError("Invalid patch shape: missing files/edits"))
     assert not _is_retryable_validation_error("qwen2.5-coder:7b timed out after 300s")
-    compact = _retry_user_message("edit_target_not_unique", excerpts={"a.py": "def add(a, b):\n    return a + b\n"})
-    assert "FILE: a.py" in compact
-    assert "old_string" in compact
+    compact = _json_repair_user_message("No JSON object found", '{"summary":')
+    assert "STRUCTURAL JSON ERROR" in compact
+    assert "FILE:" not in compact
+    assert "bottle.py" not in compact
+    assert "Previous response to repair" in compact
 
 
 def test_empty_old_string_appends_to_existing_python_file():
@@ -590,4 +592,323 @@ def test_quality_gate_error_is_structured():
         )
     assert caught.value.category == "edit_target_not_found"
     assert caught.value.file == "a.py"
+
+
+def test_extract_repairs_triple_quoted_json_and_fences():
+    from app.llm import _extract_json_object
+
+    raw = (
+        '```json\n{"summary":"ok","edits":[{"path":"a.py","old_string":"",'
+        '"new_string": """\ndef add(a, b):\n    return a + b\n""" }]}\n```'
+    )
+    data = _extract_json_object(raw)
+    assert data["summary"] == "ok"
+    assert "def add" in data["edits"][0]["new_string"]
+    assert data.get("_local_repair") is True
+
+
+def test_salvage_keeps_complete_edits_from_truncated_files_array():
+    from app.llm import _extract_json_object, _normalize_patch
+
+    truncated = (
+        '{"summary":"Added helper","edits":['
+        '{"path":"bottle.py","old_string":"","new_string":"\\ndef is_valid_email(v):\\n    return True\\n"}'
+        '],"files":[{"path":"test/test_html_helper.py","content":"import unittest\\nclass T'
+    )
+    data = _extract_json_object(truncated)
+    assert data["edits"][0]["path"] == "bottle.py"
+    originals = {"bottle.py": "def tob(x):\n    return x\n"}
+    patch = _normalize_patch(data, originals=originals, request="add is_valid_email")
+    assert "def is_valid_email" in patch["files"][0]["content"]
+    assert "def tob" in patch["files"][0]["content"]
+    assert patch.get("_local_repair") is True
+
+
+def test_valid_json_without_repair_is_raw_structured():
+    from app.llm import _extract_json_object
+
+    data = _extract_json_object('{"summary":"ok","files":[{"path":"a.py","content":"x"}]}')
+    assert data["summary"] == "ok"
+    assert "_local_repair" not in data
+
+
+def test_keep_good_edit_when_files_array_is_destructive():
+    from app.llm import _normalize_patch
+
+    original = "def get_bool(v):\n    return bool(v)\n" + ("x = 1\n" * 80)
+    result = {
+        "summary": "Add get_bool helper and stub tests",
+        "edits": [{"path": "starlette/config.py", "old_string": "", "new_string": "\ndef extra():\n    return 1\n"}],
+        "files": [{"path": "tests/test_config.py", "content": "def test_stub():\n    assert True\n"}],
+    }
+    originals = {
+        "starlette/config.py": "def existing():\n    return 0\n",
+        "tests/test_config.py": original,
+    }
+    patch = _normalize_patch(result, originals=originals, request="add get_bool")
+    by_path = {item["path"]: item["content"] for item in patch["files"]}
+    assert "def extra" in by_path["starlette/config.py"]
+    assert "def existing" in by_path["starlette/config.py"]
+    assert "tests/test_config.py" not in by_path
+
+
+def test_destructive_rewrite_still_rejected_when_it_is_the_only_change():
+    from app.llm import _normalize_patch
+
+    original = "class MyPlugin:\n    pass\n\nclass Other:\n    pass\n" + ("x = 1\n" * 80)
+    result = {
+        "summary": "stub",
+        "files": [{"path": "test/test_plugins.py", "content": "class TimingPlugin:\n    pass\n"}],
+    }
+    with pytest.raises(ValueError, match="Destructive rewrite|shorter|dropped"):
+        _normalize_patch(result, originals={"test/test_plugins.py": original}, request="add plugin")
+
+
+def test_symbol_scoped_edit_and_quote_mismatch():
+    from packages.agent.patch import apply_edits_to_originals
+
+    source = (
+        'def auth_basic(check, realm="private", text="Access denied"):\n'
+        "    return text\n\n"
+        'def other():\n    return "Access denied."\n'
+    )
+    files = apply_edits_to_originals(
+        [
+            {
+                "path": "bottle.py",
+                "symbol": "auth_basic",
+                "old_string": "return 'Access denied'",
+                "new_string": "return 'Authentication required'",
+            }
+        ],
+        {"bottle.py": source},
+    )
+    body = files[0]["content"]
+    assert 'text="Authentication required"' in body
+    assert 'return "Access denied."' in body
+
+
+def test_quote_style_swap_is_unique_not_fuzzy():
+    from packages.agent.patch import apply_edits_to_originals
+
+    source = 'app.post("/users", async (req, res) => {\n  res.json({});\n});\n'
+    files = apply_edits_to_originals(
+        [
+            {
+                "path": "src/routes/users.ts",
+                "old_string": "app.post('/users', async (req, res) => {",
+                "new_string": "app.post('/users', async (req, res) => {\n  // keep",
+            }
+        ],
+        {"src/routes/users.ts": source},
+    )
+    assert "// keep" in files[0]["content"]
+    assert 'app.post("/users"' in files[0]["content"] or "app.post('/users'" in files[0]["content"]
+
+
+def test_missing_symbol_falls_back_to_unique_old_string():
+    from packages.agent.patch import apply_edits_to_originals
+
+    source = "export async function createUser(email: string) {\n  return email;\n}\n"
+    files = apply_edits_to_originals(
+        [
+            {
+                "path": "src/services/userService.ts",
+                "symbol": "validateEmail",
+                "old_string": "return email;",
+                "new_string": "return email.trim();",
+            }
+        ],
+        {"src/services/userService.ts": source},
+    )
+    assert "email.trim()" in files[0]["content"]
+    assert "createUser" in files[0]["content"]
+
+
+def test_ambiguous_symbol_is_rejected():
+    from packages.agent.patch import QualityGateError, apply_edits_to_originals
+
+    source = "def helper():\n    return 1\n\ndef helper():\n    return 2\n"
+    with pytest.raises(QualityGateError, match="ambiguous_anchor") as caught:
+        apply_edits_to_originals(
+            [{"path": "a.py", "symbol": "helper", "old_string": "return 1", "new_string": "return 3"}],
+            {"a.py": source},
+        )
+    assert caught.value.category == "ambiguous_anchor"
+
+
+def test_changes_contract_maps_to_edits():
+    from app.llm import _normalize_patch
+
+    originals = {"utils.py": "def add(a, b):\n    return a + b\n"}
+    result = {
+        "summary": "Add multiply",
+        "changes": [
+            {
+                "file": "utils.py",
+                "operation": "append",
+                "content": "\ndef multiply(a, b):\n    return a * b\n",
+            }
+        ],
+    }
+    patch = _normalize_patch(result, originals=originals, request="add multiply")
+    assert "def multiply" in patch["files"][0]["content"]
+    assert "def add" in patch["files"][0]["content"]
+
+
+def test_new_python_file_syntax_error_is_rejected():
+    from packages.agent.patch import QualityGateError, materialize_safe_patch
+
+    with pytest.raises(QualityGateError, match="syntax_error|never closed") as caught:
+        materialize_safe_patch(
+            {
+                "summary": "add middleware test",
+                "files": [
+                    {
+                        "path": "tests/middleware/test_request_id.py",
+                        "content": "def test_ok():\n    assert send(\n",
+                    }
+                ],
+            },
+            {},
+        )
+    assert caught.value.category == "syntax_error"
+
+
+def test_auth_patch_on_existing_user_repository_is_allowed():
+    from app.llm import validate_patch_quality
+
+    originals = {
+        "src/repositories/userRepository.ts": "export async function insertUser(email: string) {\n  return { id: '1', email };\n}\n",
+        "src/services/userService.ts": "export async function createUser(email: string) {\n  return insertUser(email);\n}\n",
+        "src/routes/users.ts": "app.post('/users', async () => {});\n",
+    }
+    files = [
+        {
+            "path": "src/repositories/userRepository.ts",
+            "content": (
+                "export async function insertUser(email: string, passwordHash: string) {\n"
+                "  return { id: '1', email, passwordHash };\n"
+                "}\n"
+            ),
+        },
+        {
+            "path": "src/services/userService.ts",
+            "content": (
+                "import { scrypt } from 'node:crypto';\n"
+                "export async function createUser(email: string, password: string) {\n"
+                "  const passwordHash = await crypto.scrypt(password, 'salt', 32);\n"
+                "  return insertUser(email, passwordHash);\n"
+                "}\n"
+                "export async function loginUser(email: string, password: string) {\n"
+                "  return true;\n"
+                "}\n"
+            ),
+        },
+        {
+            "path": "src/routes/users.ts",
+            "content": (
+                "app.post('/users/login', async (req, res) => {\n"
+                "  res.status(401).json({ error: 'unauthorized' });\n"
+                "});\n"
+            ),
+        },
+    ]
+    validate_patch_quality(
+        "Add POST /users/login that verifies an email and password",
+        files,
+        originals,
+    )
+
+
+def test_auth_still_rejects_undeclared_npm_import():
+    from app.llm import validate_patch_quality
+
+    originals = {
+        "src/repositories/userRepository.ts": "export async function insertUser(email: string) { return { email }; }\n",
+        "src/services/userService.ts": "export async function createUser(email: string) { return insertUser(email); }\n",
+    }
+    files = [
+        {
+            "path": "src/services/userService.ts",
+            "content": (
+                "import bcrypt from 'bcrypt';\n"
+                "export async function createUser(email, password) {\n"
+                "  const passwordHash = await bcrypt.hash(password, 10);\n"
+                "  return insertUser(email, passwordHash);\n"
+                "}\n"
+            ),
+        },
+        {
+            "path": "src/routes/users.ts",
+            "content": "app.post('/users/login', async () => {});\n",
+        },
+    ]
+    with pytest.raises(ValueError, match="QUALITY_GATE|not in package.json|incomplete_auth|unexpected_dependency"):
+        validate_patch_quality("Add POST /users/login email password authentication", files, originals)
+
+
+def test_legitimate_multi_file_edit_and_declared_dependency():
+    from app.llm import _normalize_patch
+
+    originals = {
+        "package.json": '{"name":"app","dependencies":{"express":"^4.21.2"}}',
+        "src/routes/users.ts": 'app.post("/users", async () => {});\n',
+        "src/services/userService.ts": "export async function createUser(email: string) { return email; }\n",
+    }
+    result = {
+        "summary": "Add login and hash helper",
+        "dependencies": {"bcrypt": "^5.1.1"},
+        "edits": [
+            {
+                "path": "src/routes/users.ts",
+                "old_string": 'app.post("/users", async () => {});',
+                "new_string": (
+                    'app.post("/users", async () => {});\n'
+                    'app.post("/users/login", async () => {});'
+                ),
+            },
+            {
+                "path": "src/services/userService.ts",
+                "old_string": "",
+                "new_string": (
+                    "\nimport bcrypt from 'bcrypt';\n"
+                    "export async function loginUser(email: string, password: string) {\n"
+                    "  const passwordHash = await bcrypt.hash(password, 10);\n"
+                    "  return passwordHash;\n"
+                    "}\n"
+                ),
+            },
+        ],
+    }
+    patch = _normalize_patch(
+        result,
+        originals=originals,
+        request="Add POST /users/login email password authentication",
+    )
+    by_path = {item["path"]: item["content"] for item in patch["files"]}
+    assert "/users/login" in by_path["src/routes/users.ts"]
+    assert "bcrypt" in by_path["src/services/userService.ts"]
+    assert "bcrypt" in json.loads(by_path["package.json"])["dependencies"]
+
+
+def test_syntax_preserving_edit_keeps_existing_python():
+    from app.llm import _normalize_patch
+
+    originals = {"mod.py": "def one():\n    return 1\n\ndef two():\n    return 2\n"}
+    result = {
+        "summary": "rename return",
+        "edits": [
+            {
+                "path": "mod.py",
+                "symbol": "two",
+                "old_string": "return 2",
+                "new_string": "return 22",
+            }
+        ],
+    }
+    patch = _normalize_patch(result, originals=originals, request="change two")
+    body = patch["files"][0]["content"]
+    assert "def one():\n    return 1" in body
+    assert "return 22" in body
 

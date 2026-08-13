@@ -21,7 +21,7 @@
       "tests/middleware/test_session.py"
     ],
     "hit_count": 24,
-    "latency_s": 0.2792646000016248,
+    "latency_s": 0.278484300000855,
     "metrics": {
       "recall@3": 0.3333333333333333,
       "recall@5": 0.3333333333333333,
@@ -78,7 +78,7 @@
       "score_pct": 0.5,
       "success": false
     },
-    "latency_s": 0.5883983999992779,
+    "latency_s": 0.6005886999992072,
     "error": null
   },
   "patch": {
@@ -87,15 +87,13 @@
     "applied": true,
     "e2e_success": false,
     "todo_only": false,
-    "summary": "Add RequestIdMiddleware in starlette/middleware/request_id.py and export it from starlette/middleware/__init__.py. Add tests for the new middleware.",
+    "summary": "Fixed syntax error in starlette/middleware/__init__.py",
     "model_reported": "qwen2.5-coder:7b",
     "modified_files": [
-      "starlette/middleware/__init__.py",
-      "starlette/middleware/request_id.py",
-      "tests/middleware/test_request_id.py"
+      "starlette/middleware/__init__.py"
     ],
     "expected_files_hit": true,
-    "expected_file_accuracy": 1.0,
+    "expected_file_accuracy": 0.3333333333333333,
     "unexpected_files": [],
     "context_files": [
       "starlette/middleware/__init__.py",
@@ -108,40 +106,39 @@
     "token_measurement": "unavailable",
     "usage": null,
     "syntax": {
-      "ok": false,
+      "ok": true,
       "checked": [
-        "starlette/middleware/__init__.py",
-        "starlette/middleware/request_id.py",
-        "tests/middleware/test_request_id.py"
+        "starlette/middleware/__init__.py"
       ],
-      "errors": [
-        "tests/middleware/test_request_id.py: '(' was never closed (tests/middleware/test_request_id.py, line 21)"
-      ]
+      "errors": []
     },
     "expect_in_files": {
-      "ok": true,
-      "missing": []
+      "ok": false,
+      "missing": [
+        "starlette/middleware/request_id.py (file missing)"
+      ]
     },
     "tests": {
       "status": "fail",
       "passed": false,
-      "output": "\n=================================== ERRORS ====================================\n____________ ERROR collecting tests/middleware/test_request_id.py _____________\n..\\..\\..\\.venv\\Lib\\site-packages\\_pytest\\python.py:493: in importtestmodule\n    mod = import_path(\n..\\..\\..\\.venv\\Lib\\site-packages\\_pytest\\pathlib.py:587: in import_path\n    importlib.import_module(module_name)\nC:\\Users\\ASUS\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\importlib\\__init__.py:88: in import_module\n    return _bootstrap._gcd_import(name[level:], package, level)\n<frozen importlib._bootstrap>:1387: in _gcd_import\n    ???\n<frozen importlib._bootstrap>:1360: in _find_and_load\n    ???\n<frozen importlib._bootstrap>:1331: in _find_and_load_unlocked\n    ???\n<frozen importlib._bootstrap>:935: in _load_unlocked\n    ???\n..\\..\\..\\.venv\\Lib\\site-packages\\_pytest\\assertion\\rewrite.py:175: in exec_module\n    source_stat, co = _rewrite_test(fn, self.config)\n..\\..\\..\\.venv\\Lib\\site-packages\\_pytest\\assertion\\rewrite.py:355: in _rewrite_test\n    tree = ast.parse(source, filename=strfn)\nC:\\Users\\ASUS\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\ast.py:50: in parse\n    return compile(source, filename, mode, flags,\nE     File \"C:\\Coding Workspace\\otter\\benchmarks\\workspaces\\qwen2.5-coder-7b\\task-018\\tests\\middleware\\test_request_id.py\", line 21\nE       await send({'type': 'http.response.body', 'body': b'Hello, world!'}\nE                 ^\nE   SyntaxError: '(' was never closed\n============================== warnings summary ===============================\nstarlette\\formparsers.py:12\n  C:\\Coding Workspace\\otter\\benchmarks\\workspaces\\qwen2.5-coder-7b\\task-018\\starlette\\formparsers.py:12: PendingDeprecationWarning: Please use `import python_multipart` instead.\n    import multipart\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n=========================== short test summary info ===========================\nERROR tests/middleware/test_request_id.py\n!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!\n1 warning, 1 error in 0.33s\n\n",
+      "output": "\n============================== warnings summary ===============================\nstarlette\\formparsers.py:12\n  C:\\Coding Workspace\\otter\\benchmarks\\workspaces\\qwen2.5-coder-7b\\task-018\\starlette\\formparsers.py:12: PendingDeprecationWarning: Please use `import python_multipart` instead.\n    import multipart\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n1 warning in 0.00s\n\nERROR: file or directory not found: tests/middleware/test_request_id.py\n\n",
       "command": "C:\\Coding Workspace\\otter\\benchmarks\\.venv\\Scripts\\python.exe -m pytest -q --tb=line -p no:cacheprovider -o addopts= -o filterwarnings= tests/middleware/test_request_id.py"
     },
-    "copy_latency_s": 0.19780700000046636,
-    "context_latency_s": 0.933632200001739,
-    "generate_latency_s": 85.60934510000152,
-    "apply_latency_s": 0.005589300002611708,
-    "test_latency_s": 1.2376928000012413,
+    "copy_latency_s": 0.21092180000050575,
+    "context_latency_s": 1.0398784999997588,
+    "generate_latency_s": 97.80406429999857,
+    "apply_latency_s": 0.001180800001748139,
+    "test_latency_s": 0.8754501000003074,
     "error": null,
-    "failure_category": "syntax failure",
+    "failure_category": "test failure",
     "status_machine": "approved",
-    "structured_recovery": false,
-    "raw_structured_ok": true,
+    "structured_recovery": true,
+    "raw_structured_ok": false,
+    "recovery_failed": false,
     "raw_completion_preview": null,
-    "first_attempt_latency_s": 85.60833869999988,
-    "retry_latency_s": null,
+    "first_attempt_latency_s": 45.82773819999784,
+    "retry_latency_s": 51.9735279000015,
     "quality_gate": null
   },
-  "latency_s": 88.89341739999873
+  "latency_s": 100.81527769999957
 }
