@@ -1,0 +1,17 @@
+id: task-011
+kind: locate
+repository: click
+difficulty: medium
+prompt: >
+  Where are Click's user-facing CLI exceptions defined, including ClickException
+  and exit codes?
+gold:
+  relevant_files:
+    - src/click/exceptions.py
+  expected_changes:
+    - Locate ClickException
+  dependencies: []
+  verification:
+    tests: []
+    syntax: py
+  allowed_extra_files: []

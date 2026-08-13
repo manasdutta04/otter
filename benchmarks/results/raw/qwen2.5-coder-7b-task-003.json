@@ -1,0 +1,81 @@
+{
+  "id": "task-003",
+  "kind": "locate",
+  "repository": "bottle",
+  "difficulty": "easy",
+  "prompt": "Where is HTTP Basic authentication implemented for Bottle routes?\n",
+  "status": "ok",
+  "model": "qwen2.5-coder:7b",
+  "retrieval": {
+    "ok": true,
+    "ranked_files": [
+      "bottle.py",
+      "test/test_auth.py",
+      "test/test_formsdict.py",
+      "docs/conf.py",
+      "test/__init__.py",
+      "test/tools.py",
+      "github/workflows/run_tests.yml",
+      "Makefile",
+      "test/test_environ.py",
+      "test/test_wsgi.py"
+    ],
+    "hit_count": 24,
+    "latency_s": 0.1764117000020633,
+    "metrics": {
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "precision@3": 0.6666666666666666,
+      "precision@5": 0.4,
+      "precision@10": 0.2,
+      "precision_at_gold": 1.0
+    },
+    "error": null
+  },
+  "planning": {
+    "ok": true,
+    "plan": {
+      "title": "Plan: Where is HTTP Basic authentication implemented for Bottle routes?",
+      "complexity": "high",
+      "summary": "This plan addresses: Where is HTTP Basic authentication implemented for Bottle routes?. It begins with repository context, identifies affected surfaces, and ends with verification before implementation approval.",
+      "steps": [
+        "Confirm the requested behavior against existing project conventions",
+        "Inspect and update the affected areas: test/test_auth.py, test/test_route.py, test/test_router.py",
+        "Implement the change with focused tests",
+        "Run validation and review compatibility risks",
+        "Document the decision and rollout notes"
+      ],
+      "affected_files": [
+        "test/test_auth.py",
+        "test/test_route.py",
+        "test/test_router.py"
+      ],
+      "dependencies": [
+        "Identity provider configuration",
+        "Session and authorization boundary",
+        "Authentication and failure-path tests"
+      ],
+      "risks": [
+        "Token handling and session invalidation",
+        "Access control regressions",
+        "Callback or redirect failures"
+      ]
+    },
+    "intelligence_entry_points": [],
+    "rubric": {
+      "A_files": 1,
+      "B_approach": 0,
+      "C_dependencies": 2,
+      "D_verification": 2,
+      "E_no_invented": 2,
+      "total": 7,
+      "max": 10,
+      "score_pct": 0.7,
+      "success": false
+    },
+    "latency_s": 0.5115303000020504,
+    "error": null
+  },
+  "latency_s": 0.6901423999988765
+}

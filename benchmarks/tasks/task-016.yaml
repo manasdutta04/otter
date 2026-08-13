@@ -1,0 +1,34 @@
+id: task-016
+kind: implement
+repository: sample-app
+difficulty: hard
+prompt: >
+  Add GET /users/:id that loads a user through the service and repository layers.
+  Add getUserById in the repository (return null/undefined when missing),
+  a service wrapper, and a route that returns 404 JSON {"error":"not_found"}
+  when missing. Extend tests/user.test.ts.
+gold:
+  relevant_files:
+    - src/routes/users.ts
+    - src/services/userService.ts
+    - src/repositories/userRepository.ts
+    - tests/user.test.ts
+  expected_changes:
+    - Add GET user by id endpoint
+    - Return 404 when missing
+    - Wire route service and repository
+    - Add regression coverage
+  dependencies:
+    - Request and response contract
+    - API integration tests
+  verification:
+    tests: []
+    syntax: ts
+    expect_in_files:
+      - path: src/routes/users.ts
+        contains:
+          - "/users/"
+      - path: src/repositories/userRepository.ts
+        contains:
+          - getUser
+  allowed_extra_files: []

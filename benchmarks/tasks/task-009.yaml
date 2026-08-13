@@ -1,0 +1,18 @@
+id: task-009
+kind: locate
+repository: bottle
+difficulty: medium
+prompt: >
+  Find where Bottle stores and loads application configuration, including
+  nested keys and ConfigDict behavior.
+gold:
+  relevant_files:
+    - bottle.py
+    - test/test_config.py
+  expected_changes:
+    - Locate ConfigDict
+  dependencies: []
+  verification:
+    tests: []
+    syntax: py
+  allowed_extra_files: []

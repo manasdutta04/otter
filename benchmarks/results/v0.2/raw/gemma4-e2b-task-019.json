@@ -1,0 +1,134 @@
+{
+  "id": "task-019",
+  "kind": "implement",
+  "repository": "click",
+  "difficulty": "hard",
+  "prompt": "Add a click.option decorator helper require_email_option() in src/click/decorators.py that adds a required --email option using an email ParamType (add EmailParamType in src/click/types.py if it does not exist). Invalid values without '@' must fail parsing. Export what is needed from src/click/__init__.py. Add tests in tests/test_options.py and tests/test_types.py as appropriate.\n",
+  "status": "ok",
+  "model": "gemma4:e2b",
+  "retrieval": {
+    "ok": true,
+    "ranked_files": [
+      "tests/typing/typing_password_option.py",
+      "tests/typing/typing_group_kw_options.py",
+      "tests/typing/typing_options.py",
+      "src/click/testing.py",
+      "tests/typing/typing_version_option.py",
+      "src/click/__init__.py",
+      "tests/typing/typing_help_option.py",
+      "tests/typing/typing_confirmation_option.py",
+      "src/click/types.py",
+      "tests/test_options.py"
+    ],
+    "hit_count": 24,
+    "latency_s": 0.25228210000204854,
+    "metrics": {
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 0.6,
+      "precision@3": 0.0,
+      "precision@5": 0.0,
+      "precision@10": 0.3,
+      "precision_at_gold": 0.0
+    },
+    "error": null
+  },
+  "planning": {
+    "ok": true,
+    "plan": {
+      "title": "Plan: Add a click.option decorator helper require_email_option() in src/click/decorato",
+      "complexity": "high",
+      "summary": "This plan addresses: Add a click.option decorator helper require_email_option() in src/click/decorators.py that adds a required --email option using an email ParamType (add EmailParamType in src/click/types.py if it does not exist). Invalid values without '@' must fail parsing. Export what is needed from src/click/__init__.py. Add tests in tests/test_options.py and tests/test_types.py as appropriate.. It begins with repository context, identifies affected surfaces, and ends with verification before implementation approval.",
+      "steps": [
+        "Confirm the requested behavior against existing project conventions",
+        "Inspect and update the affected areas: .editorconfig, .gitignore, .pre-commit-config.yaml, .readthedocs.yaml, CHANGES.rst",
+        "Implement the change with focused tests",
+        "Run validation and review compatibility risks",
+        "Document the decision and rollout notes"
+      ],
+      "affected_files": [
+        ".editorconfig",
+        ".gitignore",
+        ".pre-commit-config.yaml",
+        ".readthedocs.yaml",
+        "CHANGES.rst",
+        "CONTRIBUTING.rst",
+        "LICENSE.txt",
+        "pyproject.toml"
+      ],
+      "dependencies": [
+        "Existing project conventions",
+        "Automated tests",
+        "Documentation update"
+      ],
+      "risks": [
+        "Unidentified coupling",
+        "Incomplete test coverage"
+      ]
+    },
+    "intelligence_entry_points": [],
+    "rubric": {
+      "A_files": 0,
+      "B_approach": 0,
+      "C_dependencies": 2,
+      "D_verification": 2,
+      "E_no_invented": 2,
+      "total": 6,
+      "max": 10,
+      "score_pct": 0.6,
+      "success": false
+    },
+    "latency_s": 0.378244800001994,
+    "error": null
+  },
+  "patch": {
+    "ok": false,
+    "generation_succeeded": false,
+    "applied": false,
+    "e2e_success": false,
+    "todo_only": false,
+    "summary": "",
+    "model_reported": null,
+    "modified_files": [],
+    "expected_files_hit": false,
+    "expected_file_accuracy": 0.0,
+    "unexpected_files": [],
+    "context_files": [
+      "pyproject.toml",
+      "LICENSE.txt",
+      "CONTRIBUTING.rst"
+    ],
+    "context_file_count": 3,
+    "context_chars": 5584,
+    "token_measurement": "unavailable",
+    "usage": null,
+    "syntax": {
+      "ok": false,
+      "checked": [],
+      "errors": [
+        "not applied"
+      ]
+    },
+    "expect_in_files": {
+      "ok": false,
+      "missing": [
+        "not applied"
+      ]
+    },
+    "tests": {
+      "status": "skipped",
+      "passed": null,
+      "output": "not applied",
+      "command": null
+    },
+    "copy_latency_s": 0.3049624999985099,
+    "context_latency_s": 0.349218600000313,
+    "generate_latency_s": 152.93923809999978,
+    "apply_latency_s": 0.0,
+    "test_latency_s": 0.0,
+    "error": "Patch generation failed across local models (gemma4:e2b\u2026): gemma4:e2b: No JSON object found in model response",
+    "failure_category": "json_malformed",
+    "status_machine": "ready_for_approval"
+  },
+  "latency_s": 154.22575750000033
+}

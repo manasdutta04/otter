@@ -16,3 +16,6 @@ data/
 otter-openui-ref/
 apps/mcp/packages/
 .tmp-mcp-venv/
+benchmarks/cache/
+benchmarks/workspaces/
+benchmarks/.venv/

@@ -1,0 +1,17 @@
+id: task-003
+kind: locate
+repository: bottle
+difficulty: easy
+prompt: >
+  Where is HTTP Basic authentication implemented for Bottle routes?
+gold:
+  relevant_files:
+    - bottle.py
+    - test/test_auth.py
+  expected_changes:
+    - Locate auth_basic and parse_auth
+  dependencies: []
+  verification:
+    tests: []
+    syntax: py
+  allowed_extra_files: []

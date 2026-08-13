@@ -1,0 +1,119 @@
+[
+  {
+    "task_id": "task-008",
+    "model": "qwen2.5-coder:7b",
+    "failure_stage": "patch",
+    "error": null,
+    "category": "incorrect file selection",
+    "kind": "implement",
+    "modified_files": [
+      "src/routes/users.ts",
+      "package.json"
+    ],
+    "summary": "Add a GET /version API endpoint that returns JSON {\"version\":\"1.0.0\"} with HTTP 200."
+  },
+  {
+    "task_id": "task-010",
+    "model": "qwen2.5-coder:7b",
+    "failure_stage": "patch",
+    "error": null,
+    "category": "syntax failure",
+    "kind": "implement",
+    "modified_files": [
+      "bottle.py",
+      "test/test_html_helper.py"
+    ],
+    "summary": "Add a helper function is_valid_email(value) to bottle.py and a unittest in test/test_html_helper.py."
+  },
+  {
+    "task_id": "task-012",
+    "model": "qwen2.5-coder:7b",
+    "failure_stage": "patch",
+    "error": "Patch generation failed across local models (qwen2.5-coder:7b\u2026): qwen2.5-coder:7b: Invalid patch shape",
+    "category": "wrong_schema",
+    "kind": "implement",
+    "modified_files": [],
+    "summary": ""
+  },
+  {
+    "task_id": "task-014",
+    "model": "qwen2.5-coder:7b",
+    "failure_stage": "patch",
+    "error": "Patch generation failed across local models (qwen2.5-coder:7b\u2026): qwen2.5-coder:7b: Invalid patch shape",
+    "category": "wrong_schema",
+    "kind": "implement",
+    "modified_files": [],
+    "summary": ""
+  },
+  {
+    "task_id": "task-015",
+    "model": "qwen2.5-coder:7b",
+    "failure_stage": "patch",
+    "error": null,
+    "category": "test failure",
+    "kind": "implement",
+    "modified_files": [
+      "test/test_auth.py"
+    ],
+    "summary": "Change bottle.auth_basic to return 'Authentication required' instead of 'Access denied' when the check callback returns False."
+  },
+  {
+    "task_id": "task-016",
+    "model": "qwen2.5-coder:7b",
+    "failure_stage": "patch",
+    "error": null,
+    "category": "incorrect file selection",
+    "kind": "implement",
+    "modified_files": [
+      "src/services/userService.ts",
+      "src/routes/users.ts",
+      "src/repositories/userRepository.ts",
+      "package.json"
+    ],
+    "summary": "Add GET /users/:id route that loads a user through the service and repository layers."
+  },
+  {
+    "task_id": "task-017",
+    "model": "qwen2.5-coder:7b",
+    "failure_stage": "patch",
+    "error": "Patch generation failed across local models (qwen2.5-coder:7b\u2026): qwen2.5-coder:7b: ",
+    "category": "malformed model output",
+    "kind": "implement",
+    "modified_files": [],
+    "summary": ""
+  },
+  {
+    "task_id": "task-018",
+    "model": "qwen2.5-coder:7b",
+    "failure_stage": "patch",
+    "error": null,
+    "category": "not_verifiable",
+    "kind": "implement",
+    "modified_files": [
+      "tests/middleware/test_request_id.py"
+    ],
+    "summary": "Add a RequestIdMiddleware in starlette/middleware/request_id.py and export it from starlette/middleware/__init__.py. Add tests for the middleware."
+  },
+  {
+    "task_id": "task-019",
+    "model": "qwen2.5-coder:7b",
+    "failure_stage": "patch",
+    "error": "Patch generation failed across local models (qwen2.5-coder:7b\u2026): qwen2.5-coder:7b: Invalid patch shape",
+    "category": "wrong_schema",
+    "kind": "implement",
+    "modified_files": [],
+    "summary": ""
+  },
+  {
+    "task_id": "task-020",
+    "model": "qwen2.5-coder:7b",
+    "failure_stage": "patch",
+    "error": null,
+    "category": "test failure",
+    "kind": "implement",
+    "modified_files": [
+      "test/test_plugins.py"
+    ],
+    "summary": "Add a Bottle plugin class TimingPlugin that records elapsed seconds for each request on the response header X-Process-Time. Implement tests in test/test_plugins.py."
+  }
+]

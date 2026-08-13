@@ -1,0 +1,35 @@
+id: task-019
+kind: implement
+repository: click
+difficulty: hard
+prompt: >
+  Add a click.option decorator helper require_email_option() in src/click/decorators.py
+  that adds a required --email option using an email ParamType (add EmailParamType
+  in src/click/types.py if it does not exist). Invalid values without '@' must
+  fail parsing. Export what is needed from src/click/__init__.py. Add tests in
+  tests/test_options.py and tests/test_types.py as appropriate.
+gold:
+  relevant_files:
+    - src/click/decorators.py
+    - src/click/types.py
+    - src/click/__init__.py
+    - tests/test_options.py
+    - tests/test_types.py
+  expected_changes:
+    - Add required email option helper
+    - Add email ParamType
+    - Add regression coverage
+  dependencies:
+    - Existing project conventions
+    - Automated tests
+  verification:
+    tests:
+      - tests/test_options.py
+    syntax: py
+    expect_in_files:
+      - path: src/click/decorators.py
+        contains:
+          - email
+  allowed_extra_files:
+    - src/click/core.py
+    - src/click/exceptions.py

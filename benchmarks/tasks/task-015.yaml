@@ -1,0 +1,27 @@
+id: task-015
+kind: implement
+repository: bottle
+difficulty: medium
+prompt: >
+  Change bottle.auth_basic so that when the provided check callback returns
+  False, the WWW-Authenticate realm default remains "private" but the response
+  body text default becomes "Authentication required" instead of "Access denied".
+  Update test/test_auth.py if it asserts the old body text.
+gold:
+  relevant_files:
+    - bottle.py
+    - test/test_auth.py
+  expected_changes:
+    - Change auth_basic default denial text
+    - Keep realm private
+  dependencies:
+    - Authentication and failure-path tests
+  verification:
+    tests:
+      - test/test_auth.py
+    syntax: py
+    expect_in_files:
+      - path: bottle.py
+        contains:
+          - Authentication required
+  allowed_extra_files: []

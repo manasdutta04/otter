@@ -1,0 +1,85 @@
+{
+  "id": "task-011",
+  "kind": "locate",
+  "repository": "click",
+  "difficulty": "medium",
+  "prompt": "Where are Click's user-facing CLI exceptions defined, including ClickException and exit codes?\n",
+  "status": "ok",
+  "model": "qwen2.5-coder:7b",
+  "retrieval": {
+    "ok": true,
+    "ranked_files": [
+      "src/click/exceptions.py",
+      "src/click/testing.py",
+      "src/click/core.py",
+      "src/click/utils.py",
+      "src/click/decorators.py",
+      "src/click/__init__.py",
+      "src/click/parser.py",
+      "src/click/types.py",
+      "src/click/termui.py",
+      "src/click/_compat.py"
+    ],
+    "hit_count": 24,
+    "latency_s": 0.2861427999996522,
+    "metrics": {
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "precision@3": 0.3333333333333333,
+      "precision@5": 0.2,
+      "precision@10": 0.1,
+      "precision_at_gold": 1.0
+    },
+    "error": null
+  },
+  "planning": {
+    "ok": true,
+    "plan": {
+      "title": "Plan: Where are Click's user-facing CLI exceptions defined, including ClickException a",
+      "complexity": "high",
+      "summary": "This plan addresses: Where are Click's user-facing CLI exceptions defined, including ClickException and exit codes?. It begins with repository context, identifies affected surfaces, and ends with verification before implementation approval.",
+      "steps": [
+        "Confirm the requested behavior against existing project conventions",
+        "Inspect and update the affected areas: src/click/exceptions.py, src/click/testing.py, src/click/core.py, src/click/utils.py, src/click/decorators.py",
+        "Implement the change with focused tests",
+        "Run validation and review compatibility risks",
+        "Document the decision and rollout notes"
+      ],
+      "affected_files": [
+        "src/click/exceptions.py",
+        "src/click/testing.py",
+        "src/click/core.py",
+        "src/click/utils.py",
+        "src/click/decorators.py",
+        "src/click/__init__.py",
+        "src/click/parser.py",
+        "src/click/types.py"
+      ],
+      "dependencies": [
+        "Existing project conventions",
+        "Automated tests",
+        "Documentation update"
+      ],
+      "risks": [
+        "Unidentified coupling",
+        "Incomplete test coverage"
+      ]
+    },
+    "intelligence_entry_points": [],
+    "rubric": {
+      "A_files": 2,
+      "B_approach": 0,
+      "C_dependencies": 2,
+      "D_verification": 2,
+      "E_no_invented": 2,
+      "total": 8,
+      "max": 10,
+      "score_pct": 0.8,
+      "success": true
+    },
+    "latency_s": 0.9447385000021313,
+    "error": null
+  },
+  "latency_s": 1.2364358000013453
+}

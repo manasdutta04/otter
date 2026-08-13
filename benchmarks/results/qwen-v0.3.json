@@ -1,0 +1,2286 @@
+{
+  "model": "qwen2.5-coder:7b",
+  "probe": {
+    "name": "qwen2.5-coder:7b",
+    "available": true,
+    "status": "available",
+    "ping": {
+      "ok": true,
+      "latency_s": 7.8275356000012835,
+      "error": null,
+      "usage": {
+        "prompt_tokens": 36,
+        "completion_tokens": 3,
+        "total_tokens": 39
+      },
+      "preview": "Pong"
+    }
+  },
+  "tasks": [
+    {
+      "id": "task-001",
+      "kind": "locate",
+      "repository": "sample-app",
+      "difficulty": "easy",
+      "prompt": "Where is HTTP request authentication enforced before user routes run?\n",
+      "status": "ok",
+      "model": "qwen2.5-coder:7b",
+      "retrieval": {
+        "ok": true,
+        "ranked_files": [
+          "src/routes/users.ts",
+          "src/services/userService.ts",
+          "src/repositories/userRepository.ts",
+          "tests/user.test.ts",
+          "src/middleware/auth.ts"
+        ],
+        "hit_count": 5,
+        "latency_s": 0.007974099997227313,
+        "metrics": {
+          "recall@3": 0.0,
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "precision@3": 0.0,
+          "precision@5": 0.2,
+          "precision@10": 0.1,
+          "precision_at_gold": 0.0
+        },
+        "error": null
+      },
+      "planning": {
+        "ok": true,
+        "plan": {
+          "title": "Plan: Where is HTTP request authentication enforced before user routes run?",
+          "complexity": "high",
+          "summary": "This plan addresses: Where is HTTP request authentication enforced before user routes run?. It begins with repository context, identifies affected surfaces, and ends with verification before implementation approval.",
+          "steps": [
+            "Confirm the requested behavior against existing project conventions",
+            "Inspect and update the affected areas: tests/user.test.ts, src/middleware/auth.ts, src/repositories/userRepository.ts, src/routes/users.ts, src/services/userService.ts",
+            "Implement the change with focused tests",
+            "Run validation and review compatibility risks",
+            "Document the decision and rollout notes"
+          ],
+          "affected_files": [
+            "tests/user.test.ts",
+            "src/middleware/auth.ts",
+            "src/repositories/userRepository.ts",
+            "src/routes/users.ts",
+            "src/services/userService.ts"
+          ],
+          "dependencies": [
+            "Identity provider configuration",
+            "Session and authorization boundary",
+            "Authentication and failure-path tests"
+          ],
+          "risks": [
+            "Token handling and session invalidation",
+            "Access control regressions",
+            "Callback or redirect failures"
+          ]
+        },
+        "intelligence_entry_points": [],
+        "rubric": {
+          "A_files": 2,
+          "B_approach": 0,
+          "C_dependencies": 2,
+          "D_verification": 2,
+          "E_no_invented": 2,
+          "total": 8,
+          "max": 10,
+          "score_pct": 0.8,
+          "success": true
+        },
+        "latency_s": 0.020445099999051308,
+        "error": null
+      },
+      "latency_s": 0.028481299999839393
+    },
+    {
+      "id": "task-002",
+      "kind": "locate",
+      "repository": "sample-app",
+      "difficulty": "easy",
+      "prompt": "Find where user records are persisted or inserted for the users API.\n",
+      "status": "ok",
+      "model": "qwen2.5-coder:7b",
+      "retrieval": {
+        "ok": true,
+        "ranked_files": [
+          "src/routes/users.ts",
+          "src/services/userService.ts",
+          "src/repositories/userRepository.ts",
+          "tests/user.test.ts",
+          "src/middleware/auth.ts",
+          "package.json"
+        ],
+        "hit_count": 6,
+        "latency_s": 0.0056081999973685015,
+        "metrics": {
+          "recall@3": 1.0,
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "precision@3": 0.3333333333333333,
+          "precision@5": 0.2,
+          "precision@10": 0.1,
+          "precision_at_gold": 0.0
+        },
+        "error": null
+      },
+      "planning": {
+        "ok": true,
+        "plan": {
+          "title": "Plan: Find where user records are persisted or inserted for the users API",
+          "complexity": "high",
+          "summary": "This plan addresses: Find where user records are persisted or inserted for the users API.. It begins with repository context, identifies affected surfaces, and ends with verification before implementation approval.",
+          "steps": [
+            "Confirm the requested behavior against existing project conventions",
+            "Inspect and update the affected areas: src/routes/users.ts, src/services/userService.ts, src/repositories/userRepository.ts, tests/user.test.ts, src/middleware/auth.ts",
+            "Implement the change with focused tests",
+            "Run validation and review compatibility risks",
+            "Document the decision and rollout notes"
+          ],
+          "affected_files": [
+            "src/routes/users.ts",
+            "src/services/userService.ts",
+            "src/repositories/userRepository.ts",
+            "tests/user.test.ts",
+            "src/middleware/auth.ts"
+          ],
+          "dependencies": [
+            "Existing project conventions",
+            "Automated tests",
+            "Documentation update"
+          ],
+          "risks": [
+            "Unidentified coupling",
+            "Incomplete test coverage"
+          ]
+        },
+        "intelligence_entry_points": [],
+        "rubric": {
+          "A_files": 2,
+          "B_approach": 0,
+          "C_dependencies": 2,
+          "D_verification": 2,
+          "E_no_invented": 2,
+          "total": 8,
+          "max": 10,
+          "score_pct": 0.8,
+          "success": true
+        },
+        "latency_s": 0.01748310000039055,
+        "error": null
+      },
+      "latency_s": 0.02318110000123852
+    },
+    {
+      "id": "task-003",
+      "kind": "locate",
+      "repository": "bottle",
+      "difficulty": "easy",
+      "prompt": "Where is HTTP Basic authentication implemented for Bottle routes?\n",
+      "status": "ok",
+      "model": "qwen2.5-coder:7b",
+      "retrieval": {
+        "ok": true,
+        "ranked_files": [
+          "bottle.py",
+          "test/test_auth.py",
+          "test/test_formsdict.py",
+          "docs/conf.py",
+          "test/__init__.py",
+          "test/tools.py",
+          "github/workflows/run_tests.yml",
+          "Makefile",
+          "test/test_environ.py",
+          "test/test_wsgi.py"
+        ],
+        "hit_count": 24,
+        "latency_s": 0.1764117000020633,
+        "metrics": {
+          "recall@3": 1.0,
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "precision@3": 0.6666666666666666,
+          "precision@5": 0.4,
+          "precision@10": 0.2,
+          "precision_at_gold": 1.0
+        },
+        "error": null
+      },
+      "planning": {
+        "ok": true,
+        "plan": {
+          "title": "Plan: Where is HTTP Basic authentication implemented for Bottle routes?",
+          "complexity": "high",
+          "summary": "This plan addresses: Where is HTTP Basic authentication implemented for Bottle routes?. It begins with repository context, identifies affected surfaces, and ends with verification before implementation approval.",
+          "steps": [
+            "Confirm the requested behavior against existing project conventions",
+            "Inspect and update the affected areas: test/test_auth.py, test/test_route.py, test/test_router.py",
+            "Implement the change with focused tests",
+            "Run validation and review compatibility risks",
+            "Document the decision and rollout notes"
+          ],
+          "affected_files": [
+            "test/test_auth.py",
+            "test/test_route.py",
+            "test/test_router.py"
+          ],
+          "dependencies": [
+            "Identity provider configuration",
+            "Session and authorization boundary",
+            "Authentication and failure-path tests"
+          ],
+          "risks": [
+            "Token handling and session invalidation",
+            "Access control regressions",
+            "Callback or redirect failures"
+          ]
+        },
+        "intelligence_entry_points": [],
+        "rubric": {
+          "A_files": 1,
+          "B_approach": 0,
+          "C_dependencies": 2,
+          "D_verification": 2,
+          "E_no_invented": 2,
+          "total": 7,
+          "max": 10,
+          "score_pct": 0.7,
+          "success": false
+        },
+        "latency_s": 0.5115303000020504,
+        "error": null
+      },
+      "latency_s": 0.6901423999988765
+    },
+    {
+      "id": "task-004",
+      "kind": "locate",
+      "repository": "click",
+      "difficulty": "easy",
+      "prompt": "Where does Click convert and validate command-line parameter types?\n",
+      "status": "ok",
+      "model": "qwen2.5-coder:7b",
+      "retrieval": {
+        "ok": true,
+        "ranked_files": [
+          "devcontainer/on-create-command.sh",
+          "tests/test_command_decorators.py",
+          "tests/test_commands.py",
+          "src/click/types.py",
+          "examples/complex/complex/commands/cmd_init.py",
+          "examples/complex/complex/commands/cmd_status.py",
+          "tests/test_types.py",
+          "src/click/_termui_impl.py",
+          "src/click/core.py",
+          "src/click/__init__.py"
+        ],
+        "hit_count": 24,
+        "latency_s": 0.32299910000074306,
+        "metrics": {
+          "recall@3": 0.0,
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "precision@3": 0.0,
+          "precision@5": 0.2,
+          "precision@10": 0.1,
+          "precision_at_gold": 0.0
+        },
+        "error": null
+      },
+      "planning": {
+        "ok": true,
+        "plan": {
+          "title": "Plan: Where does Click convert and validate command-line parameter types?",
+          "complexity": "high",
+          "summary": "This plan addresses: Where does Click convert and validate command-line parameter types?. It begins with repository context, identifies affected surfaces, and ends with verification before implementation approval.",
+          "steps": [
+            "Confirm the requested behavior against existing project conventions",
+            "Inspect and update the affected areas: tests/test_command_decorators.py, tests/test_commands.py, src/click/types.py, examples/complex/complex/commands/cmd_init.py, examples/complex/complex/commands/cmd_status.py",
+            "Implement the change with focused tests",
+            "Run validation and review compatibility risks",
+            "Document the decision and rollout notes"
+          ],
+          "affected_files": [
+            "tests/test_command_decorators.py",
+            "tests/test_commands.py",
+            "src/click/types.py",
+            "examples/complex/complex/commands/cmd_init.py",
+            "examples/complex/complex/commands/cmd_status.py",
+            "tests/test_types.py",
+            "src/click/_termui_impl.py",
+            "src/click/core.py"
+          ],
+          "dependencies": [
+            "Existing project conventions",
+            "Automated tests",
+            "Documentation update"
+          ],
+          "risks": [
+            "Unidentified coupling",
+            "Incomplete test coverage"
+          ]
+        },
+        "intelligence_entry_points": [],
+        "rubric": {
+          "A_files": 2,
+          "B_approach": 0,
+          "C_dependencies": 2,
+          "D_verification": 2,
+          "E_no_invented": 2,
+          "total": 8,
+          "max": 10,
+          "score_pct": 0.8,
+          "success": true
+        },
+        "latency_s": 0.5794905999973707,
+        "error": null
+      },
+      "latency_s": 0.9052639000001363
+    },
+    {
+      "id": "task-005",
+      "kind": "locate",
+      "repository": "starlette",
+      "difficulty": "easy",
+      "prompt": "Where is authentication middleware that attaches auth credentials and the user to the ASGI scope?\n",
+      "status": "ok",
+      "model": "qwen2.5-coder:7b",
+      "retrieval": {
+        "ok": true,
+        "ranked_files": [
+          "starlette/middleware/authentication.py",
+          "docs/authentication.md",
+          "starlette/authentication.py",
+          "tests/test_authentication.py",
+          "docs/middleware.md",
+          "starlette/middleware/sessions.py",
+          "tests/middleware/test_session.py",
+          "github/ISSUE_TEMPLATE/1-issue.md",
+          "pyproject.toml",
+          "tests/middleware/test_middleware.py"
+        ],
+        "hit_count": 24,
+        "latency_s": 0.28961839999828953,
+        "metrics": {
+          "recall@3": 1.0,
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "precision@3": 0.6666666666666666,
+          "precision@5": 0.4,
+          "precision@10": 0.2,
+          "precision_at_gold": 0.5
+        },
+        "error": null
+      },
+      "planning": {
+        "ok": true,
+        "plan": {
+          "title": "Plan: Where is authentication middleware that attaches auth credentials and the user t",
+          "complexity": "high",
+          "summary": "This plan addresses: Where is authentication middleware that attaches auth credentials and the user to the ASGI scope?. It begins with repository context, identifies affected surfaces, and ends with verification before implementation approval.",
+          "steps": [
+            "Confirm the requested behavior against existing project conventions",
+            "Inspect and update the affected areas: starlette/authentication.py, tests/test_authentication.py, tests/middleware/test_base.py, tests/middleware/test_cors.py, tests/middleware/test_errors.py",
+            "Implement the change with focused tests",
+            "Run validation and review compatibility risks",
+            "Document the decision and rollout notes"
+          ],
+          "affected_files": [
+            "starlette/authentication.py",
+            "tests/test_authentication.py",
+            "tests/middleware/test_base.py",
+            "tests/middleware/test_cors.py",
+            "tests/middleware/test_errors.py",
+            "tests/middleware/test_gzip.py",
+            "tests/middleware/test_https_redirect.py",
+            "tests/middleware/test_middleware.py",
+            "tests/middleware/test_session.py",
+            "tests/middleware/test_trusted_host.py",
+            "tests/middleware/test_wsgi.py",
+            "tests/middleware/__init__.py"
+          ],
+          "dependencies": [
+            "Identity provider configuration",
+            "Session and authorization boundary",
+            "Authentication and failure-path tests"
+          ],
+          "risks": [
+            "Token handling and session invalidation",
+            "Access control regressions",
+            "Callback or redirect failures"
+          ]
+        },
+        "intelligence_entry_points": [],
+        "rubric": {
+          "A_files": 1,
+          "B_approach": 0,
+          "C_dependencies": 2,
+          "D_verification": 2,
+          "E_no_invented": 2,
+          "total": 7,
+          "max": 10,
+          "score_pct": 0.7,
+          "success": false
+        },
+        "latency_s": 0.596977600001992,
+        "error": null
+      },
+      "latency_s": 0.8896591999982775
+    },
+    {
+      "id": "task-006",
+      "kind": "locate",
+      "repository": "sample-app",
+      "difficulty": "medium",
+      "prompt": "Trace a POST /users request through the route, service, and repository layers. Which files participate in creating a user?\n",
+      "status": "ok",
+      "model": "qwen2.5-coder:7b",
+      "retrieval": {
+        "ok": true,
+        "ranked_files": [
+          "src/services/userService.ts",
+          "src/routes/users.ts",
+          "src/repositories/userRepository.ts",
+          "tests/user.test.ts"
+        ],
+        "hit_count": 4,
+        "latency_s": 0.00349379999897792,
+        "metrics": {
+          "recall@3": 1.0,
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "precision@3": 1.0,
+          "precision@5": 0.6,
+          "precision@10": 0.3,
+          "precision_at_gold": 1.0
+        },
+        "error": null
+      },
+      "planning": {
+        "ok": true,
+        "plan": {
+          "title": "Plan: Trace a POST /users request through the route, service, and repository layers. W",
+          "complexity": "high",
+          "summary": "This plan addresses: Trace a POST /users request through the route, service, and repository layers. Which files participate in creating a user?. It begins with repository context, identifies affected surfaces, and ends with verification before implementation approval.",
+          "steps": [
+            "Confirm the requested behavior against existing project conventions",
+            "Inspect and update the affected areas: src/services/userService.ts, src/routes/users.ts, src/repositories/userRepository.ts, tests/user.test.ts",
+            "Implement the change with focused tests",
+            "Run validation and review compatibility risks",
+            "Document the decision and rollout notes"
+          ],
+          "affected_files": [
+            "src/services/userService.ts",
+            "src/routes/users.ts",
+            "src/repositories/userRepository.ts",
+            "tests/user.test.ts"
+          ],
+          "dependencies": [
+            "Existing project conventions",
+            "Automated tests",
+            "Documentation update"
+          ],
+          "risks": [
+            "Unidentified coupling",
+            "Incomplete test coverage"
+          ]
+        },
+        "intelligence_entry_points": [],
+        "rubric": {
+          "A_files": 2,
+          "B_approach": 0,
+          "C_dependencies": 2,
+          "D_verification": 2,
+          "E_no_invented": 2,
+          "total": 8,
+          "max": 10,
+          "score_pct": 0.8,
+          "success": true
+        },
+        "latency_s": 0.012394699999276781,
+        "error": null
+      },
+      "latency_s": 0.01594249999834574
+    },
+    {
+      "id": "task-007",
+      "kind": "implement",
+      "repository": "sample-app",
+      "difficulty": "medium",
+      "prompt": "Add validation for invalid email addresses in the user creation path. Reject emails that do not contain '@'. Return a client error rather than inserting a bad record.\n",
+      "status": "ok",
+      "model": "qwen2.5-coder:7b",
+      "retrieval": {
+        "ok": true,
+        "ranked_files": [
+          "src/repositories/userRepository.ts",
+          "src/services/userService.ts",
+          "src/routes/users.ts",
+          "tests/user.test.ts",
+          "src/middleware/auth.ts",
+          "package.json"
+        ],
+        "hit_count": 6,
+        "latency_s": 0.004264799998054514,
+        "metrics": {
+          "recall@3": 0.6666666666666666,
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "precision@3": 0.6666666666666666,
+          "precision@5": 0.6,
+          "precision@10": 0.3,
+          "precision_at_gold": 0.6666666666666666
+        },
+        "error": null
+      },
+      "planning": {
+        "ok": true,
+        "plan": {
+          "title": "Plan: Add validation for invalid email addresses in the user creation path. Reject ema",
+          "complexity": "high",
+          "summary": "This plan addresses: Add validation for invalid email addresses in the user creation path. Reject emails that do not contain '@'. Return a client error rather than inserting a bad record.. It begins with repository context, identifies affected surfaces, and ends with verification before implementation approval.",
+          "steps": [
+            "Confirm the requested behavior against existing project conventions",
+            "Inspect and update the affected areas: src/repositories/userRepository.ts, src/services/userService.ts, src/routes/users.ts, tests/user.test.ts, src/middleware/auth.ts",
+            "Implement the change with focused tests",
+            "Run validation and review compatibility risks",
+            "Document the decision and rollout notes"
+          ],
+          "affected_files": [
+            "src/repositories/userRepository.ts",
+            "src/services/userService.ts",
+            "src/routes/users.ts",
+            "tests/user.test.ts",
+            "src/middleware/auth.ts"
+          ],
+          "dependencies": [
+            "Existing project conventions",
+            "Automated tests",
+            "Documentation update"
+          ],
+          "risks": [
+            "Unidentified coupling",
+            "Incomplete test coverage"
+          ]
+        },
+        "intelligence_entry_points": [],
+        "rubric": {
+          "A_files": 2,
+          "B_approach": 0,
+          "C_dependencies": 0,
+          "D_verification": 2,
+          "E_no_invented": 2,
+          "total": 6,
+          "max": 10,
+          "score_pct": 0.6,
+          "success": false
+        },
+        "latency_s": 0.016449599999759812,
+        "error": null
+      },
+      "patch": {
+        "ok": true,
+        "generation_succeeded": true,
+        "applied": true,
+        "e2e_success": true,
+        "todo_only": false,
+        "summary": "Add validation for invalid email addresses in the user creation path. Reject emails that do not contain '@'. Return a client error rather than inserting a bad record.",
+        "model_reported": "qwen2.5-coder:7b",
+        "modified_files": [
+          "src/services/userService.ts"
+        ],
+        "expected_files_hit": true,
+        "expected_file_accuracy": 0.3333333333333333,
+        "unexpected_files": [],
+        "context_files": [
+          "src/repositories/userRepository.ts",
+          "src/services/userService.ts",
+          "src/routes/users.ts",
+          "tests/user.test.ts",
+          "src/middleware/auth.ts"
+        ],
+        "context_file_count": 5,
+        "context_chars": 856,
+        "token_measurement": "unavailable",
+        "usage": null,
+        "syntax": {
+          "ok": true,
+          "checked": [
+            "src/services/userService.ts"
+          ],
+          "errors": [],
+          "note": "no TypeScript compiler in suite; syntax skipped"
+        },
+        "expect_in_files": {
+          "ok": true,
+          "missing": []
+        },
+        "tests": {
+          "status": "skipped",
+          "passed": null,
+          "output": "no gold tests",
+          "command": null
+        },
+        "copy_latency_s": 0.02379799999835086,
+        "context_latency_s": 0.02077850000205217,
+        "generate_latency_s": 18.610541099998954,
+        "apply_latency_s": 0.0014354000013554469,
+        "test_latency_s": 7.399998139590025e-06,
+        "error": null,
+        "failure_category": null,
+        "status_machine": "approved",
+        "structured_recovery": false,
+        "raw_structured_ok": true,
+        "raw_completion_preview": null
+      },
+      "latency_s": 18.696224600000278
+    },
+    {
+      "id": "task-008",
+      "kind": "implement",
+      "repository": "sample-app",
+      "difficulty": "medium",
+      "prompt": "Add a GET /version API endpoint that returns JSON {\"version\":\"1.0.0\"} with HTTP 200. Register it with the existing Express app alongside user routes.\n",
+      "status": "ok",
+      "model": "qwen2.5-coder:7b",
+      "retrieval": {
+        "ok": true,
+        "ranked_files": [
+          "src/routes/users.ts",
+          "src/repositories/userRepository.ts",
+          "src/services/userService.ts",
+          "tests/user.test.ts",
+          "package.json"
+        ],
+        "hit_count": 5,
+        "latency_s": 0.0034799000022758264,
+        "metrics": {
+          "recall@3": 1.0,
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "precision@3": 0.3333333333333333,
+          "precision@5": 0.2,
+          "precision@10": 0.1,
+          "precision_at_gold": 1.0
+        },
+        "error": null
+      },
+      "planning": {
+        "ok": true,
+        "plan": {
+          "title": "Plan: Add a GET /version API endpoint that returns JSON {\"version\":\"1.0.0\"} with HTTP ",
+          "complexity": "high",
+          "summary": "This plan addresses: Add a GET /version API endpoint that returns JSON {\"version\":\"1.0.0\"} with HTTP 200. Register it with the existing Express app alongside user routes.. It begins with repository context, identifies affected surfaces, and ends with verification before implementation approval.",
+          "steps": [
+            "Confirm the requested behavior against existing project conventions",
+            "Inspect and update the affected areas: src/routes/users.ts",
+            "Implement the change with focused tests",
+            "Run validation and review compatibility risks",
+            "Document the decision and rollout notes"
+          ],
+          "affected_files": [
+            "src/routes/users.ts"
+          ],
+          "dependencies": [
+            "Request and response contract",
+            "Authentication and authorization",
+            "API integration tests"
+          ],
+          "risks": [
+            "Breaking existing clients",
+            "Invalid input handling",
+            "Error response consistency"
+          ]
+        },
+        "intelligence_entry_points": [],
+        "rubric": {
+          "A_files": 2,
+          "B_approach": 0,
+          "C_dependencies": 2,
+          "D_verification": 2,
+          "E_no_invented": 2,
+          "total": 8,
+          "max": 10,
+          "score_pct": 0.8,
+          "success": true
+        },
+        "latency_s": 0.012821699998312397,
+        "error": null
+      },
+      "patch": {
+        "ok": true,
+        "generation_succeeded": true,
+        "applied": true,
+        "e2e_success": false,
+        "todo_only": false,
+        "summary": "Add a GET /version API endpoint that returns JSON {\"version\":\"1.0.0\"} with HTTP 200.",
+        "model_reported": "qwen2.5-coder:7b",
+        "modified_files": [
+          "src/routes/users.ts",
+          "package.json"
+        ],
+        "expected_files_hit": true,
+        "expected_file_accuracy": 1.0,
+        "unexpected_files": [
+          "package.json"
+        ],
+        "context_files": [
+          "src/routes/users.ts",
+          "src/repositories/userRepository.ts",
+          "src/services/userService.ts",
+          "tests/user.test.ts"
+        ],
+        "context_file_count": 4,
+        "context_chars": 698,
+        "token_measurement": "unavailable",
+        "usage": null,
+        "syntax": {
+          "ok": true,
+          "checked": [
+            "src/routes/users.ts",
+            "package.json"
+          ],
+          "errors": [],
+          "note": "no TypeScript compiler in suite; syntax skipped"
+        },
+        "expect_in_files": {
+          "ok": true,
+          "missing": []
+        },
+        "tests": {
+          "status": "skipped",
+          "passed": null,
+          "output": "no gold tests",
+          "command": null
+        },
+        "copy_latency_s": 0.019842800000333227,
+        "context_latency_s": 0.02066750000085449,
+        "generate_latency_s": 19.955662600001233,
+        "apply_latency_s": 0.0029547000012826174,
+        "test_latency_s": 9.60000033956021e-06,
+        "error": null,
+        "failure_category": "incorrect file selection",
+        "status_machine": "approved",
+        "structured_recovery": false,
+        "raw_structured_ok": true,
+        "raw_completion_preview": null
+      },
+      "latency_s": 20.017371699999785
+    },
+    {
+      "id": "task-009",
+      "kind": "locate",
+      "repository": "bottle",
+      "difficulty": "medium",
+      "prompt": "Find where Bottle stores and loads application configuration, including nested keys and ConfigDict behavior.\n",
+      "status": "ok",
+      "model": "qwen2.5-coder:7b",
+      "retrieval": {
+        "ok": true,
+        "ranked_files": [
+          "bottle.py",
+          "test/test_config.py",
+          "test/test_mdict.py",
+          "test/test_formsdict.py",
+          "Makefile",
+          "test/build_python.sh",
+          "docs/conf.py",
+          "test/__init__.py",
+          "test/tools.py",
+          "github/workflows/run_tests.yml"
+        ],
+        "hit_count": 24,
+        "latency_s": 0.14115300000048592,
+        "metrics": {
+          "recall@3": 1.0,
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "precision@3": 0.6666666666666666,
+          "precision@5": 0.4,
+          "precision@10": 0.2,
+          "precision_at_gold": 1.0
+        },
+        "error": null
+      },
+      "planning": {
+        "ok": true,
+        "plan": {
+          "title": "Plan: Find where Bottle stores and loads application configuration, including nested k",
+          "complexity": "high",
+          "summary": "This plan addresses: Find where Bottle stores and loads application configuration, including nested keys and ConfigDict behavior.. It begins with repository context, identifies affected surfaces, and ends with verification before implementation approval.",
+          "steps": [
+            "Confirm the requested behavior against existing project conventions",
+            "Inspect and update the affected areas: bottle.py, test/test_config.py, test/test_mdict.py, test/test_formsdict.py, test/__init__.py",
+            "Implement the change with focused tests",
+            "Run validation and review compatibility risks",
+            "Document the decision and rollout notes"
+          ],
+          "affected_files": [
+            "bottle.py",
+            "test/test_config.py",
+            "test/test_mdict.py",
+            "test/test_formsdict.py",
+            "test/__init__.py",
+            "test/tools.py",
+            "test/test_wsgi.py",
+            "test/test_contextlocals.py"
+          ],
+          "dependencies": [
+            "Existing project conventions",
+            "Automated tests",
+            "Documentation update"
+          ],
+          "risks": [
+            "Unidentified coupling",
+            "Incomplete test coverage"
+          ]
+        },
+        "intelligence_entry_points": [],
+        "rubric": {
+          "A_files": 2,
+          "B_approach": 0,
+          "C_dependencies": 2,
+          "D_verification": 2,
+          "E_no_invented": 2,
+          "total": 8,
+          "max": 10,
+          "score_pct": 0.8,
+          "success": true
+        },
+        "latency_s": 0.42784039999969536,
+        "error": null
+      },
+      "latency_s": 0.5700208000016573
+    },
+    {
+      "id": "task-010",
+      "kind": "implement",
+      "repository": "bottle",
+      "difficulty": "medium",
+      "prompt": "Add a helper function is_valid_email(value) to bottle.py that returns True only when value is a string containing exactly one '@' with non-empty local and domain parts (for example a@b.com). Add a unittest in test/test_html_helper.py covering a valid address and an invalid address without '@'.\n",
+      "status": "ok",
+      "model": "qwen2.5-coder:7b",
+      "retrieval": {
+        "ok": true,
+        "ranked_files": [
+          "test/test_html_helper.py",
+          "test/example_settings.py",
+          "bottle.py",
+          "test/test_formsdict.py",
+          "test/test_contextlocals.py",
+          "test/test_jinja2.py",
+          "test/test_plugins.py",
+          "test/test_oorouting.py",
+          "test/test_environ.py",
+          "test/test_app.py"
+        ],
+        "hit_count": 24,
+        "latency_s": 0.18895779999729712,
+        "metrics": {
+          "recall@3": 1.0,
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "precision@3": 0.6666666666666666,
+          "precision@5": 0.4,
+          "precision@10": 0.2,
+          "precision_at_gold": 0.5
+        },
+        "error": null
+      },
+      "planning": {
+        "ok": true,
+        "plan": {
+          "title": "Plan: Add a helper function is_valid_email(value) to bottle.py that returns True only ",
+          "complexity": "high",
+          "summary": "This plan addresses: Add a helper function is_valid_email(value) to bottle.py that returns True only when value is a string containing exactly one '@' with non-empty local and domain parts (for example a@b.com). Add a unittest in test/test_html_helper.py covering a valid address and an invalid address without '@'.. It begins with repository context, identifies affected surfaces, and ends with verification before implementation approval.",
+          "steps": [
+            "Confirm the requested behavior against existing project conventions",
+            "Inspect and update the affected areas: test/test_html_helper.py, test/example_settings.py, bottle.py, test/test_formsdict.py, test/test_contextlocals.py",
+            "Implement the change with focused tests",
+            "Run validation and review compatibility risks",
+            "Document the decision and rollout notes"
+          ],
+          "affected_files": [
+            "test/test_html_helper.py",
+            "test/example_settings.py",
+            "bottle.py",
+            "test/test_formsdict.py",
+            "test/test_contextlocals.py",
+            "test/test_jinja2.py",
+            "test/test_plugins.py",
+            "test/test_oorouting.py"
+          ],
+          "dependencies": [
+            "Existing project conventions",
+            "Automated tests",
+            "Documentation update"
+          ],
+          "risks": [
+            "Unidentified coupling",
+            "Incomplete test coverage"
+          ]
+        },
+        "intelligence_entry_points": [],
+        "rubric": {
+          "A_files": 2,
+          "B_approach": 0,
+          "C_dependencies": 2,
+          "D_verification": 2,
+          "E_no_invented": 2,
+          "total": 8,
+          "max": 10,
+          "score_pct": 0.8,
+          "success": true
+        },
+        "latency_s": 0.44603339999957825,
+        "error": null
+      },
+      "patch": {
+        "ok": true,
+        "generation_succeeded": true,
+        "applied": true,
+        "e2e_success": false,
+        "todo_only": false,
+        "summary": "Add a helper function is_valid_email(value) to bottle.py and a unittest in test/test_html_helper.py.",
+        "model_reported": "qwen2.5-coder:7b",
+        "modified_files": [
+          "bottle.py",
+          "test/test_html_helper.py"
+        ],
+        "expected_files_hit": true,
+        "expected_file_accuracy": 1.0,
+        "unexpected_files": [],
+        "context_files": [
+          "test/test_html_helper.py",
+          "test/example_settings.py",
+          "bottle.py",
+          "test/test_formsdict.py",
+          "test/test_contextlocals.py",
+          "test/test_jinja2.py"
+        ],
+        "context_file_count": 6,
+        "context_chars": 8883,
+        "token_measurement": "unavailable",
+        "usage": null,
+        "syntax": {
+          "ok": false,
+          "checked": [
+            "bottle.py",
+            "test/test_html_helper.py"
+          ],
+          "errors": [
+            "bottle.py: unterminated string literal (detected at line 3) (bottle.py, line 3)"
+          ]
+        },
+        "expect_in_files": {
+          "ok": false,
+          "missing": [
+            "bottle.py missing 'is_valid_email'"
+          ]
+        },
+        "tests": {
+          "status": "fail",
+          "passed": false,
+          "output": "\n=================================== ERRORS ====================================\n__________________ ERROR collecting test/test_html_helper.py __________________\n..\\..\\..\\.venv\\Lib\\site-packages\\_pytest\\python.py:493: in importtestmodule\n    mod = import_path(\n..\\..\\..\\.venv\\Lib\\site-packages\\_pytest\\pathlib.py:587: in import_path\n    importlib.import_module(module_name)\nC:\\Users\\ASUS\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\importlib\\__init__.py:88: in import_module\n    return _bootstrap._gcd_import(name[level:], package, level)\n<frozen importlib._bootstrap>:1387: in _gcd_import\n    ???\n<frozen importlib._bootstrap>:1360: in _find_and_load\n    ???\n<frozen importlib._bootstrap>:1310: in _find_and_load_unlocked\n    ???\n<frozen importlib._bootstrap>:488: in _call_with_frames_removed\n    ???\n<frozen importlib._bootstrap>:1387: in _gcd_import\n    ???\n<frozen importlib._bootstrap>:1360: in _find_and_load\n    ???\n<frozen importlib._bootstrap>:1331: in _find_and_load_unlocked\n    ???\n<frozen importlib._bootstrap>:935: in _load_unlocked\n    ???\n<frozen importlib._bootstrap_external>:1026: in exec_module\n    ???\n<frozen importlib._bootstrap>:488: in _call_with_frames_removed\n    ???\ntest\\__init__.py:2: in <module>\n    from .tools import chdir\ntest\\tools.py:5: in <module>\n    import bottle\nE     File \"C:\\Coding Workspace\\otter\\benchmarks\\workspaces\\qwen2.5-coder-7b\\task-010\\bottle.py\", line 3\nE       \"\nE       ^\nE   SyntaxError: unterminated string literal (detected at line 3)\n=========================== short test summary info ===========================\nERROR test/test_html_helper.py\n!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!\n1 error in 0.44s\n\n",
+          "command": "C:\\Coding Workspace\\otter\\benchmarks\\.venv\\Scripts\\python.exe -m pytest -q --tb=line -p no:cacheprovider -o addopts= -o filterwarnings= test/test_html_helper.py"
+        },
+        "copy_latency_s": 0.4498045000000275,
+        "context_latency_s": 0.35523960000136867,
+        "generate_latency_s": 203.8024718000015,
+        "apply_latency_s": 0.003694099999847822,
+        "test_latency_s": 1.1232712000019092,
+        "error": null,
+        "failure_category": "syntax failure",
+        "status_machine": "approved",
+        "structured_recovery": true,
+        "raw_structured_ok": false,
+        "raw_completion_preview": null
+      },
+      "latency_s": 206.39939790000062
+    },
+    {
+      "id": "task-011",
+      "kind": "locate",
+      "repository": "click",
+      "difficulty": "medium",
+      "prompt": "Where are Click's user-facing CLI exceptions defined, including ClickException and exit codes?\n",
+      "status": "ok",
+      "model": "qwen2.5-coder:7b",
+      "retrieval": {
+        "ok": true,
+        "ranked_files": [
+          "src/click/exceptions.py",
+          "src/click/testing.py",
+          "src/click/core.py",
+          "src/click/utils.py",
+          "src/click/decorators.py",
+          "src/click/__init__.py",
+          "src/click/parser.py",
+          "src/click/types.py",
+          "src/click/termui.py",
+          "src/click/_compat.py"
+        ],
+        "hit_count": 24,
+        "latency_s": 0.2861427999996522,
+        "metrics": {
+          "recall@3": 1.0,
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "precision@3": 0.3333333333333333,
+          "precision@5": 0.2,
+          "precision@10": 0.1,
+          "precision_at_gold": 1.0
+        },
+        "error": null
+      },
+      "planning": {
+        "ok": true,
+        "plan": {
+          "title": "Plan: Where are Click's user-facing CLI exceptions defined, including ClickException a",
+          "complexity": "high",
+          "summary": "This plan addresses: Where are Click's user-facing CLI exceptions defined, including ClickException and exit codes?. It begins with repository context, identifies affected surfaces, and ends with verification before implementation approval.",
+          "steps": [
+            "Confirm the requested behavior against existing project conventions",
+            "Inspect and update the affected areas: src/click/exceptions.py, src/click/testing.py, src/click/core.py, src/click/utils.py, src/click/decorators.py",
+            "Implement the change with focused tests",
+            "Run validation and review compatibility risks",
+            "Document the decision and rollout notes"
+          ],
+          "affected_files": [
+            "src/click/exceptions.py",
+            "src/click/testing.py",
+            "src/click/core.py",
+            "src/click/utils.py",
+            "src/click/decorators.py",
+            "src/click/__init__.py",
+            "src/click/parser.py",
+            "src/click/types.py"
+          ],
+          "dependencies": [
+            "Existing project conventions",
+            "Automated tests",
+            "Documentation update"
+          ],
+          "risks": [
+            "Unidentified coupling",
+            "Incomplete test coverage"
+          ]
+        },
+        "intelligence_entry_points": [],
+        "rubric": {
+          "A_files": 2,
+          "B_approach": 0,
+          "C_dependencies": 2,
+          "D_verification": 2,
+          "E_no_invented": 2,
+          "total": 8,
+          "max": 10,
+          "score_pct": 0.8,
+          "success": true
+        },
+        "latency_s": 0.9447385000021313,
+        "error": null
+      },
+      "latency_s": 1.2364358000013453
+    },
+    {
+      "id": "task-012",
+      "kind": "implement",
+      "repository": "click",
+      "difficulty": "medium",
+      "prompt": "Add an EmailParamType class named EMAIL (instance email) in src/click/types.py. convert() should accept strings that contain '@' and raise click.BadParameter otherwise. Export it from src/click/__init__.py if other types are exported there. Add a small unit test in tests/test_types.py.\n",
+      "status": "ok",
+      "model": "qwen2.5-coder:7b",
+      "retrieval": {
+        "ok": true,
+        "ranked_files": [
+          "src/click/types.py",
+          "src/click/__init__.py",
+          "tests/test_types.py",
+          "src/click/testing.py",
+          "tests/test_info_dict.py",
+          "src/click/formatting.py",
+          "examples/complex/complex/commands/cmd_init.py",
+          "src/click/_winconsole.py",
+          "tests/test_commands.py",
+          "tests/test_command_decorators.py"
+        ],
+        "hit_count": 24,
+        "latency_s": 0.29279700000188313,
+        "metrics": {
+          "recall@3": 1.0,
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "precision@3": 1.0,
+          "precision@5": 0.6,
+          "precision@10": 0.3,
+          "precision_at_gold": 1.0
+        },
+        "error": null
+      },
+      "planning": {
+        "ok": true,
+        "plan": {
+          "title": "Plan: Add an EmailParamType class named EMAIL (instance email) in src/click/types.py. ",
+          "complexity": "high",
+          "summary": "This plan addresses: Add an EmailParamType class named EMAIL (instance email) in src/click/types.py. convert() should accept strings that contain '@' and raise click.BadParameter otherwise. Export it from src/click/__init__.py if other types are exported there. Add a small unit test in tests/test_types.py.. It begins with repository context, identifies affected surfaces, and ends with verification before implementation approval.",
+          "steps": [
+            "Confirm the requested behavior against existing project conventions",
+            "Inspect and update the affected areas: src/click/types.py, src/click/__init__.py, tests/test_types.py, src/click/testing.py, tests/test_info_dict.py",
+            "Implement the change with focused tests",
+            "Run validation and review compatibility risks",
+            "Document the decision and rollout notes"
+          ],
+          "affected_files": [
+            "src/click/types.py",
+            "src/click/__init__.py",
+            "tests/test_types.py",
+            "src/click/testing.py",
+            "tests/test_info_dict.py",
+            "src/click/formatting.py",
+            "examples/complex/complex/commands/cmd_init.py",
+            "src/click/_winconsole.py"
+          ],
+          "dependencies": [
+            "Existing project conventions",
+            "Automated tests",
+            "Documentation update"
+          ],
+          "risks": [
+            "Unidentified coupling",
+            "Incomplete test coverage"
+          ]
+        },
+        "intelligence_entry_points": [],
+        "rubric": {
+          "A_files": 2,
+          "B_approach": 0,
+          "C_dependencies": 2,
+          "D_verification": 2,
+          "E_no_invented": 2,
+          "total": 8,
+          "max": 10,
+          "score_pct": 0.8,
+          "success": true
+        },
+        "latency_s": 0.6561055999991368,
+        "error": null
+      },
+      "patch": {
+        "ok": false,
+        "generation_succeeded": false,
+        "applied": false,
+        "e2e_success": false,
+        "todo_only": false,
+        "summary": "",
+        "model_reported": null,
+        "modified_files": [],
+        "expected_files_hit": false,
+        "expected_file_accuracy": 0.0,
+        "unexpected_files": [],
+        "context_files": [
+          "src/click/types.py",
+          "src/click/__init__.py",
+          "tests/test_types.py",
+          "src/click/testing.py",
+          "tests/test_info_dict.py",
+          "src/click/formatting.py"
+        ],
+        "context_file_count": 6,
+        "context_chars": 18000,
+        "token_measurement": "unavailable",
+        "usage": null,
+        "syntax": {
+          "ok": false,
+          "checked": [],
+          "errors": [
+            "not applied"
+          ]
+        },
+        "expect_in_files": {
+          "ok": false,
+          "missing": [
+            "not applied"
+          ]
+        },
+        "tests": {
+          "status": "skipped",
+          "passed": null,
+          "output": "not applied",
+          "command": null
+        },
+        "copy_latency_s": 0.3510323000009521,
+        "context_latency_s": 0.8543245000000752,
+        "generate_latency_s": 15.796356499999092,
+        "apply_latency_s": 0.0,
+        "test_latency_s": 0.0,
+        "error": "Patch generation failed across local models (qwen2.5-coder:7b\u2026): qwen2.5-coder:7b: Invalid patch shape",
+        "failure_category": "wrong_schema",
+        "status_machine": "ready_for_approval",
+        "structured_recovery": false,
+        "raw_structured_ok": null,
+        "raw_completion_preview": "```json\n{\n  \"summary\": \"The request cannot be processed as it lacks necessary details.\"\n}\n```"
+      },
+      "latency_s": 17.953700899997784
+    },
+    {
+      "id": "task-013",
+      "kind": "locate",
+      "repository": "starlette",
+      "difficulty": "medium",
+      "prompt": "Where is CORS middleware implemented, including Access-Control-Allow-Origin handling for allowed origins?\n",
+      "status": "ok",
+      "model": "qwen2.5-coder:7b",
+      "retrieval": {
+        "ok": true,
+        "ranked_files": [
+          "starlette/middleware/cors.py",
+          "tests/middleware/test_cors.py",
+          "docs/middleware.md",
+          "starlette/formparsers.py",
+          "tests/middleware/test_middleware.py",
+          "github/ISSUE_TEMPLATE/1-issue.md",
+          "github/workflows/publish.yml",
+          "tests/test_formparsers.py",
+          "starlette/middleware/trustedhost.py",
+          "github/ISSUE_TEMPLATE/config.yml"
+        ],
+        "hit_count": 24,
+        "latency_s": 0.3052409000010812,
+        "metrics": {
+          "recall@3": 1.0,
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "precision@3": 0.6666666666666666,
+          "precision@5": 0.4,
+          "precision@10": 0.2,
+          "precision_at_gold": 1.0
+        },
+        "error": null
+      },
+      "planning": {
+        "ok": true,
+        "plan": {
+          "title": "Plan: Where is CORS middleware implemented, including Access-Control-Allow-Origin hand",
+          "complexity": "high",
+          "summary": "This plan addresses: Where is CORS middleware implemented, including Access-Control-Allow-Origin handling for allowed origins?. It begins with repository context, identifies affected surfaces, and ends with verification before implementation approval.",
+          "steps": [
+            "Confirm the requested behavior against existing project conventions",
+            "Inspect and update the affected areas: starlette/middleware/cors.py, tests/middleware/test_cors.py, starlette/formparsers.py, tests/middleware/test_middleware.py, tests/test_formparsers.py",
+            "Implement the change with focused tests",
+            "Run validation and review compatibility risks",
+            "Document the decision and rollout notes"
+          ],
+          "affected_files": [
+            "starlette/middleware/cors.py",
+            "tests/middleware/test_cors.py",
+            "starlette/formparsers.py",
+            "tests/middleware/test_middleware.py",
+            "tests/test_formparsers.py",
+            "starlette/middleware/trustedhost.py",
+            "starlette/middleware/exceptions.py",
+            "starlette/middleware/errors.py"
+          ],
+          "dependencies": [
+            "Existing project conventions",
+            "Automated tests",
+            "Documentation update"
+          ],
+          "risks": [
+            "Unidentified coupling",
+            "Incomplete test coverage"
+          ]
+        },
+        "intelligence_entry_points": [],
+        "rubric": {
+          "A_files": 2,
+          "B_approach": 0,
+          "C_dependencies": 2,
+          "D_verification": 2,
+          "E_no_invented": 2,
+          "total": 8,
+          "max": 10,
+          "score_pct": 0.8,
+          "success": true
+        },
+        "latency_s": 0.6044548999998369,
+        "error": null
+      },
+      "latency_s": 0.9126064000010956
+    },
+    {
+      "id": "task-014",
+      "kind": "implement",
+      "repository": "starlette",
+      "difficulty": "medium",
+      "prompt": "In starlette/config.py, add a method Config.get_bool(self, key, default=False) that returns a boolean. Treat case-insensitive '1', 'true', 'yes', 'on' as True and '0', 'false', 'no', 'off' as False. Invalid values should raise ValueError. Add a test in tests/test_config.py.\n",
+      "status": "ok",
+      "model": "qwen2.5-coder:7b",
+      "retrieval": {
+        "ok": true,
+        "ranked_files": [
+          "tests/test_config.py",
+          "starlette/config.py",
+          "tests/test_routing.py",
+          "tests/test_schemas.py",
+          "tests/test_endpoints.py",
+          "tests/middleware/test_base.py",
+          "tests/test_datastructures.py",
+          "tests/test_exceptions.py",
+          "tests/test_applications.py",
+          "tests/test_authentication.py"
+        ],
+        "hit_count": 24,
+        "latency_s": 0.26598680000097374,
+        "metrics": {
+          "recall@3": 1.0,
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "precision@3": 0.6666666666666666,
+          "precision@5": 0.4,
+          "precision@10": 0.2,
+          "precision_at_gold": 1.0
+        },
+        "error": null
+      },
+      "planning": {
+        "ok": true,
+        "plan": {
+          "title": "Plan: In starlette/config.py, add a method Config.get_bool(self, key, default=False) t",
+          "complexity": "high",
+          "summary": "This plan addresses: In starlette/config.py, add a method Config.get_bool(self, key, default=False) that returns a boolean. Treat case-insensitive '1', 'true', 'yes', 'on' as True and '0', 'false', 'no', 'off' as False. Invalid values should raise ValueError. Add a test in tests/test_config.py.. It begins with repository context, identifies affected surfaces, and ends with verification before implementation approval.",
+          "steps": [
+            "Confirm the requested behavior against existing project conventions",
+            "Inspect and update the affected areas: tests/test_config.py, starlette/config.py, tests/test_routing.py, tests/test_schemas.py, tests/test_endpoints.py",
+            "Implement the change with focused tests",
+            "Run validation and review compatibility risks",
+            "Document the decision and rollout notes"
+          ],
+          "affected_files": [
+            "tests/test_config.py",
+            "starlette/config.py",
+            "tests/test_routing.py",
+            "tests/test_schemas.py",
+            "tests/test_endpoints.py",
+            "tests/middleware/test_base.py",
+            "tests/test_datastructures.py",
+            "tests/test_exceptions.py"
+          ],
+          "dependencies": [
+            "Existing project conventions",
+            "Automated tests",
+            "Documentation update"
+          ],
+          "risks": [
+            "Unidentified coupling",
+            "Incomplete test coverage"
+          ]
+        },
+        "intelligence_entry_points": [],
+        "rubric": {
+          "A_files": 2,
+          "B_approach": 0,
+          "C_dependencies": 2,
+          "D_verification": 2,
+          "E_no_invented": 2,
+          "total": 8,
+          "max": 10,
+          "score_pct": 0.8,
+          "success": true
+        },
+        "latency_s": 0.6535694999984116,
+        "error": null
+      },
+      "patch": {
+        "ok": false,
+        "generation_succeeded": false,
+        "applied": false,
+        "e2e_success": false,
+        "todo_only": false,
+        "summary": "",
+        "model_reported": null,
+        "modified_files": [],
+        "expected_files_hit": false,
+        "expected_file_accuracy": 0.0,
+        "unexpected_files": [],
+        "context_files": [
+          "tests/test_config.py",
+          "starlette/config.py",
+          "tests/test_routing.py",
+          "tests/test_schemas.py",
+          "tests/test_endpoints.py",
+          "tests/middleware/test_base.py"
+        ],
+        "context_file_count": 6,
+        "context_chars": 18000,
+        "token_measurement": "unavailable",
+        "usage": null,
+        "syntax": {
+          "ok": false,
+          "checked": [],
+          "errors": [
+            "not applied"
+          ]
+        },
+        "expect_in_files": {
+          "ok": false,
+          "missing": [
+            "not applied"
+          ]
+        },
+        "tests": {
+          "status": "skipped",
+          "passed": null,
+          "output": "not applied",
+          "command": null
+        },
+        "copy_latency_s": 0.2524924999997893,
+        "context_latency_s": 1.0734427999996115,
+        "generate_latency_s": 13.797576800003299,
+        "apply_latency_s": 0.0,
+        "test_latency_s": 0.0,
+        "error": "Patch generation failed across local models (qwen2.5-coder:7b\u2026): qwen2.5-coder:7b: Invalid patch shape",
+        "failure_category": "wrong_schema",
+        "status_machine": "ready_for_approval",
+        "structured_recovery": false,
+        "raw_structured_ok": null,
+        "raw_completion_preview": "```json\n{\n  \"summary\": \"The request cannot be processed as it lacks necessary details.\"\n}\n```"
+      },
+      "latency_s": 16.045812899999873
+    },
+    {
+      "id": "task-015",
+      "kind": "implement",
+      "repository": "bottle",
+      "difficulty": "medium",
+      "prompt": "Change bottle.auth_basic so that when the provided check callback returns False, the WWW-Authenticate realm default remains \"private\" but the response body text default becomes \"Authentication required\" instead of \"Access denied\". Update test/test_auth.py if it asserts the old body text.\n",
+      "status": "ok",
+      "model": "qwen2.5-coder:7b",
+      "retrieval": {
+        "ok": true,
+        "ranked_files": [
+          "test/test_auth.py",
+          "test/test_contextlocals.py",
+          "test/test_resources.py",
+          "test/test_mount.py",
+          "test/test_app.py",
+          "test/test_wsgi.py",
+          "test/test_formsdict.py",
+          "test/test_outputfilter.py",
+          "test/test_environ.py",
+          "test/test_stpl.py"
+        ],
+        "hit_count": 24,
+        "latency_s": 0.14680950000183657,
+        "metrics": {
+          "recall@3": 0.5,
+          "recall@5": 0.5,
+          "recall@10": 0.5,
+          "precision@3": 0.3333333333333333,
+          "precision@5": 0.2,
+          "precision@10": 0.1,
+          "precision_at_gold": 0.5
+        },
+        "error": null
+      },
+      "planning": {
+        "ok": true,
+        "plan": {
+          "title": "Plan: Change bottle.auth_basic so that when the provided check callback returns False,",
+          "complexity": "high",
+          "summary": "This plan addresses: Change bottle.auth_basic so that when the provided check callback returns False, the WWW-Authenticate realm default remains \"private\" but the response body text default becomes \"Authentication required\" instead of \"Access denied\". Update test/test_auth.py if it asserts the old body text.. It begins with repository context, identifies affected surfaces, and ends with verification before implementation approval.",
+          "steps": [
+            "Confirm the requested behavior against existing project conventions",
+            "Inspect and update the affected areas: test/test_auth.py, test/test_contextlocals.py, test/test_resources.py, test/test_mount.py, test/test_app.py",
+            "Implement the change with focused tests",
+            "Run validation and review compatibility risks",
+            "Document the decision and rollout notes"
+          ],
+          "affected_files": [
+            "test/test_auth.py",
+            "test/test_contextlocals.py",
+            "test/test_resources.py",
+            "test/test_mount.py",
+            "test/test_app.py",
+            "test/test_wsgi.py",
+            "test/test_formsdict.py",
+            "test/test_outputfilter.py"
+          ],
+          "dependencies": [
+            "Existing project conventions",
+            "Automated tests",
+            "Documentation update"
+          ],
+          "risks": [
+            "Unidentified coupling",
+            "Incomplete test coverage"
+          ]
+        },
+        "intelligence_entry_points": [],
+        "rubric": {
+          "A_files": 1,
+          "B_approach": 0,
+          "C_dependencies": 0,
+          "D_verification": 2,
+          "E_no_invented": 2,
+          "total": 5,
+          "max": 10,
+          "score_pct": 0.5,
+          "success": false
+        },
+        "latency_s": 0.40040720000251895,
+        "error": null
+      },
+      "patch": {
+        "ok": true,
+        "generation_succeeded": true,
+        "applied": true,
+        "e2e_success": false,
+        "todo_only": false,
+        "summary": "Change bottle.auth_basic to return 'Authentication required' instead of 'Access denied' when the check callback returns False.",
+        "model_reported": "qwen2.5-coder:7b",
+        "modified_files": [
+          "test/test_auth.py"
+        ],
+        "expected_files_hit": true,
+        "expected_file_accuracy": 0.5,
+        "unexpected_files": [],
+        "context_files": [
+          "test/test_auth.py",
+          "test/test_contextlocals.py",
+          "test/test_resources.py",
+          "test/test_mount.py",
+          "test/test_app.py",
+          "test/test_wsgi.py"
+        ],
+        "context_file_count": 6,
+        "context_chars": 10693,
+        "token_measurement": "unavailable",
+        "usage": null,
+        "syntax": {
+          "ok": true,
+          "checked": [
+            "test/test_auth.py"
+          ],
+          "errors": []
+        },
+        "expect_in_files": {
+          "ok": false,
+          "missing": [
+            "bottle.py missing 'Authentication required'"
+          ]
+        },
+        "tests": {
+          "status": "fail",
+          "passed": false,
+          "output": "F.                                                                       [100%]\n================================== FAILURES ===================================\nC:\\Users\\ASUS\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\unittest\\case.py:900: AssertionError: b'Authentication required' != b'\\n    <!DOCTYPE HTML PUBLIC \"-//IETF//DTD[690 chars]l>\\n'\n=========================== short test summary info ===========================\nFAILED test/test_auth.py::TestBasicAuth::test__body - AssertionError: b'Authe...\n1 failed, 1 passed in 0.18s\n\n",
+          "command": "C:\\Coding Workspace\\otter\\benchmarks\\.venv\\Scripts\\python.exe -m pytest -q --tb=line -p no:cacheprovider -o addopts= -o filterwarnings= test/test_auth.py"
+        },
+        "copy_latency_s": 0.45764689999850816,
+        "context_latency_s": 0.36589180000009947,
+        "generate_latency_s": 58.32050430000163,
+        "apply_latency_s": 0.001467000001866836,
+        "test_latency_s": 0.712622699997155,
+        "error": null,
+        "failure_category": "test failure",
+        "status_machine": "approved",
+        "structured_recovery": true,
+        "raw_structured_ok": false,
+        "raw_completion_preview": null
+      },
+      "latency_s": 60.41904540000178
+    },
+    {
+      "id": "task-016",
+      "kind": "implement",
+      "repository": "sample-app",
+      "difficulty": "hard",
+      "prompt": "Add GET /users/:id that loads a user through the service and repository layers. Add getUserById in the repository (return null/undefined when missing), a service wrapper, and a route that returns 404 JSON {\"error\":\"not_found\"} when missing. Extend tests/user.test.ts.\n",
+      "status": "ok",
+      "model": "qwen2.5-coder:7b",
+      "retrieval": {
+        "ok": true,
+        "ranked_files": [
+          "tests/user.test.ts",
+          "src/services/userService.ts",
+          "src/repositories/userRepository.ts",
+          "src/routes/users.ts",
+          "src/middleware/auth.ts",
+          "package.json"
+        ],
+        "hit_count": 6,
+        "latency_s": 0.00450980000096024,
+        "metrics": {
+          "recall@3": 0.75,
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "precision@3": 1.0,
+          "precision@5": 0.8,
+          "precision@10": 0.4,
+          "precision_at_gold": 1.0
+        },
+        "error": null
+      },
+      "planning": {
+        "ok": true,
+        "plan": {
+          "title": "Plan: Add GET /users/:id that loads a user through the service and repository layers. ",
+          "complexity": "high",
+          "summary": "This plan addresses: Add GET /users/:id that loads a user through the service and repository layers. Add getUserById in the repository (return null/undefined when missing), a service wrapper, and a route that returns 404 JSON {\"error\":\"not_found\"} when missing. Extend tests/user.test.ts.. It begins with repository context, identifies affected surfaces, and ends with verification before implementation approval.",
+          "steps": [
+            "Confirm the requested behavior against existing project conventions",
+            "Inspect and update the affected areas: src/routes/users.ts",
+            "Implement the change with focused tests",
+            "Run validation and review compatibility risks",
+            "Document the decision and rollout notes"
+          ],
+          "affected_files": [
+            "src/routes/users.ts"
+          ],
+          "dependencies": [
+            "Request and response contract",
+            "Authentication and authorization",
+            "API integration tests"
+          ],
+          "risks": [
+            "Breaking existing clients",
+            "Invalid input handling",
+            "Error response consistency"
+          ]
+        },
+        "intelligence_entry_points": [],
+        "rubric": {
+          "A_files": 1,
+          "B_approach": 0,
+          "C_dependencies": 2,
+          "D_verification": 2,
+          "E_no_invented": 2,
+          "total": 7,
+          "max": 10,
+          "score_pct": 0.7,
+          "success": false
+        },
+        "latency_s": 0.012834699999075383,
+        "error": null
+      },
+      "patch": {
+        "ok": true,
+        "generation_succeeded": true,
+        "applied": true,
+        "e2e_success": false,
+        "todo_only": false,
+        "summary": "Add GET /users/:id route that loads a user through the service and repository layers.",
+        "model_reported": "qwen2.5-coder:7b",
+        "modified_files": [
+          "src/services/userService.ts",
+          "src/routes/users.ts",
+          "src/repositories/userRepository.ts",
+          "package.json"
+        ],
+        "expected_files_hit": true,
+        "expected_file_accuracy": 0.75,
+        "unexpected_files": [
+          "package.json"
+        ],
+        "context_files": [
+          "tests/user.test.ts",
+          "src/services/userService.ts",
+          "src/repositories/userRepository.ts",
+          "src/routes/users.ts",
+          "src/middleware/auth.ts"
+        ],
+        "context_file_count": 5,
+        "context_chars": 856,
+        "token_measurement": "unavailable",
+        "usage": null,
+        "syntax": {
+          "ok": true,
+          "checked": [
+            "src/services/userService.ts",
+            "src/routes/users.ts",
+            "src/repositories/userRepository.ts",
+            "package.json"
+          ],
+          "errors": [],
+          "note": "no TypeScript compiler in suite; syntax skipped"
+        },
+        "expect_in_files": {
+          "ok": true,
+          "missing": []
+        },
+        "tests": {
+          "status": "skipped",
+          "passed": null,
+          "output": "no gold tests",
+          "command": null
+        },
+        "copy_latency_s": 0.021186099998885766,
+        "context_latency_s": 0.020900299998174887,
+        "generate_latency_s": 69.29883540000083,
+        "apply_latency_s": 0.0057438000003458,
+        "test_latency_s": 6.000002031214535e-06,
+        "error": null,
+        "failure_category": "incorrect file selection",
+        "status_machine": "approved",
+        "structured_recovery": false,
+        "raw_structured_ok": true,
+        "raw_completion_preview": null
+      },
+      "latency_s": 69.39258079999854
+    },
+    {
+      "id": "task-017",
+      "kind": "implement",
+      "repository": "sample-app",
+      "difficulty": "hard",
+      "prompt": "Add POST /users/login that verifies an email and password. Store a password hash field on the user record in the repository layer. The service must reject missing passwords and must not store plaintext. Return 401 JSON {\"error\":\"unauthorized\"} on mismatch. Update the create-user path to accept password and hash it. Extend tests/user.test.ts.\n",
+      "status": "ok",
+      "model": "qwen2.5-coder:7b",
+      "retrieval": {
+        "ok": true,
+        "ranked_files": [
+          "tests/user.test.ts",
+          "src/repositories/userRepository.ts",
+          "src/services/userService.ts",
+          "src/routes/users.ts",
+          "src/middleware/auth.ts",
+          "package.json"
+        ],
+        "hit_count": 6,
+        "latency_s": 0.0035075000014330726,
+        "metrics": {
+          "recall@3": 0.6,
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "precision@3": 1.0,
+          "precision@5": 1.0,
+          "precision@10": 0.5,
+          "precision_at_gold": 1.0
+        },
+        "error": null
+      },
+      "planning": {
+        "ok": true,
+        "plan": {
+          "title": "Plan: Add POST /users/login that verifies an email and password. Store a password hash",
+          "complexity": "high",
+          "summary": "This plan addresses: Add POST /users/login that verifies an email and password. Store a password hash field on the user record in the repository layer. The service must reject missing passwords and must not store plaintext. Return 401 JSON {\"error\":\"unauthorized\"} on mismatch. Update the create-user path to accept password and hash it. Extend tests/user.test.ts.. It begins with repository context, identifies affected surfaces, and ends with verification before implementation approval.",
+          "steps": [
+            "Confirm the requested behavior against existing project conventions",
+            "Inspect and update the affected areas: tests/user.test.ts, src/repositories/userRepository.ts, src/services/userService.ts, src/routes/users.ts, src/middleware/auth.ts",
+            "Implement the change with focused tests",
+            "Run validation and review compatibility risks",
+            "Document the decision and rollout notes"
+          ],
+          "affected_files": [
+            "tests/user.test.ts",
+            "src/repositories/userRepository.ts",
+            "src/services/userService.ts",
+            "src/routes/users.ts",
+            "src/middleware/auth.ts"
+          ],
+          "dependencies": [
+            "Existing project conventions",
+            "Automated tests",
+            "Documentation update"
+          ],
+          "risks": [
+            "Unidentified coupling",
+            "Incomplete test coverage"
+          ]
+        },
+        "intelligence_entry_points": [],
+        "rubric": {
+          "A_files": 2,
+          "B_approach": 0,
+          "C_dependencies": 0,
+          "D_verification": 2,
+          "E_no_invented": 2,
+          "total": 6,
+          "max": 10,
+          "score_pct": 0.6,
+          "success": false
+        },
+        "latency_s": 0.0129053999989992,
+        "error": null
+      },
+      "patch": {
+        "ok": false,
+        "generation_succeeded": false,
+        "applied": false,
+        "e2e_success": false,
+        "todo_only": false,
+        "summary": "",
+        "model_reported": null,
+        "modified_files": [],
+        "expected_files_hit": false,
+        "expected_file_accuracy": 0.0,
+        "unexpected_files": [],
+        "context_files": [
+          "tests/user.test.ts",
+          "src/repositories/userRepository.ts",
+          "src/services/userService.ts",
+          "src/routes/users.ts",
+          "src/middleware/auth.ts"
+        ],
+        "context_file_count": 5,
+        "context_chars": 856,
+        "token_measurement": "unavailable",
+        "usage": null,
+        "syntax": {
+          "ok": false,
+          "checked": [],
+          "errors": [
+            "not applied"
+          ]
+        },
+        "expect_in_files": {
+          "ok": false,
+          "missing": [
+            "not applied"
+          ]
+        },
+        "tests": {
+          "status": "skipped",
+          "passed": null,
+          "output": "not applied",
+          "command": null
+        },
+        "copy_latency_s": 0.017873299999337178,
+        "context_latency_s": 0.020908000002236804,
+        "generate_latency_s": 300.291151100002,
+        "apply_latency_s": 0.0,
+        "test_latency_s": 0.0,
+        "error": "Patch generation failed across local models (qwen2.5-coder:7b\u2026): qwen2.5-coder:7b: ",
+        "failure_category": "malformed model output",
+        "status_machine": "ready_for_approval",
+        "structured_recovery": false,
+        "raw_structured_ok": null,
+        "raw_completion_preview": ""
+      },
+      "latency_s": 300.34660390000136
+    },
+    {
+      "id": "task-018",
+      "kind": "implement",
+      "repository": "starlette",
+      "difficulty": "hard",
+      "prompt": "Add a RequestIdMiddleware in a new file starlette/middleware/request_id.py. For HTTP scopes, set scope[\"request_id\"] to the incoming X-Request-ID header or a new uuid4 hex if missing, and add X-Request-ID to the response headers. Export the class from starlette/middleware/__init__.py if other middleware classes are exported there. Add tests/middleware/test_request_id.py.\n",
+      "status": "ok",
+      "model": "qwen2.5-coder:7b",
+      "retrieval": {
+        "ok": true,
+        "ranked_files": [
+          "tests/middleware/test_middleware.py",
+          "starlette/middleware/__init__.py",
+          "starlette/middleware/authentication.py",
+          "docs/middleware.md",
+          "tests/middleware/test_base.py",
+          "tests/middleware/test_cors.py",
+          "tests/middleware/test_https_redirect.py",
+          "tests/middleware/test_errors.py",
+          "starlette/middleware/errors.py",
+          "tests/middleware/test_session.py"
+        ],
+        "hit_count": 24,
+        "latency_s": 0.5485999999982596,
+        "metrics": {
+          "recall@3": 0.3333333333333333,
+          "recall@5": 0.3333333333333333,
+          "recall@10": 0.3333333333333333,
+          "precision@3": 0.3333333333333333,
+          "precision@5": 0.2,
+          "precision@10": 0.1,
+          "precision_at_gold": 0.3333333333333333
+        },
+        "error": null
+      },
+      "planning": {
+        "ok": true,
+        "plan": {
+          "title": "Plan: Add a RequestIdMiddleware in a new file starlette/middleware/request_id.py. For ",
+          "complexity": "high",
+          "summary": "This plan addresses: Add a RequestIdMiddleware in a new file starlette/middleware/request_id.py. For HTTP scopes, set scope[\"request_id\"] to the incoming X-Request-ID header or a new uuid4 hex if missing, and add X-Request-ID to the response headers. Export the class from starlette/middleware/__init__.py if other middleware classes are exported there. Add tests/middleware/test_request_id.py.. It begins with repository context, identifies affected surfaces, and ends with verification before implementation approval.",
+          "steps": [
+            "Confirm the requested behavior against existing project conventions",
+            "Inspect and update the affected areas: tests/middleware/test_middleware.py, starlette/middleware/__init__.py, starlette/middleware/authentication.py, tests/middleware/test_base.py, tests/middleware/test_cors.py",
+            "Implement the change with focused tests",
+            "Run validation and review compatibility risks",
+            "Document the decision and rollout notes"
+          ],
+          "affected_files": [
+            "tests/middleware/test_middleware.py",
+            "starlette/middleware/__init__.py",
+            "starlette/middleware/authentication.py",
+            "tests/middleware/test_base.py",
+            "tests/middleware/test_cors.py",
+            "tests/middleware/test_https_redirect.py",
+            "tests/middleware/test_errors.py",
+            "starlette/middleware/errors.py"
+          ],
+          "dependencies": [
+            "Existing project conventions",
+            "Automated tests",
+            "Documentation update"
+          ],
+          "risks": [
+            "Unidentified coupling",
+            "Incomplete test coverage"
+          ]
+        },
+        "intelligence_entry_points": [],
+        "rubric": {
+          "A_files": 1,
+          "B_approach": 0,
+          "C_dependencies": 0,
+          "D_verification": 2,
+          "E_no_invented": 2,
+          "total": 5,
+          "max": 10,
+          "score_pct": 0.5,
+          "success": false
+        },
+        "latency_s": 0.7849981999970623,
+        "error": null
+      },
+      "patch": {
+        "ok": true,
+        "generation_succeeded": true,
+        "applied": true,
+        "e2e_success": false,
+        "todo_only": false,
+        "summary": "Add a RequestIdMiddleware in starlette/middleware/request_id.py and export it from starlette/middleware/__init__.py. Add tests for the middleware.",
+        "model_reported": "qwen2.5-coder:7b",
+        "modified_files": [
+          "tests/middleware/test_request_id.py"
+        ],
+        "expected_files_hit": true,
+        "expected_file_accuracy": 0.3333333333333333,
+        "unexpected_files": [],
+        "context_files": [
+          "tests/middleware/test_middleware.py",
+          "starlette/middleware/__init__.py",
+          "starlette/middleware/authentication.py",
+          "tests/middleware/test_base.py",
+          "tests/middleware/test_cors.py",
+          "tests/middleware/test_https_redirect.py"
+        ],
+        "context_file_count": 6,
+        "context_chars": 11580,
+        "token_measurement": "unavailable",
+        "usage": null,
+        "syntax": {
+          "ok": true,
+          "checked": [
+            "tests/middleware/test_request_id.py"
+          ],
+          "errors": []
+        },
+        "expect_in_files": {
+          "ok": false,
+          "missing": [
+            "starlette/middleware/request_id.py (file missing)"
+          ]
+        },
+        "tests": {
+          "status": "not_verifiable",
+          "passed": null,
+          "output": "\n=================================== ERRORS ====================================\n____________ ERROR collecting tests/middleware/test_request_id.py _____________\nImportError while importing test module 'C:\\Coding Workspace\\otter\\benchmarks\\workspaces\\qwen2.5-coder-7b\\task-018\\tests\\middleware\\test_request_id.py'.\nHint: make sure your test modules/packages have valid Python names.\nTraceback:\nC:\\Users\\ASUS\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\importlib\\__init__.py:88: in import_module\n    return _bootstrap._gcd_import(name[level:], package, level)\ntests\\middleware\\test_request_id.py:6: in <module>\n    from starlette.middleware.request_id import RequestIdMiddleware\nE   ModuleNotFoundError: No module named 'starlette.middleware.request_id'\n============================== warnings summary ===============================\nstarlette\\formparsers.py:12\n  C:\\Coding Workspace\\otter\\benchmarks\\workspaces\\qwen2.5-coder-7b\\task-018\\starlette\\formparsers.py:12: PendingDeprecationWarning: Please use `import python_multipart` instead.\n    import multipart\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n=========================== short test summary info ===========================\nERROR tests/middleware/test_request_id.py\n!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!\n1 warning, 1 error in 0.26s\n\n",
+          "command": "C:\\Coding Workspace\\otter\\benchmarks\\.venv\\Scripts\\python.exe -m pytest -q --tb=line -p no:cacheprovider -o addopts= -o filterwarnings= tests/middleware/test_request_id.py"
+        },
+        "copy_latency_s": 0.21251999999731197,
+        "context_latency_s": 0.9722572999999102,
+        "generate_latency_s": 91.15931259999707,
+        "apply_latency_s": 0.0025877000007312745,
+        "test_latency_s": 1.1315900000008696,
+        "error": null,
+        "failure_category": "not_verifiable",
+        "status_machine": "approved",
+        "structured_recovery": false,
+        "raw_structured_ok": true,
+        "raw_completion_preview": null
+      },
+      "latency_s": 94.83321889999934
+    },
+    {
+      "id": "task-019",
+      "kind": "implement",
+      "repository": "click",
+      "difficulty": "hard",
+      "prompt": "Add a click.option decorator helper require_email_option() in src/click/decorators.py that adds a required --email option using an email ParamType (add EmailParamType in src/click/types.py if it does not exist). Invalid values without '@' must fail parsing. Export what is needed from src/click/__init__.py. Add tests in tests/test_options.py and tests/test_types.py as appropriate.\n",
+      "status": "ok",
+      "model": "qwen2.5-coder:7b",
+      "retrieval": {
+        "ok": true,
+        "ranked_files": [
+          "src/click/__init__.py",
+          "src/click/types.py",
+          "tests/test_options.py",
+          "tests/test_types.py",
+          "tests/typing/typing_password_option.py",
+          "tests/typing/typing_group_kw_options.py",
+          "tests/typing/typing_options.py",
+          "src/click/testing.py",
+          "tests/typing/typing_version_option.py",
+          "src/click/decorators.py"
+        ],
+        "hit_count": 24,
+        "latency_s": 0.2355247999985295,
+        "metrics": {
+          "recall@3": 0.6,
+          "recall@5": 0.8,
+          "recall@10": 1.0,
+          "precision@3": 1.0,
+          "precision@5": 0.8,
+          "precision@10": 0.5,
+          "precision_at_gold": 0.8
+        },
+        "error": null
+      },
+      "planning": {
+        "ok": true,
+        "plan": {
+          "title": "Plan: Add a click.option decorator helper require_email_option() in src/click/decorato",
+          "complexity": "high",
+          "summary": "This plan addresses: Add a click.option decorator helper require_email_option() in src/click/decorators.py that adds a required --email option using an email ParamType (add EmailParamType in src/click/types.py if it does not exist). Invalid values without '@' must fail parsing. Export what is needed from src/click/__init__.py. Add tests in tests/test_options.py and tests/test_types.py as appropriate.. It begins with repository context, identifies affected surfaces, and ends with verification before implementation approval.",
+          "steps": [
+            "Confirm the requested behavior against existing project conventions",
+            "Inspect and update the affected areas: src/click/__init__.py, src/click/types.py, tests/test_options.py, tests/test_types.py, tests/typing/typing_password_option.py",
+            "Implement the change with focused tests",
+            "Run validation and review compatibility risks",
+            "Document the decision and rollout notes"
+          ],
+          "affected_files": [
+            "src/click/__init__.py",
+            "src/click/types.py",
+            "tests/test_options.py",
+            "tests/test_types.py",
+            "tests/typing/typing_password_option.py",
+            "tests/typing/typing_group_kw_options.py",
+            "tests/typing/typing_options.py",
+            "src/click/testing.py"
+          ],
+          "dependencies": [
+            "Existing project conventions",
+            "Automated tests",
+            "Documentation update"
+          ],
+          "risks": [
+            "Unidentified coupling",
+            "Incomplete test coverage"
+          ]
+        },
+        "intelligence_entry_points": [],
+        "rubric": {
+          "A_files": 1,
+          "B_approach": 0,
+          "C_dependencies": 2,
+          "D_verification": 2,
+          "E_no_invented": 2,
+          "total": 7,
+          "max": 10,
+          "score_pct": 0.7,
+          "success": false
+        },
+        "latency_s": 0.5772388000004867,
+        "error": null
+      },
+      "patch": {
+        "ok": false,
+        "generation_succeeded": false,
+        "applied": false,
+        "e2e_success": false,
+        "todo_only": false,
+        "summary": "",
+        "model_reported": null,
+        "modified_files": [],
+        "expected_files_hit": false,
+        "expected_file_accuracy": 0.0,
+        "unexpected_files": [],
+        "context_files": [
+          "src/click/__init__.py",
+          "src/click/types.py",
+          "tests/test_options.py",
+          "tests/test_types.py",
+          "tests/typing/typing_password_option.py",
+          "tests/typing/typing_group_kw_options.py"
+        ],
+        "context_file_count": 6,
+        "context_chars": 12411,
+        "token_measurement": "unavailable",
+        "usage": null,
+        "syntax": {
+          "ok": false,
+          "checked": [],
+          "errors": [
+            "not applied"
+          ]
+        },
+        "expect_in_files": {
+          "ok": false,
+          "missing": [
+            "not applied"
+          ]
+        },
+        "tests": {
+          "status": "skipped",
+          "passed": null,
+          "output": "not applied",
+          "command": null
+        },
+        "copy_latency_s": 0.3292522000010649,
+        "context_latency_s": 0.7383205999976781,
+        "generate_latency_s": 13.265900800000963,
+        "apply_latency_s": 0.0,
+        "test_latency_s": 0.0,
+        "error": "Patch generation failed across local models (qwen2.5-coder:7b\u2026): qwen2.5-coder:7b: Invalid patch shape",
+        "failure_category": "wrong_schema",
+        "status_machine": "ready_for_approval",
+        "structured_recovery": false,
+        "raw_structured_ok": null,
+        "raw_completion_preview": "```json\n{\n  \"summary\": \"The request cannot be processed as it lacks necessary details.\"\n}\n```"
+      },
+      "latency_s": 15.147622200001933
+    },
+    {
+      "id": "task-020",
+      "kind": "implement",
+      "repository": "bottle",
+      "difficulty": "hard",
+      "prompt": "Add a Bottle plugin class TimingPlugin in bottle.py that records elapsed seconds for each request on the response header X-Process-Time (string seconds). It should implement the Bottle plugin API (apply / name) so app.install(TimingPlugin()) works. Add tests in test/test_plugins.py.\n",
+      "status": "ok",
+      "model": "qwen2.5-coder:7b",
+      "retrieval": {
+        "ok": true,
+        "ranked_files": [
+          "test/test_plugins.py",
+          "bottle.py",
+          "test/__init__.py",
+          "test/test_jinja2.py",
+          "test/test_oorouting.py",
+          "test/test_app.py",
+          "test/test_contextlocals.py",
+          "test/example_settings.py",
+          "test/test_environ.py",
+          "test/test_formsdict.py"
+        ],
+        "hit_count": 24,
+        "latency_s": 0.16544529999737279,
+        "metrics": {
+          "recall@3": 1.0,
+          "recall@5": 1.0,
+          "recall@10": 1.0,
+          "precision@3": 0.6666666666666666,
+          "precision@5": 0.4,
+          "precision@10": 0.2,
+          "precision_at_gold": 1.0
+        },
+        "error": null
+      },
+      "planning": {
+        "ok": true,
+        "plan": {
+          "title": "Plan: Add a Bottle plugin class TimingPlugin in bottle.py that records elapsed seconds",
+          "complexity": "high",
+          "summary": "This plan addresses: Add a Bottle plugin class TimingPlugin in bottle.py that records elapsed seconds for each request on the response header X-Process-Time (string seconds). It should implement the Bottle plugin API (apply / name) so app.install(TimingPlugin()) works. Add tests in test/test_plugins.py.. It begins with repository context, identifies affected surfaces, and ends with verification before implementation approval.",
+          "steps": [
+            "Confirm the requested behavior against existing project conventions",
+            "Inspect and update the affected areas: test/test_route.py, test/test_router.py",
+            "Implement the change with focused tests",
+            "Run validation and review compatibility risks",
+            "Document the decision and rollout notes"
+          ],
+          "affected_files": [
+            "test/test_route.py",
+            "test/test_router.py"
+          ],
+          "dependencies": [
+            "Request and response contract",
+            "Authentication and authorization",
+            "API integration tests"
+          ],
+          "risks": [
+            "Breaking existing clients",
+            "Invalid input handling",
+            "Error response consistency"
+          ]
+        },
+        "intelligence_entry_points": [],
+        "rubric": {
+          "A_files": 0,
+          "B_approach": 0,
+          "C_dependencies": 0,
+          "D_verification": 2,
+          "E_no_invented": 2,
+          "total": 4,
+          "max": 10,
+          "score_pct": 0.4,
+          "success": false
+        },
+        "latency_s": 0.38473249999879044,
+        "error": null
+      },
+      "patch": {
+        "ok": true,
+        "generation_succeeded": true,
+        "applied": true,
+        "e2e_success": false,
+        "todo_only": false,
+        "summary": "Add a Bottle plugin class TimingPlugin that records elapsed seconds for each request on the response header X-Process-Time. Implement tests in test/test_plugins.py.",
+        "model_reported": "qwen2.5-coder:7b",
+        "modified_files": [
+          "test/test_plugins.py"
+        ],
+        "expected_files_hit": true,
+        "expected_file_accuracy": 0.5,
+        "unexpected_files": [],
+        "context_files": [
+          "test/test_plugins.py",
+          "bottle.py",
+          "test/__init__.py",
+          "test/test_jinja2.py",
+          "test/test_oorouting.py",
+          "test/test_app.py"
+        ],
+        "context_file_count": 6,
+        "context_chars": 10451,
+        "token_measurement": "unavailable",
+        "usage": null,
+        "syntax": {
+          "ok": true,
+          "checked": [
+            "test/test_plugins.py"
+          ],
+          "errors": []
+        },
+        "expect_in_files": {
+          "ok": false,
+          "missing": [
+            "bottle.py missing 'TimingPlugin'",
+            "bottle.py missing 'X-Process-Time'"
+          ]
+        },
+        "tests": {
+          "status": "fail",
+          "passed": false,
+          "output": "..FFFFFFF                                                                [100%]\n================================== FAILURES ===================================\nC:\\Coding Workspace\\otter\\benchmarks\\workspaces\\qwen2.5-coder-7b\\task-020\\test\\test_plugins.py:52: NameError: name 'MyPlugin' is not defined\nC:\\Coding Workspace\\otter\\benchmarks\\workspaces\\qwen2.5-coder-7b\\task-020\\test\\test_plugins.py:110: NameError: name 'MyPlugin' is not defined\nC:\\Coding Workspace\\otter\\benchmarks\\workspaces\\qwen2.5-coder-7b\\task-020\\test\\test_plugins.py:100: AttributeError: 'function' object has no attribute 'headers'\nC:\\Coding Workspace\\otter\\benchmarks\\workspaces\\qwen2.5-coder-7b\\task-020\\test\\test_plugins.py:88: NameError: name 'MyPlugin' is not defined\nC:\\Coding Workspace\\otter\\benchmarks\\workspaces\\qwen2.5-coder-7b\\task-020\\test\\test_plugins.py:66: NameError: name 'MyPlugin' is not defined\nC:\\Coding Workspace\\otter\\benchmarks\\workspaces\\qwen2.5-coder-7b\\task-020\\test\\test_plugins.py:80: NameError: name 'MyPlugin' is not defined\nC:\\Coding Workspace\\otter\\benchmarks\\workspaces\\qwen2.5-coder-7b\\task-020\\test\\test_plugins.py:73: NameError: name 'MyPlugin' is not defined\n=========================== short test summary info ===========================\nFAILED test/test_plugins.py::TestPluginManagement::test_install_plugin - Name...\nFAILED test/test_plugins.py::TestPluginManagement::test_plugin_oder - NameErr...\nFAILED test/test_plugins.py::TestPluginManagement::test_route_plugin - Attrib...\nFAILED test/test_plugins.py::TestPluginManagement::test_uninstall_all - NameE...\nFAILED test/test_plugins.py::TestPluginManagement::test_uninstall_by_instance\nFAILED test/test_plugins.py::TestPluginManagement::test_uninstall_by_name - N...\nFAILED test/test_plugins.py::TestPluginManagement::test_uninstall_by_type - N...\n7 failed, 2 passed in 0.21s\n\n",
+          "command": "C:\\Coding Workspace\\otter\\benchmarks\\.venv\\Scripts\\python.exe -m pytest -q --tb=line -p no:cacheprovider -o addopts= -o filterwarnings= test/test_plugins.py"
+        },
+        "copy_latency_s": 0.41615979999915,
+        "context_latency_s": 0.3349134000018239,
+        "generate_latency_s": 59.78618909999932,
+        "apply_latency_s": 0.00159939999866765,
+        "test_latency_s": 0.7421023999995668,
+        "error": null,
+        "failure_category": "test failure",
+        "status_machine": "approved",
+        "structured_recovery": false,
+        "raw_structured_ok": true,
+        "raw_completion_preview": null
+      },
+      "latency_s": 61.84887660000095
+    }
+  ]
+}

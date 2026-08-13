@@ -1,0 +1,25 @@
+id: task-008
+kind: implement
+repository: sample-app
+difficulty: medium
+prompt: >
+  Add a GET /version API endpoint that returns JSON {"version":"1.0.0"}
+  with HTTP 200. Register it with the existing Express app alongside user routes.
+gold:
+  relevant_files:
+    - src/routes/users.ts
+  expected_changes:
+    - Add a version endpoint
+    - Return version 1.0.0
+  dependencies:
+    - Request and response contract
+    - API integration tests
+  verification:
+    tests: []
+    syntax: ts
+    expect_in_files:
+      - path: src/routes/users.ts
+        contains:
+          - "/version"
+  allowed_extra_files:
+    - src/routes/version.ts

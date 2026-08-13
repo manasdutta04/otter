@@ -1,0 +1,129 @@
+{
+  "id": "task-017",
+  "kind": "implement",
+  "repository": "sample-app",
+  "difficulty": "hard",
+  "prompt": "Add POST /users/login that verifies an email and password. Store a password hash field on the user record in the repository layer. The service must reject missing passwords and must not store plaintext. Return 401 JSON {\"error\":\"unauthorized\"} on mismatch. Update the create-user path to accept password and hash it. Extend tests/user.test.ts.\n",
+  "status": "ok",
+  "model": "gemma4:e2b",
+  "retrieval": {
+    "ok": true,
+    "ranked_files": [
+      "src/repositories/userRepository.ts",
+      "src/services/userService.ts",
+      "tests/user.test.ts",
+      "src/routes/users.ts",
+      "src/middleware/auth.ts",
+      "package.json"
+    ],
+    "hit_count": 6,
+    "latency_s": 0.004147999999986496,
+    "metrics": {
+      "recall@3": 0.6,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "precision@3": 1.0,
+      "precision@5": 1.0,
+      "precision@10": 0.5,
+      "precision_at_gold": 1.0
+    },
+    "error": null
+  },
+  "planning": {
+    "ok": true,
+    "plan": {
+      "title": "Plan: Add POST /users/login that verifies an email and password. Store a password hash",
+      "complexity": "high",
+      "summary": "This plan addresses: Add POST /users/login that verifies an email and password. Store a password hash field on the user record in the repository layer. The service must reject missing passwords and must not store plaintext. Return 401 JSON {\"error\":\"unauthorized\"} on mismatch. Update the create-user path to accept password and hash it. Extend tests/user.test.ts.. It begins with repository context, identifies affected surfaces, and ends with verification before implementation approval.",
+      "steps": [
+        "Confirm the requested behavior against existing project conventions",
+        "Inspect and update the affected areas: package.json, tests/user.test.ts, src/middleware/auth.ts, src/repositories/userRepository.ts, src/routes/users.ts",
+        "Implement the change with focused tests",
+        "Run validation and review compatibility risks",
+        "Document the decision and rollout notes"
+      ],
+      "affected_files": [
+        "package.json",
+        "tests/user.test.ts",
+        "src/middleware/auth.ts",
+        "src/repositories/userRepository.ts",
+        "src/routes/users.ts",
+        "src/services/userService.ts"
+      ],
+      "dependencies": [
+        "Existing project conventions",
+        "Automated tests",
+        "Documentation update"
+      ],
+      "risks": [
+        "Unidentified coupling",
+        "Incomplete test coverage"
+      ]
+    },
+    "intelligence_entry_points": [],
+    "rubric": {
+      "A_files": 2,
+      "B_approach": 0,
+      "C_dependencies": 0,
+      "D_verification": 2,
+      "E_no_invented": 2,
+      "total": 6,
+      "max": 10,
+      "score_pct": 0.6,
+      "success": false
+    },
+    "latency_s": 0.01020020000214572,
+    "error": null
+  },
+  "patch": {
+    "ok": false,
+    "generation_succeeded": false,
+    "applied": false,
+    "e2e_success": false,
+    "todo_only": false,
+    "summary": "",
+    "model_reported": null,
+    "modified_files": [],
+    "expected_files_hit": false,
+    "expected_file_accuracy": 0.0,
+    "unexpected_files": [],
+    "context_files": [
+      "package.json",
+      "src/middleware/auth.ts",
+      "tests/user.test.ts",
+      "src/services/userService.ts"
+    ],
+    "context_file_count": 4,
+    "context_chars": 742,
+    "token_measurement": "unavailable",
+    "usage": null,
+    "syntax": {
+      "ok": false,
+      "checked": [],
+      "errors": [
+        "not applied"
+      ]
+    },
+    "expect_in_files": {
+      "ok": false,
+      "missing": [
+        "not applied"
+      ]
+    },
+    "tests": {
+      "status": "skipped",
+      "passed": null,
+      "output": "not applied",
+      "command": null
+    },
+    "copy_latency_s": 0.03058980000059819,
+    "context_latency_s": 0.01649610000094981,
+    "generate_latency_s": 307.6380344999998,
+    "apply_latency_s": 0.0,
+    "test_latency_s": 0.0,
+    "error": "Patch generation failed across local models (gemma4:e2b\u2026): gemma4:e2b: No JSON object found in model response",
+    "failure_category": "json_malformed",
+    "status_machine": "ready_for_approval"
+  },
+  "latency_s": 307.69969200000196
+}

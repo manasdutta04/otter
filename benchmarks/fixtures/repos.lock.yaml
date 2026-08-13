@@ -1,0 +1,22 @@
+# Pinned benchmark repositories. Clone into benchmarks/cache/<id>.
+# Do not pull newer commits during a run.
+
+repos:
+  sample-app:
+    kind: local
+    path: apps/mcp/fixtures/sample_repo
+  bottle:
+    kind: git
+    url: https://github.com/bottlepy/bottle.git
+    tag: "0.13.2"
+    sha: ab49e0c22491f8acfcb02e4a7b8c648843268233
+  click:
+    kind: git
+    url: https://github.com/pallets/click.git
+    tag: "8.1.8"
+    sha: 934813e4d421071a1b3db3973c02fe2721359a6e
+  starlette:
+    kind: git
+    url: https://github.com/encode/starlette.git
+    tag: "0.38.2"
+    sha: 5ed55c441126687106109a3f5e051176f88cd3e6

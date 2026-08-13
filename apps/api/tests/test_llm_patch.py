@@ -18,6 +18,28 @@ def test_is_health_request():
     assert not is_health_request("Add email password authentication")
 
 
+def test_auth_request_ignores_register_route_and_basic_copy():
+    from app.llm import _is_auth_request
+
+    assert not _is_auth_request("Register it with the existing Express app alongside user routes.")
+    assert not _is_auth_request("Change auth_basic denial text to Authentication required")
+    assert _is_auth_request("Add email password authentication for login")
+    assert _is_auth_request("Add POST /users/login that verifies an email and password")
+
+
+def test_extract_json_object_strips_markdown_and_preamble():
+    from app.llm import _extract_json_object
+
+    fenced = """Sure.\n```json\n{"summary":"ok","files":[{"path":"a.py","content":"x"}]}\n```\n"""
+    data = _extract_json_object(fenced)
+    assert data["summary"] == "ok"
+    assert data["files"][0]["path"] == "a.py"
+
+    preamble = 'Here you go:\n{"summary":"done","files":[{"path":"b.py","content":"y"}]}'
+    data = _extract_json_object(preamble)
+    assert data["summary"] == "done"
+
+
 def test_deterministic_patch_rejects_feature_todos():
     files = [{"path": "server/routes.ts", "content": "export function registerRoutes() {}\n"}]
     with pytest.raises(PatchGenerationError):
@@ -469,4 +491,18 @@ def test_normalize_patch_strips_model_prefix_from_summary():
     patch = _normalize_patch(result, originals=originals, request="add health")
     assert "[llm:" not in str(patch["summary"]).lower()
     assert "health" in str(patch["summary"]).lower()
+
+
+def test_normalize_patch_does_not_invent_package_json_for_python_only():
+    from app.llm import _normalize_patch
+
+    originals = {"bottle.py": "def tob(x): return x\n"}
+    result = {
+        "summary": "Add email helper",
+        "dependencies": {"bcrypt": "^3.2.0"},
+        "files": [{"path": "bottle.py", "content": "def tob(x): return x\n\ndef is_valid_email(value): return '@' in value\n"}],
+    }
+    patch = _normalize_patch(result, originals=originals, request="add is_valid_email")
+    assert all(item["path"] != "package.json" for item in patch["files"])
+    assert any(item["path"] == "bottle.py" for item in patch["files"])
 

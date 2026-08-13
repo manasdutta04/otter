@@ -1,0 +1,79 @@
+{
+  "id": "task-002",
+  "kind": "locate",
+  "repository": "sample-app",
+  "difficulty": "easy",
+  "prompt": "Find where user records are persisted or inserted for the users API.\n",
+  "status": "ok",
+  "model": "qwen2.5-coder:7b",
+  "retrieval": {
+    "ok": true,
+    "ranked_files": [
+      "src/routes/users.ts",
+      "src/services/userService.ts",
+      "src/repositories/userRepository.ts",
+      "tests/user.test.ts",
+      "src/middleware/auth.ts",
+      "package.json"
+    ],
+    "hit_count": 6,
+    "latency_s": 0.004377500001282897,
+    "metrics": {
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "precision@3": 0.3333333333333333,
+      "precision@5": 0.2,
+      "precision@10": 0.1,
+      "precision_at_gold": 0.0
+    },
+    "error": null
+  },
+  "planning": {
+    "ok": true,
+    "plan": {
+      "title": "Plan: Find where user records are persisted or inserted for the users API",
+      "complexity": "high",
+      "summary": "This plan addresses: Find where user records are persisted or inserted for the users API.. It begins with repository context, identifies affected surfaces, and ends with verification before implementation approval.",
+      "steps": [
+        "Confirm the requested behavior against existing project conventions",
+        "Inspect and update the affected areas: package.json, tests/user.test.ts, src/middleware/auth.ts, src/repositories/userRepository.ts, src/routes/users.ts",
+        "Implement the change with focused tests",
+        "Run validation and review compatibility risks",
+        "Document the decision and rollout notes"
+      ],
+      "affected_files": [
+        "package.json",
+        "tests/user.test.ts",
+        "src/middleware/auth.ts",
+        "src/repositories/userRepository.ts",
+        "src/routes/users.ts",
+        "src/services/userService.ts"
+      ],
+      "dependencies": [
+        "Existing project conventions",
+        "Automated tests",
+        "Documentation update"
+      ],
+      "risks": [
+        "Unidentified coupling",
+        "Incomplete test coverage"
+      ]
+    },
+    "intelligence_entry_points": [],
+    "rubric": {
+      "A_files": 2,
+      "B_approach": 0,
+      "C_dependencies": 2,
+      "D_verification": 2,
+      "E_no_invented": 2,
+      "total": 8,
+      "max": 10,
+      "score_pct": 0.8,
+      "success": true
+    },
+    "latency_s": 0.0083158999987063,
+    "error": null
+  },
+  "latency_s": 0.012777199997799471
+}

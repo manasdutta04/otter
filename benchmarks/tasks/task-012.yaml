@@ -1,0 +1,31 @@
+id: task-012
+kind: implement
+repository: click
+difficulty: medium
+prompt: >
+  Add an EmailParamType class named EMAIL (instance email) in src/click/types.py.
+  convert() should accept strings that contain '@' and raise click.BadParameter
+  otherwise. Export it from src/click/__init__.py if other types are exported there.
+  Add a small unit test in tests/test_types.py.
+gold:
+  relevant_files:
+    - src/click/types.py
+    - src/click/__init__.py
+    - tests/test_types.py
+  expected_changes:
+    - Add email validation
+    - Raise BadParameter for invalid email
+    - Add regression coverage
+  dependencies:
+    - Existing project conventions
+    - Automated tests
+  verification:
+    tests:
+      - tests/test_types.py
+    syntax: py
+    expect_in_files:
+      - path: src/click/types.py
+        contains:
+          - Email
+  allowed_extra_files:
+    - src/click/exceptions.py

@@ -1,0 +1,30 @@
+id: task-020
+kind: implement
+repository: bottle
+difficulty: hard
+prompt: >
+  Add a Bottle plugin class TimingPlugin in bottle.py that records elapsed
+  seconds for each request on the response header X-Process-Time (string
+  seconds). It should implement the Bottle plugin API (apply / name) so
+  app.install(TimingPlugin()) works. Add tests in test/test_plugins.py.
+gold:
+  relevant_files:
+    - bottle.py
+    - test/test_plugins.py
+  expected_changes:
+    - Add TimingPlugin
+    - Set X-Process-Time header
+    - Add regression coverage
+  dependencies:
+    - Existing project conventions
+    - Automated tests
+  verification:
+    tests:
+      - test/test_plugins.py
+    syntax: py
+    expect_in_files:
+      - path: bottle.py
+        contains:
+          - TimingPlugin
+          - X-Process-Time
+  allowed_extra_files: []

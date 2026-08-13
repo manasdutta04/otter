@@ -85,6 +85,10 @@ AUTH_PATH_TERMS = (
 class PatchGenerationError(Exception):
     """Raised when a real patch cannot be produced."""
 
+    def __init__(self, message: str, raw_completion: str | None = None):
+        super().__init__(message)
+        self.raw_completion = raw_completion
+
 
 def is_health_request(request: str) -> bool:
     lowered = request.lower()
@@ -147,19 +151,17 @@ def is_todo_only_patch(
 
 
 _AUTH_REQUEST_TERMS = {
-    "auth",
-    "authentication",
     "login",
     "password",
     "signup",
     "signin",
     "sign-up",
     "sign-in",
-    "register",
-    "credential",
-    "session",
     "oauth",
+    "credential",
+    "credentials",
 }
+_AUTH_ACCOUNT_TERMS = {"user", "users", "account", "accounts", "identity"}
 _PASSWORD_HASH_MARKERS = (
     "bcrypt",
     "argon2",
@@ -243,8 +245,19 @@ DEFAULT_DEP_VERSIONS: dict[str, str] = {
 
 
 def _is_auth_request(request: str) -> bool:
-    words = set(re.findall(r"[a-z0-9_-]+", request.lower()))
-    return bool(words & _AUTH_REQUEST_TERMS) or "email/password" in request.lower()
+    """True for credential/login work, not 'register the route' or HTTP Basic copy tweaks."""
+    lowered = request.lower()
+    if "email/password" in lowered or "email and password" in lowered:
+        return True
+    words = set(re.findall(r"[a-z0-9_-]+", lowered))
+    if words & _AUTH_REQUEST_TERMS:
+        return True
+    if "register" in words and words & _AUTH_ACCOUNT_TERMS:
+        if words & {"password", "login", "signup", "signin", "account"}:
+            return True
+        if not words & {"route", "routes", "endpoint", "router", "app"}:
+            return True
+    return False
 
 
 _LLM_SUMMARY_PREFIX_RE = re.compile(r"^\[llm:[^\]]+\]\s*", re.IGNORECASE)
@@ -449,17 +462,34 @@ def _salvage_truncated_json(text: str) -> dict | None:
     return {"summary": json.loads(f'"{summary}"'), "files": entries, "truncated": True}
 
 
+def _strip_code_fences(text: str) -> str:
+    raw = (text or "").strip()
+    fenced = re.search(r"```(?:json)?\s*([\s\S]*?)```", raw, flags=re.IGNORECASE)
+    if fenced:
+        return fenced.group(1).strip()
+    if raw.startswith("```"):
+        raw = re.sub(r"^```(?:json)?\s*", "", raw, flags=re.IGNORECASE)
+        raw = re.sub(r"\s*```$", "", raw)
+    return raw.strip()
+
+
 def _extract_json_object(content: str) -> dict:
-    text = (content or "").strip()
-    if text.startswith("```"):
-        text = re.sub(r"^```(?:json)?\s*", "", text, flags=re.IGNORECASE)
-        text = re.sub(r"\s*```$", "", text)
+    text = _strip_code_fences(content or "")
     try:
         data = json.loads(text)
         if isinstance(data, dict):
             return data
     except json.JSONDecodeError:
         pass
+    decoder = json.JSONDecoder()
+    start = text.find("{")
+    if start != -1:
+        try:
+            data, _end = decoder.raw_decode(text, start)
+            if isinstance(data, dict):
+                return data
+        except ValueError:
+            pass
     match = re.search(r"\{[\s\S]*\}", text)
     if match:
         try:
@@ -580,10 +610,12 @@ def _normalize_patch(result: dict, *, originals: dict[str, str] | None = None, r
             continue
         normalized_files.append({"path": path, "content": str(content)})
 
-    # Small local models often import bcryptjs/uuid without filling `dependencies`.
-    declared_deps.update(_missing_npm_imports(normalized_files, originals, declared_deps))
+    js_stack = _is_js_patch(normalized_files, originals)
+    if js_stack:
+        # Small local models often import bcryptjs/uuid without filling `dependencies`.
+        declared_deps.update(_missing_npm_imports(normalized_files, originals, declared_deps))
 
-    if declared_deps:
+    if declared_deps and js_stack:
         base_manifest = originals.get("package.json") or '{"name":"app","dependencies":{}}'
         merged = _merge_dependencies(base_manifest, declared_deps)
         if merged is not None:
@@ -603,7 +635,20 @@ def _normalize_patch(result: dict, *, originals: dict[str, str] | None = None, r
     if not normalized_files:
         raise ValueError("Patch contained no usable files")
     validate_patch_quality(request, normalized_files, originals)
-    return {"summary": summary, "files": normalized_files, "source": "llm"}
+    return {
+        "summary": summary,
+        "files": normalized_files,
+        "source": "llm",
+        "truncated": bool(result.get("truncated")),
+    }
+
+
+def _is_js_patch(files: list[dict[str, str]], originals: dict[str, str]) -> bool:
+    js_exts = {".js", ".jsx", ".ts", ".tsx", ".mjs", ".cjs"}
+    paths = [str(item.get("path") or "") for item in files] + list(originals)
+    if any(Path(path).suffix.lower() in js_exts for path in paths):
+        return True
+    return any(Path(path).name.lower() == "package.json" for path in originals)
 
 
 def _package_names_as_deps(manifest: str) -> dict[str, str]:
@@ -976,7 +1021,9 @@ async def generate_patch(
         "6. Match existing style, imports, and framework conventions EXACTLY.\n"
         "7. Change as few files as possible, but include every file required for a working change.\n"
         "8. PREFER `edits` (targeted old_string→new_string) over full `files` rewrites. "
-        "Use `files` only for brand-new files or when an edit cannot express the change.\n"
+        "Use `files` only for brand-new files or when an edit cannot express the change. "
+        "If a FILE is already in context, preserve its existing contents and apply a minimal edit — "
+        "never replace a library module with a stub that only contains the new symbol.\n"
         f"{_edit_prompt_addon()}"
         "9. NEVER invent APIs (no fake drizzle helpers, no made-up packages).\n"
         "10. If the repo uses drizzle-orm/pg-core + node-postgres, keep that pattern; extend pgTable schemas.\n"
@@ -1002,6 +1049,7 @@ async def generate_patch(
         free_failover = True
     candidates = _free_model_candidates(model, free_failover=free_failover)
     last_error = "unknown LLM error"
+    last_raw = ""
     local = _is_ollama_base(base)
     timeout = 300.0 if local else 120.0
     request_base = _resolve_base_url(base)
@@ -1018,6 +1066,7 @@ async def generate_patch(
                         "You are a cautious senior software engineer. "
                         "Return only compact JSON with keys summary, dependencies, and optionally edits and/or files. "
                         "Prefer targeted edits over full file rewrites. "
+                        "Never replace an existing library file with a stub. "
                         "Never wrap JSON in markdown. "
                         "Produce a real implementation that compiles against the existing stack. "
                         "Never invent ORM APIs. Never store plaintext passwords. Never TODO-only patches. "
@@ -1060,11 +1109,75 @@ async def generate_patch(
                     continue
                 patch["summary"] = strip_llm_summary_prefix(str(patch["summary"]))
                 patch["model"] = model_id
+                patch["structured_recovery"] = True
+                patch["raw_structured_ok"] = False
                 return patch
             content = response.json()["choices"][0]["message"]["content"]
-            patch = _normalize_patch(_extract_json_object(content), originals=originals, request=request)
+            last_raw = str(content or "")
+            recovered = False
+            try:
+                parsed = _extract_json_object(content)
+            except ValueError:
+                recovered = True
+                repair_payload = dict(payload)
+                repair_payload["messages"] = [
+                    *list(payload["messages"]),
+                    {"role": "assistant", "content": str(content or "")[:4000]},
+                    {
+                        "role": "user",
+                        "content": (
+                            "Your previous reply was not valid compact JSON. "
+                            "Reply with ONLY a JSON object with keys summary and files "
+                            "(optional: edits, dependencies). No markdown fences."
+                        ),
+                    },
+                ]
+                async with httpx.AsyncClient(timeout=timeout) as client:
+                    repaired = await client.post(
+                        f"{request_base.rstrip('/')}/chat/completions",
+                        headers=_llm_headers(key, base),
+                        json=repair_payload,
+                    )
+                if repaired.status_code >= 400:
+                    raise ValueError(f"JSON repair HTTP {repaired.status_code}")
+                content = repaired.json()["choices"][0]["message"]["content"]
+                last_raw = str(content or "")
+                parsed = _extract_json_object(content)
+            try:
+                patch = _normalize_patch(parsed, originals=originals, request=request)
+            except ValueError as shape_error:
+                if "invalid patch shape" not in str(shape_error).lower() and "no usable files" not in str(shape_error).lower():
+                    raise
+                recovered = True
+                repair_payload = dict(payload)
+                repair_payload["messages"] = [
+                    *list(payload["messages"]),
+                    {"role": "assistant", "content": last_raw[:4000]},
+                    {
+                        "role": "user",
+                        "content": (
+                            "Your JSON was missing summary and/or a non-empty files list. "
+                            "Reply with ONLY a JSON object with keys summary and files. "
+                            "Do not invent files that were not requested. No markdown."
+                        ),
+                    },
+                ]
+                async with httpx.AsyncClient(timeout=timeout) as client:
+                    repaired = await client.post(
+                        f"{request_base.rstrip('/')}/chat/completions",
+                        headers=_llm_headers(key, base),
+                        json=repair_payload,
+                    )
+                if repaired.status_code >= 400:
+                    raise ValueError(f"schema repair HTTP {repaired.status_code}")
+                content = repaired.json()["choices"][0]["message"]["content"]
+                last_raw = str(content or "")
+                parsed = _extract_json_object(content)
+                patch = _normalize_patch(parsed, originals=originals, request=request)
             patch["summary"] = strip_llm_summary_prefix(str(patch["summary"]))
             patch["model"] = model_id
+            patch["structured_recovery"] = recovered or bool(parsed.get("truncated"))
+            patch["raw_structured_ok"] = not recovered
             return patch
         except (KeyError, IndexError, TypeError, ValueError, json.JSONDecodeError, httpx.HTTPError) as error:
             last_error = f"{model_id}: {error}"
@@ -1076,5 +1189,14 @@ async def generate_patch(
         return deterministic_patch(request, files)
 
     raise PatchGenerationError(
-        f"Patch generation failed across local models ({', '.join(candidates[:4])}…): {last_error}"
+        f"Patch generation failed across local models ({', '.join(candidates[:4])}…): {last_error}",
+        raw_completion=_raw_preview(last_raw),
     )
+
+
+def _raw_preview(text: str, limit: int = 800) -> str:
+    blob = text or ""
+    if len(blob) <= limit * 2:
+        return blob
+    return blob[:limit] + "\n…\n" + blob[-limit:]
+

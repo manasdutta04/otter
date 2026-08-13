@@ -1,0 +1,133 @@
+{
+  "id": "task-015",
+  "kind": "implement",
+  "repository": "bottle",
+  "difficulty": "medium",
+  "prompt": "Change bottle.auth_basic so that when the provided check callback returns False, the WWW-Authenticate realm default remains \"private\" but the response body text default becomes \"Authentication required\" instead of \"Access denied\". Update test/test_auth.py if it asserts the old body text.\n",
+  "status": "ok",
+  "model": "gemma4:e2b",
+  "retrieval": {
+    "ok": true,
+    "ranked_files": [
+      "test/test_auth.py",
+      "test/test_contextlocals.py",
+      "test/test_resources.py",
+      "test/test_mount.py",
+      "test/test_app.py",
+      "test/test_wsgi.py",
+      "test/test_formsdict.py",
+      "test/test_outputfilter.py",
+      "test/test_environ.py",
+      "test/test_stpl.py"
+    ],
+    "hit_count": 24,
+    "latency_s": 0.1482183999978588,
+    "metrics": {
+      "recall@3": 0.5,
+      "recall@5": 0.5,
+      "recall@10": 0.5,
+      "precision@3": 0.3333333333333333,
+      "precision@5": 0.2,
+      "precision@10": 0.1,
+      "precision_at_gold": 0.5
+    },
+    "error": null
+  },
+  "planning": {
+    "ok": true,
+    "plan": {
+      "title": "Plan: Change bottle.auth_basic so that when the provided check callback returns False,",
+      "complexity": "high",
+      "summary": "This plan addresses: Change bottle.auth_basic so that when the provided check callback returns False, the WWW-Authenticate realm default remains \"private\" but the response body text default becomes \"Authentication required\" instead of \"Access denied\". Update test/test_auth.py if it asserts the old body text.. It begins with repository context, identifies affected surfaces, and ends with verification before implementation approval.",
+      "steps": [
+        "Confirm the requested behavior against existing project conventions",
+        "Inspect and update the affected areas: .coveragerc, .gitignore, .readthedocs.yaml, AUTHORS, bottle.py",
+        "Implement the change with focused tests",
+        "Run validation and review compatibility risks",
+        "Document the decision and rollout notes"
+      ],
+      "affected_files": [
+        ".coveragerc",
+        ".gitignore",
+        ".readthedocs.yaml",
+        "AUTHORS",
+        "bottle.py",
+        "LICENSE",
+        "Makefile",
+        "MANIFEST.in"
+      ],
+      "dependencies": [
+        "Existing project conventions",
+        "Automated tests",
+        "Documentation update"
+      ],
+      "risks": [
+        "Unidentified coupling",
+        "Incomplete test coverage"
+      ]
+    },
+    "intelligence_entry_points": [],
+    "rubric": {
+      "A_files": 1,
+      "B_approach": 0,
+      "C_dependencies": 0,
+      "D_verification": 2,
+      "E_no_invented": 2,
+      "total": 5,
+      "max": 10,
+      "score_pct": 0.5,
+      "success": false
+    },
+    "latency_s": 0.23914580000200658,
+    "error": null
+  },
+  "patch": {
+    "ok": false,
+    "generation_succeeded": false,
+    "applied": false,
+    "e2e_success": false,
+    "todo_only": false,
+    "summary": "",
+    "model_reported": null,
+    "modified_files": [],
+    "expected_files_hit": false,
+    "expected_file_accuracy": 0.0,
+    "unexpected_files": [],
+    "context_files": [
+      "MANIFEST.in",
+      "Makefile"
+    ],
+    "context_file_count": 2,
+    "context_chars": 2113,
+    "token_measurement": "unavailable",
+    "usage": null,
+    "syntax": {
+      "ok": false,
+      "checked": [],
+      "errors": [
+        "not applied"
+      ]
+    },
+    "expect_in_files": {
+      "ok": false,
+      "missing": [
+        "not applied"
+      ]
+    },
+    "tests": {
+      "status": "skipped",
+      "passed": null,
+      "output": "not applied",
+      "command": null
+    },
+    "copy_latency_s": 0.40901339999982156,
+    "context_latency_s": 0.21485789999860572,
+    "generate_latency_s": 26.567364499998803,
+    "apply_latency_s": 0.0,
+    "test_latency_s": 0.0,
+    "error": "Patch generation failed across local models (gemma4:e2b\u2026): gemma4:e2b: Invalid patch shape",
+    "failure_category": "wrong_schema",
+    "status_machine": "ready_for_approval"
+  },
+  "latency_s": 27.5798681999986
+}

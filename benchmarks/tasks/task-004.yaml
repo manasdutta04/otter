@@ -1,0 +1,16 @@
+id: task-004
+kind: locate
+repository: click
+difficulty: easy
+prompt: >
+  Where does Click convert and validate command-line parameter types?
+gold:
+  relevant_files:
+    - src/click/types.py
+  expected_changes:
+    - Locate ParamType convert
+  dependencies: []
+  verification:
+    tests: []
+    syntax: py
+  allowed_extra_files: []

@@ -53,6 +53,17 @@ def chunk_file(file_path: Path, repo_root: Path, chunk_size: int = 40, overlap: 
     return chunks
 
 
+_LITERAL_PATH_RE = re.compile(
+    r"(?:^|[\s`\"'(=/])((?:[\w.-]+/)*[\w.-]+\.(?:py|ts|tsx|js|jsx|go|rs|java))",
+    re.IGNORECASE,
+)
+
+
+def literal_paths_in_query(query: str) -> list[str]:
+    """Path-like tokens mentioned in a task prompt (generalizable, not task-specific)."""
+    return [match.group(1).replace("\\", "/") for match in _LITERAL_PATH_RE.finditer(query or "")]
+
+
 def tokenize(text: str) -> list[str]:
     words = re.findall(r"[A-Za-z0-9_]+", text)
     tokens: list[str] = []
@@ -91,6 +102,7 @@ class RepositorySemanticIndex:
         if not query_tokens or self.num_docs == 0:
             return []
         query_lower = query.lower()
+        literal_paths = [p.lower() for p in literal_paths_in_query(query)]
         scores: list[tuple[float, int]] = []
         for idx, chunk in enumerate(self.chunks):
             score = 0.0
@@ -124,10 +136,49 @@ class RepositorySemanticIndex:
             if score > 0:
                 scores.append((score, idx))
         scores.sort(key=lambda item: item[0], reverse=True)
+        wants_tests = any(term in query_lower for term in ("test", "tests", "coverage", "unittest", "pytest"))
+        wants_manifest = any(
+            term in query_lower
+            for term in ("package.json", "dependency", "dependencies", "pyproject", "requirements", "manifest")
+        )
+        noise_names = {
+            "package.json",
+            "package-lock.json",
+            "yarn.lock",
+            "pnpm-lock.yaml",
+            "readme.md",
+            "changelog.md",
+            "license",
+            "license.md",
+            "setup.py",
+        }
+        best: dict[str, tuple[float, int]] = {}
+        for score, idx in scores:
+            chunk = self.chunks[idx]
+            rel = chunk["rel_path"]
+            name = chunk["file_name"].lower()
+            rel_l = rel.replace("\\", "/").lower()
+            file_score = score
+            if not wants_manifest and (name in noise_names or name.endswith(".lock")):
+                file_score -= 20.0
+            if not wants_manifest and (name.startswith("readme") or name.startswith("changelog")):
+                file_score -= 12.0
+            if not wants_tests and (
+                "/test/" in rel_l or "/tests/" in rel_l or name.startswith("test_") or name.endswith(".test.ts")
+            ):
+                file_score -= 3.0
+            for lit in literal_paths:
+                lit_name = Path(lit).name.lower()
+                if rel_l == lit or rel_l.endswith("/" + lit) or name == lit_name:
+                    file_score += 40.0
+            prev = best.get(rel)
+            if prev is None or file_score > prev[0]:
+                best[rel] = (file_score, idx)
+        ranked = sorted(best.values(), key=lambda item: item[0], reverse=True)
         results: list[dict] = []
-        for score, idx in scores[:top_k]:
+        for file_score, idx in ranked[:top_k]:
             hit = dict(self.chunks[idx])
-            hit["score"] = score
+            hit["score"] = file_score
             results.append(hit)
         return results
 

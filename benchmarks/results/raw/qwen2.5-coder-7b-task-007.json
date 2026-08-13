@@ -1,0 +1,133 @@
+{
+  "id": "task-007",
+  "kind": "implement",
+  "repository": "sample-app",
+  "difficulty": "medium",
+  "prompt": "Add validation for invalid email addresses in the user creation path. Reject emails that do not contain '@'. Return a client error rather than inserting a bad record.\n",
+  "status": "ok",
+  "model": "qwen2.5-coder:7b",
+  "retrieval": {
+    "ok": true,
+    "ranked_files": [
+      "src/repositories/userRepository.ts",
+      "src/services/userService.ts",
+      "src/routes/users.ts",
+      "tests/user.test.ts",
+      "src/middleware/auth.ts",
+      "package.json"
+    ],
+    "hit_count": 6,
+    "latency_s": 0.004264799998054514,
+    "metrics": {
+      "recall@3": 0.6666666666666666,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "precision@3": 0.6666666666666666,
+      "precision@5": 0.6,
+      "precision@10": 0.3,
+      "precision_at_gold": 0.6666666666666666
+    },
+    "error": null
+  },
+  "planning": {
+    "ok": true,
+    "plan": {
+      "title": "Plan: Add validation for invalid email addresses in the user creation path. Reject ema",
+      "complexity": "high",
+      "summary": "This plan addresses: Add validation for invalid email addresses in the user creation path. Reject emails that do not contain '@'. Return a client error rather than inserting a bad record.. It begins with repository context, identifies affected surfaces, and ends with verification before implementation approval.",
+      "steps": [
+        "Confirm the requested behavior against existing project conventions",
+        "Inspect and update the affected areas: src/repositories/userRepository.ts, src/services/userService.ts, src/routes/users.ts, tests/user.test.ts, src/middleware/auth.ts",
+        "Implement the change with focused tests",
+        "Run validation and review compatibility risks",
+        "Document the decision and rollout notes"
+      ],
+      "affected_files": [
+        "src/repositories/userRepository.ts",
+        "src/services/userService.ts",
+        "src/routes/users.ts",
+        "tests/user.test.ts",
+        "src/middleware/auth.ts"
+      ],
+      "dependencies": [
+        "Existing project conventions",
+        "Automated tests",
+        "Documentation update"
+      ],
+      "risks": [
+        "Unidentified coupling",
+        "Incomplete test coverage"
+      ]
+    },
+    "intelligence_entry_points": [],
+    "rubric": {
+      "A_files": 2,
+      "B_approach": 0,
+      "C_dependencies": 0,
+      "D_verification": 2,
+      "E_no_invented": 2,
+      "total": 6,
+      "max": 10,
+      "score_pct": 0.6,
+      "success": false
+    },
+    "latency_s": 0.016449599999759812,
+    "error": null
+  },
+  "patch": {
+    "ok": true,
+    "generation_succeeded": true,
+    "applied": true,
+    "e2e_success": true,
+    "todo_only": false,
+    "summary": "Add validation for invalid email addresses in the user creation path. Reject emails that do not contain '@'. Return a client error rather than inserting a bad record.",
+    "model_reported": "qwen2.5-coder:7b",
+    "modified_files": [
+      "src/services/userService.ts"
+    ],
+    "expected_files_hit": true,
+    "expected_file_accuracy": 0.3333333333333333,
+    "unexpected_files": [],
+    "context_files": [
+      "src/repositories/userRepository.ts",
+      "src/services/userService.ts",
+      "src/routes/users.ts",
+      "tests/user.test.ts",
+      "src/middleware/auth.ts"
+    ],
+    "context_file_count": 5,
+    "context_chars": 856,
+    "token_measurement": "unavailable",
+    "usage": null,
+    "syntax": {
+      "ok": true,
+      "checked": [
+        "src/services/userService.ts"
+      ],
+      "errors": [],
+      "note": "no TypeScript compiler in suite; syntax skipped"
+    },
+    "expect_in_files": {
+      "ok": true,
+      "missing": []
+    },
+    "tests": {
+      "status": "skipped",
+      "passed": null,
+      "output": "no gold tests",
+      "command": null
+    },
+    "copy_latency_s": 0.02379799999835086,
+    "context_latency_s": 0.02077850000205217,
+    "generate_latency_s": 18.610541099998954,
+    "apply_latency_s": 0.0014354000013554469,
+    "test_latency_s": 7.399998139590025e-06,
+    "error": null,
+    "failure_category": null,
+    "status_machine": "approved",
+    "structured_recovery": false,
+    "raw_structured_ok": true,
+    "raw_completion_preview": null
+  },
+  "latency_s": 18.696224600000278
+}

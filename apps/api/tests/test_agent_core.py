@@ -142,3 +142,22 @@ def test_explorer_planner_smoke(tmp_path: Path):
     plan = run_planner("Refactor main entrypoint", ctx, explore)
     assert plan.ok
     assert plan.data.get("affected_files")
+
+
+def test_context_prefers_source_over_license_and_makefile(tmp_path: Path):
+    (tmp_path / "LICENSE").write_text("MIT\n", encoding="utf-8")
+    (tmp_path / "Makefile").write_text("all:\n\ttrue\n", encoding="utf-8")
+    (tmp_path / "pyproject.toml").write_text("[project]\nname='demo'\n", encoding="utf-8")
+    (tmp_path / "bottle.py").write_text("def tob(x):\n    return x\n", encoding="utf-8")
+    (tmp_path / "test_html_helper.py").write_text("def test_ok():\n    assert True\n", encoding="utf-8")
+    bundle = build_context(
+        tmp_path,
+        "Add is_valid_email to bottle.py and a unittest in test_html_helper.py",
+        extra_paths=["bottle.py", "test_html_helper.py"],
+        model="qwen2.5-coder:7b",
+    )
+    paths = [f.path.replace("\\", "/") for f in bundle.files]
+    assert "bottle.py" in paths
+    assert "LICENSE" not in paths
+    assert "Makefile" not in paths
+    assert "pyproject.toml" not in paths

@@ -32,6 +32,7 @@ def prepare_engineering_run(
     plan_id: str | None = None,
     code_task_id: str | None = None,
     git_status: str = "",
+    extra_paths: list[str] | None = None,
 ) -> AgentRun:
     """
     Run Understand → Investigate → Plan → Decompose → AwaitApproval (sequential, no parallel LLM).
@@ -58,6 +59,7 @@ def prepare_engineering_run(
         model=model,
         budget=budget,
         git_status=git_status,
+        extra_paths=extra_paths,
     )
     run.context = context
 

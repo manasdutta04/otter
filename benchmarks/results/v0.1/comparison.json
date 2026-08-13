@@ -1,0 +1,205 @@
+{
+  "generated_at": "2026-08-13T05:32:17.241764+00:00",
+  "environment": {
+    "os": "Windows 11 (10.0.26200)",
+    "cpu": "AMD64 Family 23 Model 96 Stepping 1, AuthenticAMD",
+    "ram": "15.4 GiB",
+    "gpu": "NVIDIA GeForce RTX 3050 Ti Laptop GPU, 4096 MiB",
+    "ollama": "ollama version is 0.20.2",
+    "python": "3.13.4",
+    "node": "v25.1.0",
+    "otter_commit": "cbde1a4dec2295f43ddda7d198a54dca365480fb",
+    "collected_at": "2026-08-13T05:32:17.240730+00:00"
+  },
+  "probe": {
+    "healthy": true,
+    "models": {
+      "qwen2.5-coder:7b": {
+        "status": "available",
+        "available": true
+      },
+      "gemma4:e2b": {
+        "status": "available",
+        "available": true
+      }
+    }
+  },
+  "dataset": {
+    "repositories": [
+      "bottle",
+      "click",
+      "sample-app",
+      "starlette"
+    ],
+    "repo_count": 4,
+    "task_count": 20,
+    "easy": 5,
+    "medium": 10,
+    "hard": 5,
+    "locate": 9,
+    "implement": 11
+  },
+  "aggregates": {
+    "qwen2.5-coder:7b": {
+      "tasks_total": 20,
+      "tasks_blocked": 0,
+      "tasks_usable": 20,
+      "recall@3": 0.6341666666666667,
+      "recall@5": 0.84,
+      "recall@10": 0.8866666666666667,
+      "precision@3": 0.4666666666666667,
+      "precision@5": 0.36,
+      "precision@10": 0.2,
+      "plan_score_pct": 0.64,
+      "plan_success_rate": 0.2,
+      "patch_success_rate": 0.5454545454545454,
+      "test_pass_rate": 0.0,
+      "unexpected_file_rate": 0.3333333333333333,
+      "expected_file_accuracy": 0.8222222222222222,
+      "e2e_success_rate": 0.09090909090909091,
+      "locate_count": 9,
+      "implement_count": 11,
+      "latency": {
+        "retrieval": {
+          "mean": 0.14873877499940136,
+          "median": 0.1625543000009202,
+          "p95": 0.2993743999977596,
+          "n": 20
+        },
+        "planning": {
+          "mean": 0.21544149499986814,
+          "median": 0.2856412500004808,
+          "p95": 0.37134470000091824,
+          "n": 20
+        },
+        "generation": {
+          "mean": 51.26886164545497,
+          "median": 50.718647800000326,
+          "p95": 98.52975030000016,
+          "n": 11
+        },
+        "total": {
+          "mean": 35.05272776000038,
+          "median": 23.33448645000135,
+          "p95": 98.57772059999843,
+          "n": 20
+        },
+        "model_ping": null
+      },
+      "avg_context_chars": 3174.181818181818,
+      "token_measurement": "unavailable"
+    },
+    "gemma4:e2b": {
+      "tasks_total": 20,
+      "tasks_blocked": 0,
+      "tasks_usable": 20,
+      "recall@3": 0.6341666666666667,
+      "recall@5": 0.84,
+      "recall@10": 0.8866666666666667,
+      "precision@3": 0.4666666666666667,
+      "precision@5": 0.36,
+      "precision@10": 0.2,
+      "plan_score_pct": 0.64,
+      "plan_success_rate": 0.2,
+      "patch_success_rate": 0.45454545454545453,
+      "test_pass_rate": 0.0,
+      "unexpected_file_rate": 0.4,
+      "expected_file_accuracy": 0.3333333333333333,
+      "e2e_success_rate": 0.0,
+      "locate_count": 9,
+      "implement_count": 11,
+      "latency": {
+        "retrieval": {
+          "mean": 0.18148555500010843,
+          "median": 0.19308709999859275,
+          "p95": 0.3788540000023204,
+          "n": 20
+        },
+        "planning": {
+          "mean": 0.2653803049997805,
+          "median": 0.33398414999828674,
+          "p95": 0.5306593000022986,
+          "n": 20
+        },
+        "generation": {
+          "mean": 88.74568856363608,
+          "median": 70.01911560000008,
+          "p95": 300.3415700999976,
+          "n": 11
+        },
+        "total": {
+          "mean": 54.57508658500046,
+          "median": 49.242279050000434,
+          "p95": 104.7360284000024,
+          "n": 20
+        },
+        "model_ping": null
+      },
+      "avg_context_chars": 2151.3636363636365,
+      "token_measurement": "unavailable"
+    }
+  },
+  "table": [
+    [
+      "Metric",
+      "Qwen 7B",
+      "Gemma 2B"
+    ],
+    [
+      "Retrieval Recall@5",
+      "84.0%",
+      "84.0%"
+    ],
+    [
+      "Retrieval Precision@5",
+      "36.0%",
+      "36.0%"
+    ],
+    [
+      "Plan Score",
+      "64.0%",
+      "64.0%"
+    ],
+    [
+      "Plan Success Rate",
+      "20.0%",
+      "20.0%"
+    ],
+    [
+      "Patch Success Rate",
+      "54.5%",
+      "45.5%"
+    ],
+    [
+      "Test Pass Rate",
+      "0.0%",
+      "0.0%"
+    ],
+    [
+      "End-to-End Success",
+      "9.1%",
+      "0.0%"
+    ],
+    [
+      "Mean Latency",
+      "35.053s",
+      "54.575s"
+    ],
+    [
+      "Median Latency",
+      "23.334s",
+      "49.242s"
+    ],
+    [
+      "P95 Latency",
+      "98.578s",
+      "104.736s"
+    ],
+    [
+      "Avg Context Size",
+      "3174 chars",
+      "2151 chars"
+    ]
+  ],
+  "note": "Retrieval and planning are heuristic Otter stages; equal scores across models are expected."
+}

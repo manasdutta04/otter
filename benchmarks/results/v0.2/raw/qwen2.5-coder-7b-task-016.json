@@ -1,0 +1,131 @@
+{
+  "id": "task-016",
+  "kind": "implement",
+  "repository": "sample-app",
+  "difficulty": "hard",
+  "prompt": "Add GET /users/:id that loads a user through the service and repository layers. Add getUserById in the repository (return null/undefined when missing), a service wrapper, and a route that returns 404 JSON {\"error\":\"not_found\"} when missing. Extend tests/user.test.ts.\n",
+  "status": "ok",
+  "model": "qwen2.5-coder:7b",
+  "retrieval": {
+    "ok": true,
+    "ranked_files": [
+      "src/services/userService.ts",
+      "src/repositories/userRepository.ts",
+      "tests/user.test.ts",
+      "src/routes/users.ts",
+      "src/middleware/auth.ts",
+      "package.json"
+    ],
+    "hit_count": 6,
+    "latency_s": 0.004997899999580113,
+    "metrics": {
+      "recall@3": 0.75,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "precision@3": 1.0,
+      "precision@5": 0.8,
+      "precision@10": 0.4,
+      "precision_at_gold": 1.0
+    },
+    "error": null
+  },
+  "planning": {
+    "ok": true,
+    "plan": {
+      "title": "Plan: Add GET /users/:id that loads a user through the service and repository layers. ",
+      "complexity": "high",
+      "summary": "This plan addresses: Add GET /users/:id that loads a user through the service and repository layers. Add getUserById in the repository (return null/undefined when missing), a service wrapper, and a route that returns 404 JSON {\"error\":\"not_found\"} when missing. Extend tests/user.test.ts.. It begins with repository context, identifies affected surfaces, and ends with verification before implementation approval.",
+      "steps": [
+        "Confirm the requested behavior against existing project conventions",
+        "Inspect and update the affected areas: src/routes/users.ts",
+        "Implement the change with focused tests",
+        "Run validation and review compatibility risks",
+        "Document the decision and rollout notes"
+      ],
+      "affected_files": [
+        "src/routes/users.ts"
+      ],
+      "dependencies": [
+        "Request and response contract",
+        "Authentication and authorization",
+        "API integration tests"
+      ],
+      "risks": [
+        "Breaking existing clients",
+        "Invalid input handling",
+        "Error response consistency"
+      ]
+    },
+    "intelligence_entry_points": [],
+    "rubric": {
+      "A_files": 1,
+      "B_approach": 0,
+      "C_dependencies": 2,
+      "D_verification": 2,
+      "E_no_invented": 2,
+      "total": 7,
+      "max": 10,
+      "score_pct": 0.7,
+      "success": false
+    },
+    "latency_s": 0.009249200000340352,
+    "error": null
+  },
+  "patch": {
+    "ok": true,
+    "generation_succeeded": true,
+    "applied": true,
+    "e2e_success": true,
+    "todo_only": false,
+    "summary": "Add GET /users/:id route that loads a user through the service and repository layers.",
+    "model_reported": "qwen2.5-coder:7b",
+    "modified_files": [
+      "src/repositories/userRepository.ts",
+      "src/services/userService.ts",
+      "src/routes/users.ts"
+    ],
+    "expected_files_hit": true,
+    "expected_file_accuracy": 0.75,
+    "unexpected_files": [],
+    "context_files": [
+      "package.json",
+      "tests/user.test.ts",
+      "src/routes/users.ts",
+      "src/services/userService.ts",
+      "src/repositories/userRepository.ts"
+    ],
+    "context_file_count": 5,
+    "context_chars": 935,
+    "token_measurement": "unavailable",
+    "usage": null,
+    "syntax": {
+      "ok": true,
+      "checked": [
+        "src/repositories/userRepository.ts",
+        "src/services/userService.ts",
+        "src/routes/users.ts"
+      ],
+      "errors": [],
+      "note": "no TypeScript compiler in suite; syntax skipped"
+    },
+    "expect_in_files": {
+      "ok": true,
+      "missing": []
+    },
+    "tests": {
+      "status": "skipped",
+      "passed": null,
+      "output": "no gold tests",
+      "command": null
+    },
+    "copy_latency_s": 0.01990959999966435,
+    "context_latency_s": 0.01822370000081719,
+    "generate_latency_s": 85.16221079999741,
+    "apply_latency_s": 0.0036804999981541187,
+    "test_latency_s": 4.1000021155923605e-06,
+    "error": null,
+    "failure_category": null,
+    "status_machine": "approved"
+  },
+  "latency_s": 85.24586610000188
+}

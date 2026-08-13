@@ -1,0 +1,90 @@
+{
+  "id": "task-005",
+  "kind": "locate",
+  "repository": "starlette",
+  "difficulty": "easy",
+  "prompt": "Where is authentication middleware that attaches auth credentials and the user to the ASGI scope?\n",
+  "status": "ok",
+  "model": "qwen2.5-coder:7b",
+  "retrieval": {
+    "ok": true,
+    "ranked_files": [
+      "starlette/middleware/authentication.py",
+      "docs/authentication.md",
+      "starlette/authentication.py",
+      "tests/test_authentication.py",
+      "docs/middleware.md",
+      "starlette/middleware/sessions.py",
+      "tests/middleware/test_session.py",
+      "github/ISSUE_TEMPLATE/1-issue.md",
+      "pyproject.toml",
+      "tests/middleware/test_middleware.py"
+    ],
+    "hit_count": 24,
+    "latency_s": 0.3210915000017849,
+    "metrics": {
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "precision@3": 0.6666666666666666,
+      "precision@5": 0.4,
+      "precision@10": 0.2,
+      "precision_at_gold": 0.5
+    },
+    "error": null
+  },
+  "planning": {
+    "ok": true,
+    "plan": {
+      "title": "Plan: Where is authentication middleware that attaches auth credentials and the user t",
+      "complexity": "high",
+      "summary": "This plan addresses: Where is authentication middleware that attaches auth credentials and the user to the ASGI scope?. It begins with repository context, identifies affected surfaces, and ends with verification before implementation approval.",
+      "steps": [
+        "Confirm the requested behavior against existing project conventions",
+        "Inspect and update the affected areas: docs/authentication.md, docs/middleware.md, starlette/authentication.py, tests/test_authentication.py, tests/middleware/test_base.py",
+        "Implement the change with focused tests",
+        "Run validation and review compatibility risks",
+        "Document the decision and rollout notes"
+      ],
+      "affected_files": [
+        "docs/authentication.md",
+        "docs/middleware.md",
+        "starlette/authentication.py",
+        "tests/test_authentication.py",
+        "tests/middleware/test_base.py",
+        "tests/middleware/test_cors.py",
+        "tests/middleware/test_errors.py",
+        "tests/middleware/test_gzip.py",
+        "tests/middleware/test_https_redirect.py",
+        "tests/middleware/test_middleware.py",
+        "tests/middleware/test_session.py",
+        "tests/middleware/test_trusted_host.py"
+      ],
+      "dependencies": [
+        "Identity provider configuration",
+        "Session and authorization boundary",
+        "Authentication and failure-path tests"
+      ],
+      "risks": [
+        "Token handling and session invalidation",
+        "Access control regressions",
+        "Callback or redirect failures"
+      ]
+    },
+    "intelligence_entry_points": [],
+    "rubric": {
+      "A_files": 1,
+      "B_approach": 0,
+      "C_dependencies": 2,
+      "D_verification": 2,
+      "E_no_invented": 2,
+      "total": 7,
+      "max": 10,
+      "score_pct": 0.7,
+      "success": false
+    },
+    "latency_s": 0.3132037000032142,
+    "error": null
+  },
+  "latency_s": 0.6368782999998075
+}

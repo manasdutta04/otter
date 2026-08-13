@@ -1,0 +1,17 @@
+id: task-005
+kind: locate
+repository: starlette
+difficulty: easy
+prompt: >
+  Where is authentication middleware that attaches auth credentials and the user to the ASGI scope?
+gold:
+  relevant_files:
+    - starlette/middleware/authentication.py
+    - starlette/authentication.py
+  expected_changes:
+    - Locate AuthenticationMiddleware
+  dependencies: []
+  verification:
+    tests: []
+    syntax: py
+  allowed_extra_files: []

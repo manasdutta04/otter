@@ -1,0 +1,247 @@
+[
+  {
+    "task_id": "task-008",
+    "model": "qwen2.5-coder:7b",
+    "failure_stage": "patch",
+    "error": "Patch generation failed across local models (qwen2.5-coder:7b\u2026): qwen2.5-coder:7b: Rejected low-quality patch: auth change does not hash passwords (need bcrypt/argon2/scrypt/pbkdf2); auth change is missing login/register routes; auth change is missing a users model/table (do not reuse domain tables like cards)",
+    "category": "malformed model output",
+    "kind": "implement",
+    "modified_files": [],
+    "summary": ""
+  },
+  {
+    "task_id": "task-010",
+    "model": "qwen2.5-coder:7b",
+    "failure_stage": "patch",
+    "error": "Patch generation failed across local models (qwen2.5-coder:7b\u2026): qwen2.5-coder:7b: No JSON object found in model response",
+    "category": "malformed model output",
+    "kind": "implement",
+    "modified_files": [],
+    "summary": ""
+  },
+  {
+    "task_id": "task-012",
+    "model": "qwen2.5-coder:7b",
+    "failure_stage": "patch",
+    "error": null,
+    "category": "test failure",
+    "kind": "implement",
+    "modified_files": [
+      "src/click/__init__.py",
+      "tests/test_types.py",
+      "src/click/types.py"
+    ],
+    "summary": "Add an EmailParamType class named EMAIL in src/click/types.py and export it from src/click/__init__.py. Add a small unit test in tests/test_types.py."
+  },
+  {
+    "task_id": "task-014",
+    "model": "qwen2.5-coder:7b",
+    "failure_stage": "patch",
+    "error": null,
+    "category": "incorrect file selection",
+    "kind": "implement",
+    "modified_files": [
+      "tests/test_config.py",
+      "starlette/config.py",
+      "package.json"
+    ],
+    "summary": "Add Config.get_bool method to starlette/config.py and test it in tests/test_config.py."
+  },
+  {
+    "task_id": "task-015",
+    "model": "qwen2.5-coder:7b",
+    "failure_stage": "patch",
+    "error": "Patch generation failed across local models (qwen2.5-coder:7b\u2026): qwen2.5-coder:7b: Rejected low-quality patch: auth change does not hash passwords (need bcrypt/argon2/scrypt/pbkdf2); auth change is missing login/register routes; auth change is missing a users model/table (do not reuse domain tables like cards)",
+    "category": "malformed model output",
+    "kind": "implement",
+    "modified_files": [],
+    "summary": ""
+  },
+  {
+    "task_id": "task-016",
+    "model": "qwen2.5-coder:7b",
+    "failure_stage": "patch",
+    "error": "Rejected low-quality patch: imports `bcrypt` but it is not in package.json / known repo packages",
+    "category": "malformed model output",
+    "kind": "implement",
+    "modified_files": [
+      "src/routes/users.ts",
+      "src/services/userService.ts",
+      "src/repositories/userRepository.ts"
+    ],
+    "summary": "Add GET /users/:id route that loads a user through the service and repository layers."
+  },
+  {
+    "task_id": "task-017",
+    "model": "qwen2.5-coder:7b",
+    "failure_stage": "patch",
+    "error": "Patch generation failed across local models (qwen2.5-coder:7b\u2026): qwen2.5-coder:7b: Invalid patch shape",
+    "category": "malformed model output",
+    "kind": "implement",
+    "modified_files": [],
+    "summary": ""
+  },
+  {
+    "task_id": "task-018",
+    "model": "qwen2.5-coder:7b",
+    "failure_stage": "patch",
+    "error": null,
+    "category": "incorrect file selection",
+    "kind": "implement",
+    "modified_files": [
+      "tests/middleware/test_request_id.py",
+      "starlette/middleware/request_id.py",
+      "starlette/middleware/__init__.py",
+      "package.json"
+    ],
+    "summary": "Add a RequestIdMiddleware in starlette/middleware/request_id.py and export it from starlette/middleware/__init__.py. Add tests for the middleware."
+  },
+  {
+    "task_id": "task-019",
+    "model": "qwen2.5-coder:7b",
+    "failure_stage": "patch",
+    "error": null,
+    "category": "test failure",
+    "kind": "implement",
+    "modified_files": [
+      "src/click/__init__.py",
+      "src/click/decorators.py",
+      "src/click/types.py"
+    ],
+    "summary": "Add require_email_option decorator helper in src/click/decorators.py and EmailParamType in src/click/types.py"
+  },
+  {
+    "task_id": "task-020",
+    "model": "qwen2.5-coder:7b",
+    "failure_stage": "patch",
+    "error": null,
+    "category": "test failure",
+    "kind": "implement",
+    "modified_files": [
+      "test/test_plugins.py",
+      "bottle.py"
+    ],
+    "summary": "Add a Bottle plugin class TimingPlugin that records elapsed seconds for each request on the response header X-Process-Time."
+  },
+  {
+    "task_id": "task-007",
+    "model": "gemma4:e2b",
+    "failure_stage": "patch",
+    "error": "Patch generation failed across local models (gemma4:e2b\u2026): gemma4:e2b: No JSON object found in model response",
+    "category": "malformed model output",
+    "kind": "implement",
+    "modified_files": [],
+    "summary": ""
+  },
+  {
+    "task_id": "task-008",
+    "model": "gemma4:e2b",
+    "failure_stage": "patch",
+    "error": "Patch generation failed across local models (gemma4:e2b\u2026): gemma4:e2b: Rejected low-quality patch: auth change does not hash passwords (need bcrypt/argon2/scrypt/pbkdf2); auth change is missing login/register routes; auth change is missing a users model/table (do not reuse domain tables like cards)",
+    "category": "malformed model output",
+    "kind": "implement",
+    "modified_files": [],
+    "summary": ""
+  },
+  {
+    "task_id": "task-010",
+    "model": "gemma4:e2b",
+    "failure_stage": "patch",
+    "error": "Patch generation failed across local models (gemma4:e2b\u2026): gemma4:e2b: ",
+    "category": "malformed model output",
+    "kind": "implement",
+    "modified_files": [],
+    "summary": ""
+  },
+  {
+    "task_id": "task-012",
+    "model": "gemma4:e2b",
+    "failure_stage": "patch",
+    "error": null,
+    "category": "test failure",
+    "kind": "implement",
+    "modified_files": [
+      "tests/test_types.py"
+    ],
+    "summary": "Added an EmailParamType class with validation logic and exported it, along with a corresponding unit test."
+  },
+  {
+    "task_id": "task-014",
+    "model": "gemma4:e2b",
+    "failure_stage": "patch",
+    "error": null,
+    "category": "syntax failure",
+    "kind": "implement",
+    "modified_files": [
+      "tests/test_config.py"
+    ],
+    "summary": "Added a method to the configuration class to safely retrieve boolean values from configuration settings, handling various string representations for true/false values and raising a ValueError for invalid inputs. A corresponding test case was added."
+  },
+  {
+    "task_id": "task-015",
+    "model": "gemma4:e2b",
+    "failure_stage": "patch",
+    "error": "Patch generation failed across local models (gemma4:e2b\u2026): gemma4:e2b: No JSON object found in model response",
+    "category": "malformed model output",
+    "kind": "implement",
+    "modified_files": [],
+    "summary": ""
+  },
+  {
+    "task_id": "task-016",
+    "model": "gemma4:e2b",
+    "failure_stage": "patch",
+    "error": null,
+    "category": "incorrect file selection",
+    "kind": "implement",
+    "modified_files": [
+      "src/repositories/userRepository.js"
+    ],
+    "summary": "Added functionality to retrieve a user by ID via a new route, service layer, and repository method, including 404 handling."
+  },
+  {
+    "task_id": "task-017",
+    "model": "gemma4:e2b",
+    "failure_stage": "patch",
+    "error": "Patch generation failed across local models (gemma4:e2b\u2026): gemma4:e2b: No JSON object found in model response",
+    "category": "malformed model output",
+    "kind": "implement",
+    "modified_files": [],
+    "summary": ""
+  },
+  {
+    "task_id": "task-018",
+    "model": "gemma4:e2b",
+    "failure_stage": "patch",
+    "error": null,
+    "category": "incorrect file selection",
+    "kind": "implement",
+    "modified_files": [
+      "tests/middleware/test_request_id.py",
+      "package.json"
+    ],
+    "summary": "Added a RequestIdMiddleware to handle request tracing via X-Request-ID headers, including setting scope data and propagating the ID in responses."
+  },
+  {
+    "task_id": "task-019",
+    "model": "gemma4:e2b",
+    "failure_stage": "patch",
+    "error": "Patch generation failed across local models (gemma4:e2b\u2026): gemma4:e2b: No JSON object found in model response",
+    "category": "malformed model output",
+    "kind": "implement",
+    "modified_files": [],
+    "summary": ""
+  },
+  {
+    "task_id": "task-020",
+    "model": "gemma4:e2b",
+    "failure_stage": "patch",
+    "error": null,
+    "category": "test failure",
+    "kind": "implement",
+    "modified_files": [
+      "test/test_plugins.py"
+    ],
+    "summary": "Added a TimingPlugin to record request processing time and set the X-Process-Time header, along with corresponding tests."
+  }
+]

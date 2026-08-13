@@ -1,0 +1,138 @@
+{
+  "id": "task-020",
+  "kind": "implement",
+  "repository": "bottle",
+  "difficulty": "hard",
+  "prompt": "Add a Bottle plugin class TimingPlugin in bottle.py that records elapsed seconds for each request on the response header X-Process-Time (string seconds). It should implement the Bottle plugin API (apply / name) so app.install(TimingPlugin()) works. Add tests in test/test_plugins.py.\n",
+  "status": "ok",
+  "model": "qwen2.5-coder:7b",
+  "retrieval": {
+    "ok": true,
+    "ranked_files": [
+      "test/test_plugins.py",
+      "bottle.py",
+      "test/__init__.py",
+      "test/test_jinja2.py",
+      "test/test_oorouting.py",
+      "test/test_app.py",
+      "test/test_contextlocals.py",
+      "test/example_settings.py",
+      "test/test_environ.py",
+      "test/test_formsdict.py"
+    ],
+    "hit_count": 24,
+    "latency_s": 0.16544529999737279,
+    "metrics": {
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "precision@3": 0.6666666666666666,
+      "precision@5": 0.4,
+      "precision@10": 0.2,
+      "precision_at_gold": 1.0
+    },
+    "error": null
+  },
+  "planning": {
+    "ok": true,
+    "plan": {
+      "title": "Plan: Add a Bottle plugin class TimingPlugin in bottle.py that records elapsed seconds",
+      "complexity": "high",
+      "summary": "This plan addresses: Add a Bottle plugin class TimingPlugin in bottle.py that records elapsed seconds for each request on the response header X-Process-Time (string seconds). It should implement the Bottle plugin API (apply / name) so app.install(TimingPlugin()) works. Add tests in test/test_plugins.py.. It begins with repository context, identifies affected surfaces, and ends with verification before implementation approval.",
+      "steps": [
+        "Confirm the requested behavior against existing project conventions",
+        "Inspect and update the affected areas: test/test_route.py, test/test_router.py",
+        "Implement the change with focused tests",
+        "Run validation and review compatibility risks",
+        "Document the decision and rollout notes"
+      ],
+      "affected_files": [
+        "test/test_route.py",
+        "test/test_router.py"
+      ],
+      "dependencies": [
+        "Request and response contract",
+        "Authentication and authorization",
+        "API integration tests"
+      ],
+      "risks": [
+        "Breaking existing clients",
+        "Invalid input handling",
+        "Error response consistency"
+      ]
+    },
+    "intelligence_entry_points": [],
+    "rubric": {
+      "A_files": 0,
+      "B_approach": 0,
+      "C_dependencies": 0,
+      "D_verification": 2,
+      "E_no_invented": 2,
+      "total": 4,
+      "max": 10,
+      "score_pct": 0.4,
+      "success": false
+    },
+    "latency_s": 0.38473249999879044,
+    "error": null
+  },
+  "patch": {
+    "ok": true,
+    "generation_succeeded": true,
+    "applied": true,
+    "e2e_success": false,
+    "todo_only": false,
+    "summary": "Add a Bottle plugin class TimingPlugin that records elapsed seconds for each request on the response header X-Process-Time. Implement tests in test/test_plugins.py.",
+    "model_reported": "qwen2.5-coder:7b",
+    "modified_files": [
+      "test/test_plugins.py"
+    ],
+    "expected_files_hit": true,
+    "expected_file_accuracy": 0.5,
+    "unexpected_files": [],
+    "context_files": [
+      "test/test_plugins.py",
+      "bottle.py",
+      "test/__init__.py",
+      "test/test_jinja2.py",
+      "test/test_oorouting.py",
+      "test/test_app.py"
+    ],
+    "context_file_count": 6,
+    "context_chars": 10451,
+    "token_measurement": "unavailable",
+    "usage": null,
+    "syntax": {
+      "ok": true,
+      "checked": [
+        "test/test_plugins.py"
+      ],
+      "errors": []
+    },
+    "expect_in_files": {
+      "ok": false,
+      "missing": [
+        "bottle.py missing 'TimingPlugin'",
+        "bottle.py missing 'X-Process-Time'"
+      ]
+    },
+    "tests": {
+      "status": "fail",
+      "passed": false,
+      "output": "..FFFFFFF                                                                [100%]\n================================== FAILURES ===================================\nC:\\Coding Workspace\\otter\\benchmarks\\workspaces\\qwen2.5-coder-7b\\task-020\\test\\test_plugins.py:52: NameError: name 'MyPlugin' is not defined\nC:\\Coding Workspace\\otter\\benchmarks\\workspaces\\qwen2.5-coder-7b\\task-020\\test\\test_plugins.py:110: NameError: name 'MyPlugin' is not defined\nC:\\Coding Workspace\\otter\\benchmarks\\workspaces\\qwen2.5-coder-7b\\task-020\\test\\test_plugins.py:100: AttributeError: 'function' object has no attribute 'headers'\nC:\\Coding Workspace\\otter\\benchmarks\\workspaces\\qwen2.5-coder-7b\\task-020\\test\\test_plugins.py:88: NameError: name 'MyPlugin' is not defined\nC:\\Coding Workspace\\otter\\benchmarks\\workspaces\\qwen2.5-coder-7b\\task-020\\test\\test_plugins.py:66: NameError: name 'MyPlugin' is not defined\nC:\\Coding Workspace\\otter\\benchmarks\\workspaces\\qwen2.5-coder-7b\\task-020\\test\\test_plugins.py:80: NameError: name 'MyPlugin' is not defined\nC:\\Coding Workspace\\otter\\benchmarks\\workspaces\\qwen2.5-coder-7b\\task-020\\test\\test_plugins.py:73: NameError: name 'MyPlugin' is not defined\n=========================== short test summary info ===========================\nFAILED test/test_plugins.py::TestPluginManagement::test_install_plugin - Name...\nFAILED test/test_plugins.py::TestPluginManagement::test_plugin_oder - NameErr...\nFAILED test/test_plugins.py::TestPluginManagement::test_route_plugin - Attrib...\nFAILED test/test_plugins.py::TestPluginManagement::test_uninstall_all - NameE...\nFAILED test/test_plugins.py::TestPluginManagement::test_uninstall_by_instance\nFAILED test/test_plugins.py::TestPluginManagement::test_uninstall_by_name - N...\nFAILED test/test_plugins.py::TestPluginManagement::test_uninstall_by_type - N...\n7 failed, 2 passed in 0.21s\n\n",
+      "command": "C:\\Coding Workspace\\otter\\benchmarks\\.venv\\Scripts\\python.exe -m pytest -q --tb=line -p no:cacheprovider -o addopts= -o filterwarnings= test/test_plugins.py"
+    },
+    "copy_latency_s": 0.41615979999915,
+    "context_latency_s": 0.3349134000018239,
+    "generate_latency_s": 59.78618909999932,
+    "apply_latency_s": 0.00159939999866765,
+    "test_latency_s": 0.7421023999995668,
+    "error": null,
+    "failure_category": "test failure",
+    "status_machine": "approved",
+    "structured_recovery": false,
+    "raw_structured_ok": true,
+    "raw_completion_preview": null
+  },
+  "latency_s": 61.84887660000095
+}

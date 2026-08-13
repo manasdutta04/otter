@@ -1,0 +1,78 @@
+{
+  "id": "task-001",
+  "kind": "locate",
+  "repository": "sample-app",
+  "difficulty": "easy",
+  "prompt": "Where is HTTP request authentication enforced before user routes run?\n",
+  "status": "ok",
+  "model": "qwen2.5-coder:7b",
+  "retrieval": {
+    "ok": true,
+    "ranked_files": [
+      "src/routes/users.ts",
+      "src/services/userService.ts",
+      "src/repositories/userRepository.ts",
+      "tests/user.test.ts",
+      "src/middleware/auth.ts"
+    ],
+    "hit_count": 5,
+    "latency_s": 0.007974099997227313,
+    "metrics": {
+      "recall@3": 0.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "precision@3": 0.0,
+      "precision@5": 0.2,
+      "precision@10": 0.1,
+      "precision_at_gold": 0.0
+    },
+    "error": null
+  },
+  "planning": {
+    "ok": true,
+    "plan": {
+      "title": "Plan: Where is HTTP request authentication enforced before user routes run?",
+      "complexity": "high",
+      "summary": "This plan addresses: Where is HTTP request authentication enforced before user routes run?. It begins with repository context, identifies affected surfaces, and ends with verification before implementation approval.",
+      "steps": [
+        "Confirm the requested behavior against existing project conventions",
+        "Inspect and update the affected areas: tests/user.test.ts, src/middleware/auth.ts, src/repositories/userRepository.ts, src/routes/users.ts, src/services/userService.ts",
+        "Implement the change with focused tests",
+        "Run validation and review compatibility risks",
+        "Document the decision and rollout notes"
+      ],
+      "affected_files": [
+        "tests/user.test.ts",
+        "src/middleware/auth.ts",
+        "src/repositories/userRepository.ts",
+        "src/routes/users.ts",
+        "src/services/userService.ts"
+      ],
+      "dependencies": [
+        "Identity provider configuration",
+        "Session and authorization boundary",
+        "Authentication and failure-path tests"
+      ],
+      "risks": [
+        "Token handling and session invalidation",
+        "Access control regressions",
+        "Callback or redirect failures"
+      ]
+    },
+    "intelligence_entry_points": [],
+    "rubric": {
+      "A_files": 2,
+      "B_approach": 0,
+      "C_dependencies": 2,
+      "D_verification": 2,
+      "E_no_invented": 2,
+      "total": 8,
+      "max": 10,
+      "score_pct": 0.8,
+      "success": true
+    },
+    "latency_s": 0.020445099999051308,
+    "error": null
+  },
+  "latency_s": 0.028481299999839393
+}

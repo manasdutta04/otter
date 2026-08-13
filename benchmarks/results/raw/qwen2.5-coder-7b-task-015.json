@@ -1,0 +1,142 @@
+{
+  "id": "task-015",
+  "kind": "implement",
+  "repository": "bottle",
+  "difficulty": "medium",
+  "prompt": "Change bottle.auth_basic so that when the provided check callback returns False, the WWW-Authenticate realm default remains \"private\" but the response body text default becomes \"Authentication required\" instead of \"Access denied\". Update test/test_auth.py if it asserts the old body text.\n",
+  "status": "ok",
+  "model": "qwen2.5-coder:7b",
+  "retrieval": {
+    "ok": true,
+    "ranked_files": [
+      "test/test_auth.py",
+      "test/test_contextlocals.py",
+      "test/test_resources.py",
+      "test/test_mount.py",
+      "test/test_app.py",
+      "test/test_wsgi.py",
+      "test/test_formsdict.py",
+      "test/test_outputfilter.py",
+      "test/test_environ.py",
+      "test/test_stpl.py"
+    ],
+    "hit_count": 24,
+    "latency_s": 0.14680950000183657,
+    "metrics": {
+      "recall@3": 0.5,
+      "recall@5": 0.5,
+      "recall@10": 0.5,
+      "precision@3": 0.3333333333333333,
+      "precision@5": 0.2,
+      "precision@10": 0.1,
+      "precision_at_gold": 0.5
+    },
+    "error": null
+  },
+  "planning": {
+    "ok": true,
+    "plan": {
+      "title": "Plan: Change bottle.auth_basic so that when the provided check callback returns False,",
+      "complexity": "high",
+      "summary": "This plan addresses: Change bottle.auth_basic so that when the provided check callback returns False, the WWW-Authenticate realm default remains \"private\" but the response body text default becomes \"Authentication required\" instead of \"Access denied\". Update test/test_auth.py if it asserts the old body text.. It begins with repository context, identifies affected surfaces, and ends with verification before implementation approval.",
+      "steps": [
+        "Confirm the requested behavior against existing project conventions",
+        "Inspect and update the affected areas: test/test_auth.py, test/test_contextlocals.py, test/test_resources.py, test/test_mount.py, test/test_app.py",
+        "Implement the change with focused tests",
+        "Run validation and review compatibility risks",
+        "Document the decision and rollout notes"
+      ],
+      "affected_files": [
+        "test/test_auth.py",
+        "test/test_contextlocals.py",
+        "test/test_resources.py",
+        "test/test_mount.py",
+        "test/test_app.py",
+        "test/test_wsgi.py",
+        "test/test_formsdict.py",
+        "test/test_outputfilter.py"
+      ],
+      "dependencies": [
+        "Existing project conventions",
+        "Automated tests",
+        "Documentation update"
+      ],
+      "risks": [
+        "Unidentified coupling",
+        "Incomplete test coverage"
+      ]
+    },
+    "intelligence_entry_points": [],
+    "rubric": {
+      "A_files": 1,
+      "B_approach": 0,
+      "C_dependencies": 0,
+      "D_verification": 2,
+      "E_no_invented": 2,
+      "total": 5,
+      "max": 10,
+      "score_pct": 0.5,
+      "success": false
+    },
+    "latency_s": 0.40040720000251895,
+    "error": null
+  },
+  "patch": {
+    "ok": true,
+    "generation_succeeded": true,
+    "applied": true,
+    "e2e_success": false,
+    "todo_only": false,
+    "summary": "Change bottle.auth_basic to return 'Authentication required' instead of 'Access denied' when the check callback returns False.",
+    "model_reported": "qwen2.5-coder:7b",
+    "modified_files": [
+      "test/test_auth.py"
+    ],
+    "expected_files_hit": true,
+    "expected_file_accuracy": 0.5,
+    "unexpected_files": [],
+    "context_files": [
+      "test/test_auth.py",
+      "test/test_contextlocals.py",
+      "test/test_resources.py",
+      "test/test_mount.py",
+      "test/test_app.py",
+      "test/test_wsgi.py"
+    ],
+    "context_file_count": 6,
+    "context_chars": 10693,
+    "token_measurement": "unavailable",
+    "usage": null,
+    "syntax": {
+      "ok": true,
+      "checked": [
+        "test/test_auth.py"
+      ],
+      "errors": []
+    },
+    "expect_in_files": {
+      "ok": false,
+      "missing": [
+        "bottle.py missing 'Authentication required'"
+      ]
+    },
+    "tests": {
+      "status": "fail",
+      "passed": false,
+      "output": "F.                                                                       [100%]\n================================== FAILURES ===================================\nC:\\Users\\ASUS\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\unittest\\case.py:900: AssertionError: b'Authentication required' != b'\\n    <!DOCTYPE HTML PUBLIC \"-//IETF//DTD[690 chars]l>\\n'\n=========================== short test summary info ===========================\nFAILED test/test_auth.py::TestBasicAuth::test__body - AssertionError: b'Authe...\n1 failed, 1 passed in 0.18s\n\n",
+      "command": "C:\\Coding Workspace\\otter\\benchmarks\\.venv\\Scripts\\python.exe -m pytest -q --tb=line -p no:cacheprovider -o addopts= -o filterwarnings= test/test_auth.py"
+    },
+    "copy_latency_s": 0.45764689999850816,
+    "context_latency_s": 0.36589180000009947,
+    "generate_latency_s": 58.32050430000163,
+    "apply_latency_s": 0.001467000001866836,
+    "test_latency_s": 0.712622699997155,
+    "error": null,
+    "failure_category": "test failure",
+    "status_machine": "approved",
+    "structured_recovery": true,
+    "raw_structured_ok": false,
+    "raw_completion_preview": null
+  },
+  "latency_s": 60.41904540000178
+}

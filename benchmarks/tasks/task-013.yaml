@@ -1,0 +1,18 @@
+id: task-013
+kind: locate
+repository: starlette
+difficulty: medium
+prompt: >
+  Where is CORS middleware implemented, including Access-Control-Allow-Origin
+  handling for allowed origins?
+gold:
+  relevant_files:
+    - starlette/middleware/cors.py
+    - tests/middleware/test_cors.py
+  expected_changes:
+    - Locate CORSMiddleware
+  dependencies: []
+  verification:
+    tests: []
+    syntax: py
+  allowed_extra_files: []

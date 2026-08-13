@@ -1,0 +1,28 @@
+id: task-010
+kind: implement
+repository: bottle
+difficulty: medium
+prompt: >
+  Add a helper function is_valid_email(value) to bottle.py that returns True
+  only when value is a string containing exactly one '@' with non-empty local
+  and domain parts (for example a@b.com). Add a unittest in test/test_html_helper.py
+  covering a valid address and an invalid address without '@'.
+gold:
+  relevant_files:
+    - bottle.py
+    - test/test_html_helper.py
+  expected_changes:
+    - Add email validation
+    - Add regression coverage
+  dependencies:
+    - Existing project conventions
+    - Automated tests
+  verification:
+    tests:
+      - test/test_html_helper.py
+    syntax: py
+    expect_in_files:
+      - path: bottle.py
+        contains:
+          - is_valid_email
+  allowed_extra_files: []

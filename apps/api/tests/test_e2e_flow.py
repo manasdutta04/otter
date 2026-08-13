@@ -23,6 +23,35 @@ from packages.review import review_repository
 from packages.health import analyze_health
 
 
+def test_retrieval_ranks_source_above_package_json(tmp_path: Path):
+    (tmp_path / "package.json").write_text('{"name":"app","dependencies":{"express":"4"}}\n', encoding="utf-8")
+    src = tmp_path / "src"
+    src.mkdir()
+    (src / "auth.ts").write_text("export function requireAuth() { return true }\n", encoding="utf-8")
+    (src / "readme-notes.md").write_text("authentication overview\n", encoding="utf-8")
+    index = RepositorySemanticIndex(tmp_path)
+    hits = index.search("Where is HTTP request authentication enforced?", top_k=5)
+    ranked = [hit["rel_path"].replace("\\", "/") for hit in hits]
+    assert ranked
+    assert ranked[0].endswith("auth.ts")
+    assert "package.json" not in ranked[:2]
+
+
+def test_retrieval_literal_path_boosts_named_source(tmp_path: Path):
+    (tmp_path / "bottle.py").write_text("def tob(x): return x\n", encoding="utf-8")
+    tests = tmp_path / "test"
+    tests.mkdir()
+    for name in ("test_html_helper.py", "test_app.py", "test_plugins.py", "test_formsdict.py"):
+        (tests / name).write_text("from bottle import tob\n", encoding="utf-8")
+    index = RepositorySemanticIndex(tmp_path)
+    hits = index.search(
+        "Add a helper function is_valid_email(value) to bottle.py. Add a unittest in test/test_html_helper.py.",
+        top_k=5,
+    )
+    ranked = [hit["rel_path"].replace("\\", "/") for hit in hits]
+    assert "bottle.py" in ranked[:3]
+
+
 def test_full_retrieval_and_semantic_chat(tmp_path: Path):
     # Setup dummy repo structure
     src = tmp_path / "src"

@@ -1,0 +1,146 @@
+{
+  "id": "task-010",
+  "kind": "implement",
+  "repository": "bottle",
+  "difficulty": "medium",
+  "prompt": "Add a helper function is_valid_email(value) to bottle.py that returns True only when value is a string containing exactly one '@' with non-empty local and domain parts (for example a@b.com). Add a unittest in test/test_html_helper.py covering a valid address and an invalid address without '@'.\n",
+  "status": "ok",
+  "model": "qwen2.5-coder:7b",
+  "retrieval": {
+    "ok": true,
+    "ranked_files": [
+      "test/test_html_helper.py",
+      "test/example_settings.py",
+      "bottle.py",
+      "test/test_formsdict.py",
+      "test/test_contextlocals.py",
+      "test/test_jinja2.py",
+      "test/test_plugins.py",
+      "test/test_oorouting.py",
+      "test/test_environ.py",
+      "test/test_app.py"
+    ],
+    "hit_count": 24,
+    "latency_s": 0.18895779999729712,
+    "metrics": {
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "precision@3": 0.6666666666666666,
+      "precision@5": 0.4,
+      "precision@10": 0.2,
+      "precision_at_gold": 0.5
+    },
+    "error": null
+  },
+  "planning": {
+    "ok": true,
+    "plan": {
+      "title": "Plan: Add a helper function is_valid_email(value) to bottle.py that returns True only ",
+      "complexity": "high",
+      "summary": "This plan addresses: Add a helper function is_valid_email(value) to bottle.py that returns True only when value is a string containing exactly one '@' with non-empty local and domain parts (for example a@b.com). Add a unittest in test/test_html_helper.py covering a valid address and an invalid address without '@'.. It begins with repository context, identifies affected surfaces, and ends with verification before implementation approval.",
+      "steps": [
+        "Confirm the requested behavior against existing project conventions",
+        "Inspect and update the affected areas: test/test_html_helper.py, test/example_settings.py, bottle.py, test/test_formsdict.py, test/test_contextlocals.py",
+        "Implement the change with focused tests",
+        "Run validation and review compatibility risks",
+        "Document the decision and rollout notes"
+      ],
+      "affected_files": [
+        "test/test_html_helper.py",
+        "test/example_settings.py",
+        "bottle.py",
+        "test/test_formsdict.py",
+        "test/test_contextlocals.py",
+        "test/test_jinja2.py",
+        "test/test_plugins.py",
+        "test/test_oorouting.py"
+      ],
+      "dependencies": [
+        "Existing project conventions",
+        "Automated tests",
+        "Documentation update"
+      ],
+      "risks": [
+        "Unidentified coupling",
+        "Incomplete test coverage"
+      ]
+    },
+    "intelligence_entry_points": [],
+    "rubric": {
+      "A_files": 2,
+      "B_approach": 0,
+      "C_dependencies": 2,
+      "D_verification": 2,
+      "E_no_invented": 2,
+      "total": 8,
+      "max": 10,
+      "score_pct": 0.8,
+      "success": true
+    },
+    "latency_s": 0.44603339999957825,
+    "error": null
+  },
+  "patch": {
+    "ok": true,
+    "generation_succeeded": true,
+    "applied": true,
+    "e2e_success": false,
+    "todo_only": false,
+    "summary": "Add a helper function is_valid_email(value) to bottle.py and a unittest in test/test_html_helper.py.",
+    "model_reported": "qwen2.5-coder:7b",
+    "modified_files": [
+      "bottle.py",
+      "test/test_html_helper.py"
+    ],
+    "expected_files_hit": true,
+    "expected_file_accuracy": 1.0,
+    "unexpected_files": [],
+    "context_files": [
+      "test/test_html_helper.py",
+      "test/example_settings.py",
+      "bottle.py",
+      "test/test_formsdict.py",
+      "test/test_contextlocals.py",
+      "test/test_jinja2.py"
+    ],
+    "context_file_count": 6,
+    "context_chars": 8883,
+    "token_measurement": "unavailable",
+    "usage": null,
+    "syntax": {
+      "ok": false,
+      "checked": [
+        "bottle.py",
+        "test/test_html_helper.py"
+      ],
+      "errors": [
+        "bottle.py: unterminated string literal (detected at line 3) (bottle.py, line 3)"
+      ]
+    },
+    "expect_in_files": {
+      "ok": false,
+      "missing": [
+        "bottle.py missing 'is_valid_email'"
+      ]
+    },
+    "tests": {
+      "status": "fail",
+      "passed": false,
+      "output": "\n=================================== ERRORS ====================================\n__________________ ERROR collecting test/test_html_helper.py __________________\n..\\..\\..\\.venv\\Lib\\site-packages\\_pytest\\python.py:493: in importtestmodule\n    mod = import_path(\n..\\..\\..\\.venv\\Lib\\site-packages\\_pytest\\pathlib.py:587: in import_path\n    importlib.import_module(module_name)\nC:\\Users\\ASUS\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\importlib\\__init__.py:88: in import_module\n    return _bootstrap._gcd_import(name[level:], package, level)\n<frozen importlib._bootstrap>:1387: in _gcd_import\n    ???\n<frozen importlib._bootstrap>:1360: in _find_and_load\n    ???\n<frozen importlib._bootstrap>:1310: in _find_and_load_unlocked\n    ???\n<frozen importlib._bootstrap>:488: in _call_with_frames_removed\n    ???\n<frozen importlib._bootstrap>:1387: in _gcd_import\n    ???\n<frozen importlib._bootstrap>:1360: in _find_and_load\n    ???\n<frozen importlib._bootstrap>:1331: in _find_and_load_unlocked\n    ???\n<frozen importlib._bootstrap>:935: in _load_unlocked\n    ???\n<frozen importlib._bootstrap_external>:1026: in exec_module\n    ???\n<frozen importlib._bootstrap>:488: in _call_with_frames_removed\n    ???\ntest\\__init__.py:2: in <module>\n    from .tools import chdir\ntest\\tools.py:5: in <module>\n    import bottle\nE     File \"C:\\Coding Workspace\\otter\\benchmarks\\workspaces\\qwen2.5-coder-7b\\task-010\\bottle.py\", line 3\nE       \"\nE       ^\nE   SyntaxError: unterminated string literal (detected at line 3)\n=========================== short test summary info ===========================\nERROR test/test_html_helper.py\n!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!\n1 error in 0.44s\n\n",
+      "command": "C:\\Coding Workspace\\otter\\benchmarks\\.venv\\Scripts\\python.exe -m pytest -q --tb=line -p no:cacheprovider -o addopts= -o filterwarnings= test/test_html_helper.py"
+    },
+    "copy_latency_s": 0.4498045000000275,
+    "context_latency_s": 0.35523960000136867,
+    "generate_latency_s": 203.8024718000015,
+    "apply_latency_s": 0.003694099999847822,
+    "test_latency_s": 1.1232712000019092,
+    "error": null,
+    "failure_category": "syntax failure",
+    "status_machine": "approved",
+    "structured_recovery": true,
+    "raw_structured_ok": false,
+    "raw_completion_preview": null
+  },
+  "latency_s": 206.39939790000062
+}

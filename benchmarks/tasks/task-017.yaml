@@ -1,0 +1,34 @@
+id: task-017
+kind: implement
+repository: sample-app
+difficulty: hard
+prompt: >
+  Add POST /users/login that verifies an email and password. Store a password
+  hash field on the user record in the repository layer. The service must reject
+  missing passwords and must not store plaintext. Return 401 JSON {"error":"unauthorized"}
+  on mismatch. Update the create-user path to accept password and hash it.
+  Extend tests/user.test.ts.
+gold:
+  relevant_files:
+    - src/routes/users.ts
+    - src/services/userService.ts
+    - src/repositories/userRepository.ts
+    - src/middleware/auth.ts
+    - tests/user.test.ts
+  expected_changes:
+    - Add login route
+    - Hash passwords
+    - Return 401 on mismatch
+    - Do not store plaintext
+  dependencies:
+    - Identity provider configuration
+    - Session and authorization boundary
+    - Authentication and failure-path tests
+  verification:
+    tests: []
+    syntax: ts
+    expect_in_files:
+      - path: src/routes/users.ts
+        contains:
+          - "login"
+  allowed_extra_files: []

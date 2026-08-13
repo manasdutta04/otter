@@ -1,0 +1,125 @@
+{
+  "id": "task-008",
+  "kind": "implement",
+  "repository": "sample-app",
+  "difficulty": "medium",
+  "prompt": "Add a GET /version API endpoint that returns JSON {\"version\":\"1.0.0\"} with HTTP 200. Register it with the existing Express app alongside user routes.\n",
+  "status": "ok",
+  "model": "gemma4:e2b",
+  "retrieval": {
+    "ok": true,
+    "ranked_files": [
+      "src/routes/users.ts",
+      "src/repositories/userRepository.ts",
+      "src/services/userService.ts",
+      "tests/user.test.ts",
+      "package.json"
+    ],
+    "hit_count": 5,
+    "latency_s": 0.009627499999623979,
+    "metrics": {
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "precision@3": 0.3333333333333333,
+      "precision@5": 0.2,
+      "precision@10": 0.1,
+      "precision_at_gold": 1.0
+    },
+    "error": null
+  },
+  "planning": {
+    "ok": true,
+    "plan": {
+      "title": "Plan: Add a GET /version API endpoint that returns JSON {\"version\":\"1.0.0\"} with HTTP ",
+      "complexity": "high",
+      "summary": "This plan addresses: Add a GET /version API endpoint that returns JSON {\"version\":\"1.0.0\"} with HTTP 200. Register it with the existing Express app alongside user routes.. It begins with repository context, identifies affected surfaces, and ends with verification before implementation approval.",
+      "steps": [
+        "Confirm the requested behavior against existing project conventions",
+        "Inspect and update the affected areas: src/routes/users.ts",
+        "Implement the change with focused tests",
+        "Run validation and review compatibility risks",
+        "Document the decision and rollout notes"
+      ],
+      "affected_files": [
+        "src/routes/users.ts"
+      ],
+      "dependencies": [
+        "Request and response contract",
+        "Authentication and authorization",
+        "API integration tests"
+      ],
+      "risks": [
+        "Breaking existing clients",
+        "Invalid input handling",
+        "Error response consistency"
+      ]
+    },
+    "intelligence_entry_points": [],
+    "rubric": {
+      "A_files": 2,
+      "B_approach": 0,
+      "C_dependencies": 2,
+      "D_verification": 2,
+      "E_no_invented": 2,
+      "total": 8,
+      "max": 10,
+      "score_pct": 0.8,
+      "success": true
+    },
+    "latency_s": 0.021145499998965533,
+    "error": null
+  },
+  "patch": {
+    "ok": true,
+    "generation_succeeded": true,
+    "applied": true,
+    "e2e_success": true,
+    "todo_only": false,
+    "summary": "Added a GET /version API endpoint returning the application version",
+    "model_reported": "gemma4:e2b",
+    "modified_files": [
+      "src/routes/users.ts"
+    ],
+    "expected_files_hit": true,
+    "expected_file_accuracy": 1.0,
+    "unexpected_files": [],
+    "context_files": [
+      "package.json",
+      "src/routes/users.ts",
+      "tests/user.test.ts",
+      "src/repositories/userRepository.ts"
+    ],
+    "context_file_count": 4,
+    "context_chars": 790,
+    "token_measurement": "unavailable",
+    "usage": null,
+    "syntax": {
+      "ok": true,
+      "checked": [
+        "src/routes/users.ts"
+      ],
+      "errors": [],
+      "note": "no TypeScript compiler in suite; syntax skipped"
+    },
+    "expect_in_files": {
+      "ok": true,
+      "missing": []
+    },
+    "tests": {
+      "status": "skipped",
+      "passed": null,
+      "output": "no gold tests",
+      "command": null
+    },
+    "copy_latency_s": 0.016789900000730995,
+    "context_latency_s": 0.0146041999978479,
+    "generate_latency_s": 58.395410599998286,
+    "apply_latency_s": 0.0012095999991288409,
+    "test_latency_s": 3.9000005926936865e-06,
+    "error": null,
+    "failure_category": null,
+    "status_machine": "approved"
+  },
+  "latency_s": 58.49254680000013
+}

@@ -1,0 +1,16 @@
+id: task-002
+kind: locate
+repository: sample-app
+difficulty: easy
+prompt: >
+  Find where user records are persisted or inserted for the users API.
+gold:
+  relevant_files:
+    - src/repositories/userRepository.ts
+  expected_changes:
+    - Locate insertUser repository
+  dependencies: []
+  verification:
+    tests: []
+    syntax: ts
+  allowed_extra_files: []

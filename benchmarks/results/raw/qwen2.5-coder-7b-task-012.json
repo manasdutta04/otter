@@ -1,0 +1,140 @@
+{
+  "id": "task-012",
+  "kind": "implement",
+  "repository": "click",
+  "difficulty": "medium",
+  "prompt": "Add an EmailParamType class named EMAIL (instance email) in src/click/types.py. convert() should accept strings that contain '@' and raise click.BadParameter otherwise. Export it from src/click/__init__.py if other types are exported there. Add a small unit test in tests/test_types.py.\n",
+  "status": "ok",
+  "model": "qwen2.5-coder:7b",
+  "retrieval": {
+    "ok": true,
+    "ranked_files": [
+      "src/click/types.py",
+      "src/click/__init__.py",
+      "tests/test_types.py",
+      "src/click/testing.py",
+      "tests/test_info_dict.py",
+      "src/click/formatting.py",
+      "examples/complex/complex/commands/cmd_init.py",
+      "src/click/_winconsole.py",
+      "tests/test_commands.py",
+      "tests/test_command_decorators.py"
+    ],
+    "hit_count": 24,
+    "latency_s": 0.29279700000188313,
+    "metrics": {
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "precision@3": 1.0,
+      "precision@5": 0.6,
+      "precision@10": 0.3,
+      "precision_at_gold": 1.0
+    },
+    "error": null
+  },
+  "planning": {
+    "ok": true,
+    "plan": {
+      "title": "Plan: Add an EmailParamType class named EMAIL (instance email) in src/click/types.py. ",
+      "complexity": "high",
+      "summary": "This plan addresses: Add an EmailParamType class named EMAIL (instance email) in src/click/types.py. convert() should accept strings that contain '@' and raise click.BadParameter otherwise. Export it from src/click/__init__.py if other types are exported there. Add a small unit test in tests/test_types.py.. It begins with repository context, identifies affected surfaces, and ends with verification before implementation approval.",
+      "steps": [
+        "Confirm the requested behavior against existing project conventions",
+        "Inspect and update the affected areas: src/click/types.py, src/click/__init__.py, tests/test_types.py, src/click/testing.py, tests/test_info_dict.py",
+        "Implement the change with focused tests",
+        "Run validation and review compatibility risks",
+        "Document the decision and rollout notes"
+      ],
+      "affected_files": [
+        "src/click/types.py",
+        "src/click/__init__.py",
+        "tests/test_types.py",
+        "src/click/testing.py",
+        "tests/test_info_dict.py",
+        "src/click/formatting.py",
+        "examples/complex/complex/commands/cmd_init.py",
+        "src/click/_winconsole.py"
+      ],
+      "dependencies": [
+        "Existing project conventions",
+        "Automated tests",
+        "Documentation update"
+      ],
+      "risks": [
+        "Unidentified coupling",
+        "Incomplete test coverage"
+      ]
+    },
+    "intelligence_entry_points": [],
+    "rubric": {
+      "A_files": 2,
+      "B_approach": 0,
+      "C_dependencies": 2,
+      "D_verification": 2,
+      "E_no_invented": 2,
+      "total": 8,
+      "max": 10,
+      "score_pct": 0.8,
+      "success": true
+    },
+    "latency_s": 0.6561055999991368,
+    "error": null
+  },
+  "patch": {
+    "ok": false,
+    "generation_succeeded": false,
+    "applied": false,
+    "e2e_success": false,
+    "todo_only": false,
+    "summary": "",
+    "model_reported": null,
+    "modified_files": [],
+    "expected_files_hit": false,
+    "expected_file_accuracy": 0.0,
+    "unexpected_files": [],
+    "context_files": [
+      "src/click/types.py",
+      "src/click/__init__.py",
+      "tests/test_types.py",
+      "src/click/testing.py",
+      "tests/test_info_dict.py",
+      "src/click/formatting.py"
+    ],
+    "context_file_count": 6,
+    "context_chars": 18000,
+    "token_measurement": "unavailable",
+    "usage": null,
+    "syntax": {
+      "ok": false,
+      "checked": [],
+      "errors": [
+        "not applied"
+      ]
+    },
+    "expect_in_files": {
+      "ok": false,
+      "missing": [
+        "not applied"
+      ]
+    },
+    "tests": {
+      "status": "skipped",
+      "passed": null,
+      "output": "not applied",
+      "command": null
+    },
+    "copy_latency_s": 0.3510323000009521,
+    "context_latency_s": 0.8543245000000752,
+    "generate_latency_s": 15.796356499999092,
+    "apply_latency_s": 0.0,
+    "test_latency_s": 0.0,
+    "error": "Patch generation failed across local models (qwen2.5-coder:7b\u2026): qwen2.5-coder:7b: Invalid patch shape",
+    "failure_category": "wrong_schema",
+    "status_machine": "ready_for_approval",
+    "structured_recovery": false,
+    "raw_structured_ok": null,
+    "raw_completion_preview": "```json\n{\n  \"summary\": \"The request cannot be processed as it lacks necessary details.\"\n}\n```"
+  },
+  "latency_s": 17.953700899997784
+}

@@ -1,0 +1,33 @@
+id: task-018
+kind: implement
+repository: starlette
+difficulty: hard
+prompt: >
+  Add a RequestIdMiddleware in a new file starlette/middleware/request_id.py.
+  For HTTP scopes, set scope["request_id"] to the incoming X-Request-ID header
+  or a new uuid4 hex if missing, and add X-Request-ID to the response headers.
+  Export the class from starlette/middleware/__init__.py if other middleware
+  classes are exported there. Add tests/middleware/test_request_id.py.
+gold:
+  relevant_files:
+    - starlette/middleware/request_id.py
+    - starlette/middleware/__init__.py
+    - tests/middleware/test_request_id.py
+  expected_changes:
+    - Add request id middleware
+    - Set X-Request-ID response header
+    - Add regression coverage
+  dependencies:
+    - Request and response contract
+    - API integration tests
+  verification:
+    tests:
+      - tests/middleware/test_request_id.py
+    syntax: py
+    expect_in_files:
+      - path: starlette/middleware/request_id.py
+        contains:
+          - RequestIdMiddleware
+          - X-Request-ID
+  allowed_extra_files:
+    - starlette/middleware/base.py

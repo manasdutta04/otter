@@ -1,0 +1,19 @@
+id: task-006
+kind: locate
+repository: sample-app
+difficulty: medium
+prompt: >
+  Trace a POST /users request through the route, service, and repository layers.
+  Which files participate in creating a user?
+gold:
+  relevant_files:
+    - src/routes/users.ts
+    - src/services/userService.ts
+    - src/repositories/userRepository.ts
+  expected_changes:
+    - Trace createUser through layers
+  dependencies: []
+  verification:
+    tests: []
+    syntax: ts
+  allowed_extra_files: []

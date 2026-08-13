@@ -9,42 +9,62 @@ from typing import Any
 from packages.agent.model_adapt import budget_for_model
 from packages.agent.types import Confidence, ContextBundle, ContextFile, ModelBudget
 
-CODE_SUFFIXES = {".py", ".ts", ".tsx", ".js", ".jsx", ".go", ".rs", ".java", ".md"}
+CODE_SUFFIXES = {".py", ".ts", ".tsx", ".js", ".jsx", ".go", ".rs", ".java"}
 MANIFESTS = {"package.json", "pyproject.toml", "requirements.txt"}
-SKIP_DIRS = {".git", "node_modules", ".venv", "dist", "build", "__pycache__", ".next"}
+SKIP_DIRS = {".git", "node_modules", ".venv", "dist", "build", "__pycache__", ".next", "docs", "_locale"}
+JUNK_NAMES = {
+    "license",
+    "license.md",
+    "license.txt",
+    "authors",
+    "makefile",
+    "manifest.in",
+    "contributing.md",
+    "contributing.rst",
+    "changelog.md",
+    "changelog.rst",
+    "funding.yml",
+    "dependabot.yml",
+}
+JUNK_DIR_PARTS = {".github", "docs", "_locale", "lc_messages", "node_modules", ".git"}
 
 
 def _words(text: str) -> set[str]:
     return {w for w in re.findall(r"[a-z0-9_]+", text.lower()) if len(w) > 2}
 
 
-def _score_path(rel: str, words: set[str], auth_boost: bool) -> float:
-    score = 0.0
-    low = rel.lower()
-    for word in words:
-        if word in low:
-            score += 4.0
-    if any(low.endswith(name) for name in ("main.py", "app.py", "index.ts", "server.ts", "route.ts", "routes.ts")):
-        score += 2.0
-    if auth_boost and any(
+def is_source_rel(rel: str) -> bool:
+    """True for implementation/test source, not licenses, locales, or CI metadata."""
+    path = Path(str(rel).replace("\\", "/"))
+    parts_l = {part.lower() for part in path.parts}
+    if parts_l & JUNK_DIR_PARTS:
+        return False
+    if path.name.lower() in JUNK_NAMES:
+        return False
+    return path.suffix.lower() in CODE_SUFFIXES
+
+
+def wants_manifest_context(task: str) -> bool:
+    low = task.lower()
+    return any(
         term in low
-        for term in ("auth", "login", "session", "passport", "next-auth", "password", "user", "middleware", "credential")
-    ):
-        score += 8.0
-    return score
+        for term in ("package.json", "dependency", "dependencies", "pyproject", "requirements", "manifest")
+    )
 
 
-def _iter_code_files(root: Path) -> list[Path]:
-    out: list[Path] = []
-    for path in root.rglob("*"):
-        if not path.is_file():
-            continue
-        if any(part in SKIP_DIRS for part in path.parts):
-            continue
-        if path.suffix.lower() not in CODE_SUFFIXES and path.name not in {"Dockerfile", "Makefile", *MANIFESTS}:
-            continue
-        out.append(path)
-    return out
+def _usable_context_rel(rel: str, *, allow_manifest: bool) -> bool:
+    name = Path(rel).name.lower()
+    if name in MANIFESTS:
+        return allow_manifest
+    return is_source_rel(rel)
+
+
+def _ordered_add(selected: list[str], seen: set[str], rel: str) -> None:
+    norm = str(rel).replace("\\", "/").lstrip("./")
+    if not norm or norm in seen:
+        return
+    seen.add(norm)
+    selected.append(norm)
 
 
 def build_context(
@@ -60,74 +80,84 @@ def build_context(
 ) -> ContextBundle:
     """
     Assemble a compact ContextBundle for the current engineering task.
-    Deterministic scoring first; never dumps the whole repository.
+    Uses the same TF-IDF retriever as Otter search; never dumps the whole repository.
     """
     root = Path(repo_root)
     budget = budget or budget_for_model(model)
-    words = _words(task)
-    auth_boost = bool(words & {"auth", "login", "password", "session", "oauth", "signup", "signin", "authentication", "credential"})
+    allow_manifest = wants_manifest_context(task)
+    selected: list[str] = []
+    seen: set[str] = set()
+    scores: dict[str, float] = {}
 
-    scored: list[tuple[float, Path]] = []
-    for path in _iter_code_files(root):
-        rel = str(path.relative_to(root)).replace("\\", "/")
-        scored.append((_score_path(rel, words, auth_boost), path))
-    scored.sort(key=lambda item: item[0], reverse=True)
-
-    selected: list[Path] = [p for s, p in scored if s > 0][: budget.max_context_files] or [
-        p for _, p in scored[: budget.max_context_files]
-    ]
-
-    for hint in (plan or {}).get("affected_files") or []:
-        candidate = root / str(hint)
-        if candidate.is_file() and candidate not in selected:
-            selected.insert(0, candidate)
-
-    for name in MANIFESTS:
-        extra = root / name
-        if extra.exists() and extra not in selected:
-            selected.insert(0, extra)
-
-    if auth_boost:
-        for preferred in (
-            "shared/schema.ts",
-            "server/db.ts",
-            "server/routes.ts",
-            "server/index.ts",
-            "package.json",
-        ):
-            candidate = root / preferred
-            if candidate.is_file() and candidate not in selected:
-                selected.insert(0, candidate)
+    def consider(rel: str, score: float = 0.0) -> None:
+        norm = str(rel).replace("\\", "/").lstrip("./")
+        if not norm:
+            return
+        candidate = root / norm
+        if not candidate.is_file():
+            return
+        if not _usable_context_rel(norm, allow_manifest=allow_manifest):
+            return
+        scores[norm] = max(scores.get(norm, 0.0), score)
+        _ordered_add(selected, seen, norm)
 
     for rel in extra_paths or []:
-        candidate = root / rel
-        if candidate.is_file() and candidate not in selected:
-            selected.insert(0, candidate)
+        consider(str(rel), score=50.0)
+
+    intel = intelligence or {}
+    for item in intel.get("ranked_files") or []:
+        if isinstance(item, str):
+            consider(item, score=45.0)
+        elif isinstance(item, dict):
+            consider(str(item.get("rel_path") or item.get("path") or ""), score=float(item.get("score") or 45.0))
+
+    for rel in intel.get("entry_points") or []:
+        consider(str(rel), score=20.0)
+
+    try:
+        from packages.retrieval import RepositorySemanticIndex
+
+        hits = RepositorySemanticIndex(root).search(task, top_k=max(budget.max_context_files * 4, 16))
+    except Exception:  # noqa: BLE001
+        hits = []
+    for hit in hits:
+        consider(str(hit.get("rel_path") or ""), score=float(hit.get("score") or 1.0))
+
+    for hint in (plan or {}).get("affected_files") or []:
+        if is_source_rel(str(hint)):
+            consider(str(hint), score=8.0)
+
+    if allow_manifest:
+        for name in MANIFESTS:
+            if (root / name).is_file():
+                consider(name, score=5.0)
+
+    words = _words(task)
+    auth_boost = bool(
+        words & {"auth", "login", "password", "session", "oauth", "signup", "signin", "authentication", "credential"}
+    )
+    if auth_boost:
+        for preferred in ("shared/schema.ts", "server/db.ts", "server/routes.ts", "server/index.ts"):
+            consider(preferred, score=12.0)
+
+    selected = selected[: budget.max_context_files]
 
     files: list[ContextFile] = []
     evidence: list[str] = []
-    for path in selected[: budget.max_context_files]:
-        rel = str(path.relative_to(root)).replace("\\", "/")
+    for rel in selected:
+        path = root / rel
         try:
             raw = path.read_text(encoding="utf-8", errors="ignore")
         except OSError:
             continue
         content = raw if path.name.lower() in MANIFESTS else raw[: budget.max_chars_per_file]
-        score = next((s for s, p in scored if p == path), 0.0)
-        files.append(ContextFile(path=rel, content=content, score=score))
+        files.append(ContextFile(path=rel, content=content, score=scores.get(rel, 0.0)))
         evidence.append(rel)
 
-    # Drop low-relevance files that would only bloat small models (keep manifests).
-    if len(files) > 2:
-        manifests = [f for f in files if Path(f.path).name.lower() in MANIFESTS]
-        others = [f for f in files if Path(f.path).name.lower() not in MANIFESTS]
-        others = [f for f in others if f.score > 0 or len(others) <= 2] or others[:2]
-        files = (manifests + others)[: budget.max_context_files]
-
-    entry_points = list((intelligence or {}).get("entry_points") or [])[:8]
-    tech_stack = list((intelligence or {}).get("tech_stack") or [])[:12]
+    entry_points = list(intel.get("entry_points") or [])[:8]
+    tech_stack = list(intel.get("tech_stack") or [])[:12]
     routes: list[str] = []
-    analysis = (intelligence or {}).get("analysis") or {}
+    analysis = intel.get("analysis") or {}
     if isinstance(analysis, dict):
         for route in analysis.get("api_routes") or []:
             if isinstance(route, dict):
@@ -152,6 +182,7 @@ def build_context(
         constraints=[
             "Prefer targeted edits over full-file rewrites",
             "Do not invent files outside the repository layout",
+            "If a source file is in context, preserve its existing contents and apply a minimal edit",
             f"Context limited to {budget.max_context_files} files for model {budget.model}",
         ],
         evidence=evidence,
@@ -166,4 +197,4 @@ def context_excludes_irrelevant(bundle: ContextBundle, irrelevant_substr: str) -
     return all(needle not in f.path.lower() for f in bundle.files)
 
 
-__all__ = ["build_context", "context_excludes_irrelevant"]
+__all__ = ["build_context", "context_excludes_irrelevant", "is_source_rel", "wants_manifest_context"]

@@ -1,0 +1,29 @@
+id: task-007
+kind: implement
+repository: sample-app
+difficulty: medium
+prompt: >
+  Add validation for invalid email addresses in the user creation path.
+  Reject emails that do not contain '@'. Return a client error rather than
+  inserting a bad record.
+gold:
+  relevant_files:
+    - src/services/userService.ts
+    - src/routes/users.ts
+    - tests/user.test.ts
+  expected_changes:
+    - Add email validation
+    - Return a client error for invalid email
+    - Add regression coverage
+  dependencies:
+    - Request and response contract
+    - API integration tests
+  verification:
+    tests: []
+    syntax: ts
+    expect_in_files:
+      - path: src/services/userService.ts
+        contains:
+          - "@"
+  allowed_extra_files:
+    - src/repositories/userRepository.ts

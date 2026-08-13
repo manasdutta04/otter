@@ -1,0 +1,16 @@
+id: task-001
+kind: locate
+repository: sample-app
+difficulty: easy
+prompt: >
+  Where is HTTP request authentication enforced before user routes run?
+gold:
+  relevant_files:
+    - src/middleware/auth.ts
+  expected_changes:
+    - Locate requireAuth middleware
+  dependencies: []
+  verification:
+    tests: []
+    syntax: ts
+  allowed_extra_files: []

@@ -1,0 +1,142 @@
+{
+  "id": "task-018",
+  "kind": "implement",
+  "repository": "starlette",
+  "difficulty": "hard",
+  "prompt": "Add a RequestIdMiddleware in a new file starlette/middleware/request_id.py. For HTTP scopes, set scope[\"request_id\"] to the incoming X-Request-ID header or a new uuid4 hex if missing, and add X-Request-ID to the response headers. Export the class from starlette/middleware/__init__.py if other middleware classes are exported there. Add tests/middleware/test_request_id.py.\n",
+  "status": "ok",
+  "model": "qwen2.5-coder:7b",
+  "retrieval": {
+    "ok": true,
+    "ranked_files": [
+      "tests/middleware/test_middleware.py",
+      "starlette/middleware/authentication.py",
+      "docs/middleware.md",
+      "tests/middleware/test_base.py",
+      "tests/middleware/test_cors.py",
+      "starlette/middleware/__init__.py",
+      "tests/middleware/test_https_redirect.py",
+      "tests/middleware/test_errors.py",
+      "starlette/middleware/errors.py",
+      "tests/middleware/test_session.py"
+    ],
+    "hit_count": 24,
+    "latency_s": 0.2669954000011785,
+    "metrics": {
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 0.3333333333333333,
+      "precision@3": 0.0,
+      "precision@5": 0.0,
+      "precision@10": 0.1,
+      "precision_at_gold": 0.0
+    },
+    "error": null
+  },
+  "planning": {
+    "ok": true,
+    "plan": {
+      "title": "Plan: Add a RequestIdMiddleware in a new file starlette/middleware/request_id.py. For ",
+      "complexity": "high",
+      "summary": "This plan addresses: Add a RequestIdMiddleware in a new file starlette/middleware/request_id.py. For HTTP scopes, set scope[\"request_id\"] to the incoming X-Request-ID header or a new uuid4 hex if missing, and add X-Request-ID to the response headers. Export the class from starlette/middleware/__init__.py if other middleware classes are exported there. Add tests/middleware/test_request_id.py.. It begins with repository context, identifies affected surfaces, and ends with verification before implementation approval.",
+      "steps": [
+        "Confirm the requested behavior against existing project conventions",
+        "Inspect and update the affected areas: .gitignore, LICENSE.md, mkdocs.yml, pyproject.toml, README.md",
+        "Implement the change with focused tests",
+        "Run validation and review compatibility risks",
+        "Document the decision and rollout notes"
+      ],
+      "affected_files": [
+        ".gitignore",
+        "LICENSE.md",
+        "mkdocs.yml",
+        "pyproject.toml",
+        "README.md",
+        "requirements.txt",
+        ".github/dependabot.yml",
+        ".github/FUNDING.yml"
+      ],
+      "dependencies": [
+        "Existing project conventions",
+        "Automated tests",
+        "Documentation update"
+      ],
+      "risks": [
+        "Unidentified coupling",
+        "Incomplete test coverage"
+      ]
+    },
+    "intelligence_entry_points": [],
+    "rubric": {
+      "A_files": 0,
+      "B_approach": 0,
+      "C_dependencies": 0,
+      "D_verification": 2,
+      "E_no_invented": 2,
+      "total": 4,
+      "max": 10,
+      "score_pct": 0.4,
+      "success": false
+    },
+    "latency_s": 0.30715389999750187,
+    "error": null
+  },
+  "patch": {
+    "ok": true,
+    "generation_succeeded": true,
+    "applied": true,
+    "e2e_success": false,
+    "todo_only": false,
+    "summary": "Add a RequestIdMiddleware in starlette/middleware/request_id.py and export it from starlette/middleware/__init__.py. Add tests for the middleware.",
+    "model_reported": "qwen2.5-coder:7b",
+    "modified_files": [
+      "tests/middleware/test_request_id.py",
+      "starlette/middleware/request_id.py",
+      "starlette/middleware/__init__.py",
+      "package.json"
+    ],
+    "expected_files_hit": true,
+    "expected_file_accuracy": 1.0,
+    "unexpected_files": [
+      "package.json"
+    ],
+    "context_files": [
+      "requirements.txt",
+      "pyproject.toml",
+      ".github/FUNDING.yml",
+      ".github/dependabot.yml"
+    ],
+    "context_file_count": 4,
+    "context_chars": 3739,
+    "token_measurement": "unavailable",
+    "usage": null,
+    "syntax": {
+      "ok": true,
+      "checked": [
+        "tests/middleware/test_request_id.py",
+        "starlette/middleware/request_id.py",
+        "starlette/middleware/__init__.py"
+      ],
+      "errors": []
+    },
+    "expect_in_files": {
+      "ok": true,
+      "missing": []
+    },
+    "tests": {
+      "status": "fail",
+      "passed": false,
+      "output": "\nC:\\Users\\ASUS\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\requests\\__init__.py:113: RequestsDependencyWarning: urllib3 (1.26.20) or chardet (7.4.3)/charset_normalizer (3.4.2) doesn't match a supported version!\n  warnings.warn(\nC:\\Users\\ASUS\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\metadata\\ingestion\\connections\\headers.py:18: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.\n  import pkg_resources\nC:\\Users\\ASUS\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\pydantic\\_internal\\_fields.py:198: UserWarning: Field name \"schema\" in \"SchemaDiffResult\" shadows an attribute in parent \"BaseModel\"\n  warnings.warn(\nImportError while loading conftest 'C:\\Coding Workspace\\otter\\benchmarks\\workspaces\\qwen2.5-coder-7b\\task-018\\tests\\conftest.py'.\ntests\\conftest.py:8: in <module>\n    from starlette.testclient import TestClient\nstarlette\\testclient.py:25: in <module>\n    from starlette.websockets import WebSocketDisconnect\nstarlette\\websockets.py:7: in <module>\n    from starlette.requests import HTTPConnection\nstarlette\\requests.py:12: in <module>\n    from starlette.formparsers import FormParser, MultiPartException, MultiPartParser\nstarlette\\formparsers.py:12: in <module>\n    import multipart\nC:\\Users\\ASUS\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\multipart\\__init__.py:22: in <module>\n    warnings.warn(\"Please use `import python_multipart` instead.\", PendingDeprecationWarning, stacklevel=2)\nE   PendingDeprecationWarning: Please use `import python_multipart` instead.\n",
+      "command": "C:\\Users\\ASUS\\AppData\\Local\\Programs\\Python\\Python313\\python.EXE -m pytest -q --tb=line tests/middleware/test_request_id.py"
+    },
+    "copy_latency_s": 0.2115912000008393,
+    "context_latency_s": 0.13525149999986752,
+    "generate_latency_s": 53.00906219999888,
+    "apply_latency_s": 0.005228199999692151,
+    "test_latency_s": 17.453266399999848,
+    "error": null,
+    "failure_category": "incorrect file selection",
+    "status_machine": "approved"
+  },
+  "latency_s": 71.41446139999971
+}
