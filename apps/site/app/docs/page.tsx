@@ -51,6 +51,10 @@ export default function DocsIndexPage() {
           <Link href="/docs/models">Models</Link> — Ollama and OpenAI-compatible endpoints
         </li>
         <li>
+          <Link href="/docs/benchmark">Benchmark</Link> — frozen 20-task Qwen 7B suite (v0.6: 36.4%
+          E2E, not a finished result)
+        </li>
+        <li>
           <Link href="/docs/contribute">Contribute</Link> — setup, PRs, community standards
         </li>
       </ul>

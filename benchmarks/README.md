@@ -8,7 +8,9 @@ Primary model: **qwen2.5-coder:7b**. v0.3+ is Qwen-only. Gemma4 E2B remains in a
 
 - **v0.1 — Baseline:** archived under `benchmarks/results/v0.1/`. Honest first run; do not overwrite.
 - **v0.2:** same 20 tasks after structured-output and retrieval-ranking fixes. Frozen at `benchmarks/results/v0.2/` and `v0.2-baseline.json`.
-- **v0.3:** Qwen-only reliability run after generation-context and harness fixes. Latest `benchmarks/results/qwen-v0.3-report.md`.
+- **v0.3:** Qwen-only reliability run after generation-context and harness fixes. `benchmarks/results/qwen-v0.3-report.md`.
+- **v0.4 / v0.5:** edit-first generation, full-file apply, quality gates. `qwen-v0.5-report.md`.
+- **v0.6 (current):** structured JSON salvage, symbol/quote anchors, keep-good-edits. Public summary: `/docs/benchmark`. Full report: `benchmarks/results/qwen-v0.6-report.md`.
 
 ## Goals
 

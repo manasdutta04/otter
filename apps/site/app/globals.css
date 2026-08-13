@@ -1431,6 +1431,32 @@ pre code {
   margin-top: 0;
 }
 
+.docs-article table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+  margin: 0.75rem 0 1rem;
+}
+
+.docs-article th,
+.docs-article td {
+  text-align: left;
+  padding: 0.45rem 0.6rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--ink) 10%, transparent);
+}
+
+.docs-article th {
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-weight: 650;
+}
+
+.docs-article td {
+  color: var(--ink-soft);
+}
+
 @media (max-width: 900px) {
   .landing-nav-links {
     display: none;

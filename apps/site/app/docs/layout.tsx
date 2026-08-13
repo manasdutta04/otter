@@ -11,6 +11,7 @@ const DOC_LINKS = [
   { href: "/docs/github", label: "GitHub" },
   { href: "/docs/cli", label: "CLI" },
   { href: "/docs/mcp", label: "MCP" },
+  { href: "/docs/benchmark", label: "Benchmark" },
   { href: "/docs/changelog", label: "Changelog" },
   { href: "/docs/contribute", label: "Contribute" },
 ];

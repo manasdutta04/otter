@@ -41,6 +41,10 @@ export default function ContributeDocsPage() {
         <li>CLI UX and slash commands in <code>apps/cli</code></li>
         <li>Product UI polish in <code>apps/web</code></li>
         <li>API tests and clarity in <code>apps/api</code></li>
+        <li>
+          Frozen coding suite under <code>benchmarks/</code> — see{" "}
+          <a href="/docs/benchmark">Benchmark</a>
+        </li>
         <li>MCP server and docs in <code>apps/mcp</code> / <code>/docs/mcp</code></li>
       </ul>
 

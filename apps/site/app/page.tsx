@@ -296,6 +296,9 @@ export default function LandingPage() {
                 <a href="/docs/mcp">MCP</a>
               </li>
               <li>
+                <a href="/docs/benchmark">Benchmark</a>
+              </li>
+              <li>
                 <a href="/docs/contribute">Contribute</a>
               </li>
               <li>

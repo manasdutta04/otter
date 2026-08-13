@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { APP_MODELS, GITHUB_REPO } from "../../../lib/urls";
 
 export default function ModelsDocsPage() {
@@ -43,6 +44,9 @@ export default function ModelsDocsPage() {
           .env.example
         </a>
         . Prefer documenting new providers in this page when you add them.
+      </p>
+      <p>
+        Local Qwen 7B coding results: <Link href="/docs/benchmark">Benchmark</Link>.
       </p>
     </>
   );

@@ -14,6 +14,21 @@ export default function ChangelogPage() {
       </p>
 
       <h2>
+        Benchmark v0.6{" "}
+        <span className="muted" style={{ fontWeight: 400, fontSize: "0.85em" }}>
+          2026-08-13
+        </span>
+      </h2>
+      <p>
+        Local Qwen 7B coding suite: E2E implement success 18.2% → 36.4% on the frozen 20-task set.
+        Patch apply is 90.9%; unexpected files stayed 0%. This is not a finished result — most
+        remaining failures are applied patches that fail gold tests.
+      </p>
+      <p>
+        Details: <Link href="/docs/benchmark">/docs/benchmark</Link>.
+      </p>
+
+      <h2>
         MCP 0.2.0 — Engineering intelligence layer{" "}
         <span className="muted" style={{ fontWeight: 400, fontSize: "0.85em" }}>
           2026-08-09
