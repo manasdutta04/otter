@@ -21,7 +21,7 @@
       "tests/test_command_decorators.py"
     ],
     "hit_count": 24,
-    "latency_s": 0.29279700000188313,
+    "latency_s": 0.23105199999918113,
     "metrics": {
       "recall@3": 1.0,
       "recall@5": 1.0,
@@ -78,7 +78,7 @@
       "score_pct": 0.8,
       "success": true
     },
-    "latency_s": 0.6561055999991368,
+    "latency_s": 0.5529569999998785,
     "error": null
   },
   "patch": {
@@ -96,13 +96,11 @@
     "context_files": [
       "src/click/types.py",
       "src/click/__init__.py",
-      "tests/test_types.py",
       "src/click/testing.py",
-      "tests/test_info_dict.py",
-      "src/click/formatting.py"
+      "tests/test_types.py"
     ],
-    "context_file_count": 6,
-    "context_chars": 18000,
+    "context_file_count": 4,
+    "context_chars": 6453,
     "token_measurement": "unavailable",
     "usage": null,
     "syntax": {
@@ -124,17 +122,20 @@
       "output": "not applied",
       "command": null
     },
-    "copy_latency_s": 0.3510323000009521,
-    "context_latency_s": 0.8543245000000752,
-    "generate_latency_s": 15.796356499999092,
+    "copy_latency_s": 0.268478200003301,
+    "context_latency_s": 0.787674800001696,
+    "generate_latency_s": 271.57896150000306,
     "apply_latency_s": 0.0,
     "test_latency_s": 0.0,
-    "error": "Patch generation failed across local models (qwen2.5-coder:7b\u2026): qwen2.5-coder:7b: Invalid patch shape",
-    "failure_category": "wrong_schema",
+    "error": "Patch generation failed across local models (qwen2.5-coder:7b\u2026): qwen2.5-coder:7b: No JSON object found in model response",
+    "failure_category": "json_malformed",
     "status_machine": "ready_for_approval",
     "structured_recovery": false,
     "raw_structured_ok": null,
-    "raw_completion_preview": "```json\n{\n  \"summary\": \"The request cannot be processed as it lacks necessary details.\"\n}\n```"
+    "raw_completion_preview": "```json\n{\n  \"summary\": \"Add EmailParamType class and unit test.\",\n  \"edits\": [\n    {\n      \"path\": \"src/click/types.py\",\n      \"old_string\": \"\",\n      \"new_string\": \"\"\"\nclass EmailParamType(ParamType):\n    name = 'email'\n\n    def convert(self, value: str, param: t.Optional['Parameter'], ctx: t.Optional['Context']) -> str:\n        if '@' in value:\n            return value\n        else:\n            raise click.BadParameter(f\"Invalid email address: {value}\")\n\"\"\"\n    },\n    {\n      \"path\": \"src/click/__init__.py\",\n      \"old_string\": \"\",\n      \"new_string\": \"\"\"\nfrom .types import BOOL as BOOL\nfrom .types import Choice as Choice\nfrom .types import DateTime as DateTime\nfrom .types import File as File\nfrom .types import FLOAT as FLOAT\nfrom .types import FloatRange as FloatRange\nfrom .types import\n\u2026\npe, value, expect):\n    assert type.convert(value, None, None) == expect\n\n\n@pytest.mark.parametrize(\n    (\"type\", \"value\", \"expect\"),\n    [\n        (click.IntRange(0, 5), \"6\", \"6 is not in the range 0<=x<=5.\"),\n        (click.IntRange(5), \"4\", \"4 is not in the range x>=5.\"),\n        (click.IntRange(max=5), \"6\", \"6 is not in the range x<=5.\"),\n        (click.IntRange(0, 5, min_open=True), 0, \"0<x<=5\"),\n        (click.IntRange(0, 5, max_open=True), 5, \"0<=x<5\"),\n        (click.FloatRange(0.5, min_open=True), 0.5, \"x>0.5\"),\n        (click.FloatRange(max=1.5, max_open=True), 1.5, \"x<1.5\"),\n    ],\n)\ndef test_range_fail(type, value, expect):\n    with pytest.raises(click.BadParameter) as exc_info:\n        type.convert(value, None, None)\n    assert str(exc_info.value) == expect\n\"\"\"\n    }\n  ]\n}\n```",
+    "first_attempt_latency_s": null,
+    "retry_latency_s": null,
+    "quality_gate": null
   },
-  "latency_s": 17.953700899997784
+  "latency_s": 273.4214061999992
 }

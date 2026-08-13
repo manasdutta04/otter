@@ -21,7 +21,7 @@
       "test/test_app.py"
     ],
     "hit_count": 24,
-    "latency_s": 0.18895779999729712,
+    "latency_s": 0.147131999998237,
     "metrics": {
       "recall@3": 1.0,
       "recall@5": 1.0,
@@ -78,69 +78,62 @@
       "score_pct": 0.8,
       "success": true
     },
-    "latency_s": 0.44603339999957825,
+    "latency_s": 0.434664000000339,
     "error": null
   },
   "patch": {
-    "ok": true,
-    "generation_succeeded": true,
-    "applied": true,
+    "ok": false,
+    "generation_succeeded": false,
+    "applied": false,
     "e2e_success": false,
     "todo_only": false,
-    "summary": "Add a helper function is_valid_email(value) to bottle.py and a unittest in test/test_html_helper.py.",
-    "model_reported": "qwen2.5-coder:7b",
-    "modified_files": [
+    "summary": "",
+    "model_reported": null,
+    "modified_files": [],
+    "expected_files_hit": false,
+    "expected_file_accuracy": 0.0,
+    "unexpected_files": [],
+    "context_files": [
       "bottle.py",
       "test/test_html_helper.py"
     ],
-    "expected_files_hit": true,
-    "expected_file_accuracy": 1.0,
-    "unexpected_files": [],
-    "context_files": [
-      "test/test_html_helper.py",
-      "test/example_settings.py",
-      "bottle.py",
-      "test/test_formsdict.py",
-      "test/test_contextlocals.py",
-      "test/test_jinja2.py"
-    ],
-    "context_file_count": 6,
-    "context_chars": 8883,
+    "context_file_count": 2,
+    "context_chars": 2507,
     "token_measurement": "unavailable",
     "usage": null,
     "syntax": {
       "ok": false,
-      "checked": [
-        "bottle.py",
-        "test/test_html_helper.py"
-      ],
+      "checked": [],
       "errors": [
-        "bottle.py: unterminated string literal (detected at line 3) (bottle.py, line 3)"
+        "not applied"
       ]
     },
     "expect_in_files": {
       "ok": false,
       "missing": [
-        "bottle.py missing 'is_valid_email'"
+        "not applied"
       ]
     },
     "tests": {
-      "status": "fail",
-      "passed": false,
-      "output": "\n=================================== ERRORS ====================================\n__________________ ERROR collecting test/test_html_helper.py __________________\n..\\..\\..\\.venv\\Lib\\site-packages\\_pytest\\python.py:493: in importtestmodule\n    mod = import_path(\n..\\..\\..\\.venv\\Lib\\site-packages\\_pytest\\pathlib.py:587: in import_path\n    importlib.import_module(module_name)\nC:\\Users\\ASUS\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\importlib\\__init__.py:88: in import_module\n    return _bootstrap._gcd_import(name[level:], package, level)\n<frozen importlib._bootstrap>:1387: in _gcd_import\n    ???\n<frozen importlib._bootstrap>:1360: in _find_and_load\n    ???\n<frozen importlib._bootstrap>:1310: in _find_and_load_unlocked\n    ???\n<frozen importlib._bootstrap>:488: in _call_with_frames_removed\n    ???\n<frozen importlib._bootstrap>:1387: in _gcd_import\n    ???\n<frozen importlib._bootstrap>:1360: in _find_and_load\n    ???\n<frozen importlib._bootstrap>:1331: in _find_and_load_unlocked\n    ???\n<frozen importlib._bootstrap>:935: in _load_unlocked\n    ???\n<frozen importlib._bootstrap_external>:1026: in exec_module\n    ???\n<frozen importlib._bootstrap>:488: in _call_with_frames_removed\n    ???\ntest\\__init__.py:2: in <module>\n    from .tools import chdir\ntest\\tools.py:5: in <module>\n    import bottle\nE     File \"C:\\Coding Workspace\\otter\\benchmarks\\workspaces\\qwen2.5-coder-7b\\task-010\\bottle.py\", line 3\nE       \"\nE       ^\nE   SyntaxError: unterminated string literal (detected at line 3)\n=========================== short test summary info ===========================\nERROR test/test_html_helper.py\n!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!\n1 error in 0.44s\n\n",
-      "command": "C:\\Coding Workspace\\otter\\benchmarks\\.venv\\Scripts\\python.exe -m pytest -q --tb=line -p no:cacheprovider -o addopts= -o filterwarnings= test/test_html_helper.py"
+      "status": "skipped",
+      "passed": null,
+      "output": "not applied",
+      "command": null
     },
-    "copy_latency_s": 0.4498045000000275,
-    "context_latency_s": 0.35523960000136867,
-    "generate_latency_s": 203.8024718000015,
-    "apply_latency_s": 0.003694099999847822,
-    "test_latency_s": 1.1232712000019092,
-    "error": null,
-    "failure_category": "syntax failure",
-    "status_machine": "approved",
-    "structured_recovery": true,
-    "raw_structured_ok": false,
-    "raw_completion_preview": null
+    "copy_latency_s": 0.528193400001328,
+    "context_latency_s": 0.3264590999970096,
+    "generate_latency_s": 421.5793530999981,
+    "apply_latency_s": 0.0,
+    "test_latency_s": 0.0,
+    "error": "Patch generation failed across local models (qwen2.5-coder:7b\u2026): qwen2.5-coder:7b: No JSON object found in model response",
+    "failure_category": "json_malformed",
+    "status_machine": "ready_for_approval",
+    "structured_recovery": false,
+    "raw_structured_ok": null,
+    "raw_completion_preview": "```json\n{\n  \"summary\": \"Added is_valid_email function to bottle.py and a unittest for it in test/test_html_helper.py.\",\n  \"edits\": [\n    {\n      \"path\": \"bottle.py\",\n      \"old_string\": \"\",\n      \"new_string\": \"\"\"\ndef is_valid_email(value):\n    if not isinstance(value, str) or value.count('@') != 1:\n        return False\n    local, domain = value.split('@')\n    return local and domain\n\"\"\"\n    }\n  ],\n  \"files\": [\n    {\n      \"path\": \"test/test_html_helper.py\",\n      \"content\": \"\"\"\nimport unittest\n\nfrom bottle import _parse_http_header, is_valid_email\n\n\nclass TestHttpUtils(unittest.TestCase):\n\n    # TODO: Move more of the low level http stuff here.\n\n    def test_accept_header(self):\n        self.assertEqual(_parse_http_header(\n                'text/xml, text/whitespace ,'\n                'app\n\u2026\n.assertFalse(is_valid_email('a@ b.c '))\n        self.assertFalse(is_valid_email('a@b.c '))\n        self.assertFalse(is_valid_email('a@ b.c '))\n        self.assertFalse(is_valid_email('a@b.c '))\n        self.assertFalse(is_valid_email('a@ b.c '))\n        self.assertFalse(is_valid_email('a@b.c '))\n        self.assertFalse(is_valid_email('a@ b.c '))\n        self.assertFalse(is_valid_email('a@b.c '))\n        self.assertFalse(is_valid_email('a@ b.c '))\n        self.assertFalse(is_valid_email('a@b.c '))\n        self.assertFalse(is_valid_email('a@ b.c '))\n        self.assertFalse(is_valid_email('a@b.c '))\n        self.assertFalse(is_valid_email('a@ b.c '))\n        self.assertFalse(is_valid_email('a@b.c '))\n        self.assertFalse(is_valid_email('a@ b.c '))\n        self.assertFalse(is_valid_email",
+    "first_attempt_latency_s": null,
+    "retry_latency_s": null,
+    "quality_gate": null
   },
-  "latency_s": 206.39939790000062
+  "latency_s": 423.0176867000009
 }

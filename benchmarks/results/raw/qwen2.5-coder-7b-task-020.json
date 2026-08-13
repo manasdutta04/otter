@@ -21,7 +21,7 @@
       "test/test_formsdict.py"
     ],
     "hit_count": 24,
-    "latency_s": 0.16544529999737279,
+    "latency_s": 0.14834010000049602,
     "metrics": {
       "recall@3": 1.0,
       "recall@5": 1.0,
@@ -73,66 +73,62 @@
       "score_pct": 0.4,
       "success": false
     },
-    "latency_s": 0.38473249999879044,
+    "latency_s": 0.38645199999882607,
     "error": null
   },
   "patch": {
-    "ok": true,
-    "generation_succeeded": true,
-    "applied": true,
+    "ok": false,
+    "generation_succeeded": false,
+    "applied": false,
     "e2e_success": false,
     "todo_only": false,
-    "summary": "Add a Bottle plugin class TimingPlugin that records elapsed seconds for each request on the response header X-Process-Time. Implement tests in test/test_plugins.py.",
-    "model_reported": "qwen2.5-coder:7b",
-    "modified_files": [
-      "test/test_plugins.py"
-    ],
-    "expected_files_hit": true,
-    "expected_file_accuracy": 0.5,
+    "summary": "",
+    "model_reported": null,
+    "modified_files": [],
+    "expected_files_hit": false,
+    "expected_file_accuracy": 0.0,
     "unexpected_files": [],
     "context_files": [
-      "test/test_plugins.py",
       "bottle.py",
-      "test/__init__.py",
-      "test/test_jinja2.py",
-      "test/test_oorouting.py",
-      "test/test_app.py"
+      "test/test_plugins.py"
     ],
-    "context_file_count": 6,
-    "context_chars": 10451,
+    "context_file_count": 2,
+    "context_chars": 3600,
     "token_measurement": "unavailable",
     "usage": null,
     "syntax": {
-      "ok": true,
-      "checked": [
-        "test/test_plugins.py"
-      ],
-      "errors": []
+      "ok": false,
+      "checked": [],
+      "errors": [
+        "not applied"
+      ]
     },
     "expect_in_files": {
       "ok": false,
       "missing": [
-        "bottle.py missing 'TimingPlugin'",
-        "bottle.py missing 'X-Process-Time'"
+        "not applied"
       ]
     },
     "tests": {
-      "status": "fail",
-      "passed": false,
-      "output": "..FFFFFFF                                                                [100%]\n================================== FAILURES ===================================\nC:\\Coding Workspace\\otter\\benchmarks\\workspaces\\qwen2.5-coder-7b\\task-020\\test\\test_plugins.py:52: NameError: name 'MyPlugin' is not defined\nC:\\Coding Workspace\\otter\\benchmarks\\workspaces\\qwen2.5-coder-7b\\task-020\\test\\test_plugins.py:110: NameError: name 'MyPlugin' is not defined\nC:\\Coding Workspace\\otter\\benchmarks\\workspaces\\qwen2.5-coder-7b\\task-020\\test\\test_plugins.py:100: AttributeError: 'function' object has no attribute 'headers'\nC:\\Coding Workspace\\otter\\benchmarks\\workspaces\\qwen2.5-coder-7b\\task-020\\test\\test_plugins.py:88: NameError: name 'MyPlugin' is not defined\nC:\\Coding Workspace\\otter\\benchmarks\\workspaces\\qwen2.5-coder-7b\\task-020\\test\\test_plugins.py:66: NameError: name 'MyPlugin' is not defined\nC:\\Coding Workspace\\otter\\benchmarks\\workspaces\\qwen2.5-coder-7b\\task-020\\test\\test_plugins.py:80: NameError: name 'MyPlugin' is not defined\nC:\\Coding Workspace\\otter\\benchmarks\\workspaces\\qwen2.5-coder-7b\\task-020\\test\\test_plugins.py:73: NameError: name 'MyPlugin' is not defined\n=========================== short test summary info ===========================\nFAILED test/test_plugins.py::TestPluginManagement::test_install_plugin - Name...\nFAILED test/test_plugins.py::TestPluginManagement::test_plugin_oder - NameErr...\nFAILED test/test_plugins.py::TestPluginManagement::test_route_plugin - Attrib...\nFAILED test/test_plugins.py::TestPluginManagement::test_uninstall_all - NameE...\nFAILED test/test_plugins.py::TestPluginManagement::test_uninstall_by_instance\nFAILED test/test_plugins.py::TestPluginManagement::test_uninstall_by_name - N...\nFAILED test/test_plugins.py::TestPluginManagement::test_uninstall_by_type - N...\n7 failed, 2 passed in 0.21s\n\n",
-      "command": "C:\\Coding Workspace\\otter\\benchmarks\\.venv\\Scripts\\python.exe -m pytest -q --tb=line -p no:cacheprovider -o addopts= -o filterwarnings= test/test_plugins.py"
+      "status": "skipped",
+      "passed": null,
+      "output": "not applied",
+      "command": null
     },
-    "copy_latency_s": 0.41615979999915,
-    "context_latency_s": 0.3349134000018239,
-    "generate_latency_s": 59.78618909999932,
-    "apply_latency_s": 0.00159939999866765,
-    "test_latency_s": 0.7421023999995668,
-    "error": null,
-    "failure_category": "test failure",
-    "status_machine": "approved",
+    "copy_latency_s": 0.3864744000020437,
+    "context_latency_s": 0.3507888999993156,
+    "generate_latency_s": 174.39280199999848,
+    "apply_latency_s": 0.0,
+    "test_latency_s": 0.0,
+    "error": "Patch generation failed across local models (qwen2.5-coder:7b\u2026): qwen2.5-coder:7b: No JSON object found in model response",
+    "failure_category": "json_malformed",
+    "status_machine": "ready_for_approval",
     "structured_recovery": false,
-    "raw_structured_ok": true,
-    "raw_completion_preview": null
+    "raw_structured_ok": null,
+    "raw_completion_preview": "```json\n{\n  \"summary\": \"Add a Bottle plugin class TimingPlugin that records elapsed seconds for each request on the response header X-Process-Time.\",\n  \"edits\": [\n    {\n      \"path\": \"bottle.py\",\n      \"old_string\": \"\",\n      \"new_string\": \"\"\"\nclass TimingPlugin(object):\n    name = 'timing'\n\n    def apply(self, callback, route):\n        @functools.wraps(callback)\n        def wrapper(*args, **kwargs):\n            start_time = time.time()\n            result = callback(*args, **kwargs)\n            elapsed_time = time.time() - start_time\n            response = webob.Response(result)\n            response.headers['X-Process-Time'] = str(elapsed_time)\n            return response\n        return wrapper\n\"\"\"\n    }\n  ],\n  \"files\": [\n    {\n      \"path\": \"test/test_plugins.py\",\n      \"content\": \"\"\"\nimp\n\u2026\nl(TimingPlugin())\n        self.app.uninstall(plugin)\n        self.assertTrue(plugin not in self.app.plugins)\n        self.assertTrue(plugin2 in self.app.plugins)\n\n    def test_uninstall_by_type(self):\n        plugin = self.app.install(TimingPlugin())\n        plugin2 = self.app.install(TimingPlugin())\n        self.app.uninstall(TimingPlugin)\n        self.assertTrue(plugin not in self.app.plugins)\n        self.assertTrue(plugin2 not in self.app.plugins)\n\n    def test_uninstall_by_name(self):\n        plugin = self.app.install(TimingPlugin())\n        plugin2 = self.app.install(TimingPlugin())\n        plugin.name = 'myplugin'\n        self.app.uninstall('myplugin')\n        self.assertTrue(plugin not in self.app.plugins)\n        self.assertTrue(plugin2 not in self.app.plugins)\n\"\"\"\n    }\n  ]\n}\n```",
+    "first_attempt_latency_s": null,
+    "retry_latency_s": null,
+    "quality_gate": null
   },
-  "latency_s": 61.84887660000095
+  "latency_s": 175.66672530000142
 }

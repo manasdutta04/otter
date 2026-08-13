@@ -17,7 +17,7 @@
       "package.json"
     ],
     "hit_count": 6,
-    "latency_s": 0.0056081999973685015,
+    "latency_s": 0.0033089999997173436,
     "metrics": {
       "recall@3": 1.0,
       "recall@5": 1.0,
@@ -71,8 +71,8 @@
       "score_pct": 0.8,
       "success": true
     },
-    "latency_s": 0.01748310000039055,
+    "latency_s": 0.012474299997847993,
     "error": null
   },
-  "latency_s": 0.02318110000123852
+  "latency_s": 0.015842000000702683
 }

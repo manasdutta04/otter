@@ -5,6 +5,7 @@ import json
 import logging
 import re
 import socket
+import time
 from pathlib import Path
 
 import httpx
@@ -46,10 +47,11 @@ FREE_CODING_MODELS: tuple[str, ...] = (
 )
 
 # Whole-file patches are token-hungry; keep a modest budget so 7B models finish JSON.
-MAX_COMPLETION_TOKENS = 8192
+MAX_COMPLETION_TOKENS = 2048
 # Prompt context caps for local 7B-class models (chars, not tokens).
-CONTEXT_FILE_LIMIT = 6
-CONTEXT_CHARS_PER_FILE = 3000
+# Keep generate input inside OLLAMA_NUM_CTX=4096; 6x3000 overflowed and caused refuse/stub JSON.
+CONTEXT_FILE_LIMIT = 4
+CONTEXT_CHARS_PER_FILE = 1800
 # Keep Ollama KV cache small so 7B models fit in limited host RAM.
 OLLAMA_NUM_CTX = 4096
 
@@ -85,9 +87,15 @@ AUTH_PATH_TERMS = (
 class PatchGenerationError(Exception):
     """Raised when a real patch cannot be produced."""
 
-    def __init__(self, message: str, raw_completion: str | None = None):
+    def __init__(
+        self,
+        message: str,
+        raw_completion: str | None = None,
+        quality_gate: dict[str, object] | None = None,
+    ):
         super().__init__(message)
         self.raw_completion = raw_completion
+        self.quality_gate = quality_gate
 
 
 def is_health_request(request: str) -> bool:
@@ -429,7 +437,14 @@ def validate_patch_quality(
         if problem not in unique:
             unique.append(problem)
     if unique:
-        raise ValueError("Rejected low-quality patch: " + "; ".join(unique[:6]))
+        from packages.agent.patch import QualityGateError
+
+        category = "invented_architecture" if any("invented" in p or "ORM" in p or "drizzle" in p.lower() for p in unique) else "low_quality"
+        if any("package.json" in p or "imports `" in p for p in unique):
+            category = "unexpected_dependency"
+        if any("auth " in p for p in unique):
+            category = "incomplete_auth"
+        raise QualityGateError(category, "; ".join(unique[:6]))
 
 
 def _salvage_truncated_json(text: str) -> dict | None:
@@ -562,85 +577,127 @@ def _missing_npm_imports(
     return missing
 
 
-def _normalize_patch(result: dict, *, originals: dict[str, str] | None = None, request: str = "") -> dict[str, object]:
-    originals = originals or {}
-    summary = strip_llm_summary_prefix(str(result.get("summary") or "").strip())
-    files = result.get("files")
-    edits = result.get("edits")
+def _strip_otter_stub_files(files: list[dict[str, str]]) -> list[dict[str, str]]:
+    kept: list[dict[str, str]] = []
+    for item in files:
+        path = str(item.get("path") or "").replace("\\", "/")
+        lowered = path.lower()
+        name = Path(path).name.lower()
+        if lowered.startswith("otter_") or name in {"otter_health.py", "otter_change_request.md"}:
+            continue
+        if name in MANIFEST_PATHS or lowered in MANIFEST_PATHS:
+            continue
+        kept.append(item)
+    return kept
 
-    # Prefer targeted edits when the model provides them.
-    if isinstance(edits, list) and edits:
-        try:
-            from packages.agent.patch import apply_edits_to_originals
 
-            materialized = apply_edits_to_originals(
-                [e for e in edits if isinstance(e, dict)],
-                originals,
-            )
-            if materialized:
-                files = materialized
-        except Exception:  # noqa: BLE001 — fall through to full files
-            pass
-
-    if not summary or not isinstance(files, list) or not files:
-        raise ValueError("Invalid patch shape")
-
-    declared_deps: dict[str, str] = {}
+def _explicit_dependency_delta(result: dict, originals: dict[str, str]) -> dict[str, str]:
+    """Only packages the model declared, not inferred from imports."""
+    declared: dict[str, str] = {}
     raw_deps = result.get("dependencies")
     if isinstance(raw_deps, dict):
-        declared_deps.update({str(k): str(v) for k, v in raw_deps.items()})
-
-    normalized_files: list[dict[str, str]] = []
-    for item in files:
+        declared.update({str(k): str(v) for k, v in raw_deps.items() if str(k).strip()})
+    for item in result.get("files") or []:
         if not isinstance(item, dict):
             continue
-        path = str(item.get("path") or "").strip().replace("\\", "/")
-        content = item.get("content")
-        if not path or content is None:
-            continue
-        if Path(path).is_absolute() or ".." in Path(path).parts:
-            continue
-        lowered = path.lower()
-        if lowered.startswith("otter_") or lowered in {"otter_health.py", "otter_change_request.md"}:
-            continue
-        if lowered in MANIFEST_PATHS:
-            # Manifests are merged from the dependency delta, never rewritten wholesale.
-            if lowered == "package.json":
-                declared_deps.update(_package_dependency_delta(originals.get(path, ""), str(content)))
-            continue
-        normalized_files.append({"path": path, "content": str(content)})
+        path = str(item.get("path") or "").replace("\\", "/").lower()
+        if path == "package.json" or Path(path).name == "package.json":
+            declared.update(_package_dependency_delta(originals.get("package.json", ""), str(item.get("content") or "")))
+    existing = _package_names_from_json(originals.get("package.json", ""))
+    return {name: spec for name, spec in declared.items() if name not in existing}
+
+
+def _normalize_patch(
+    result: dict,
+    *,
+    originals: dict[str, str] | None = None,
+    request: str = "",
+    excerpts: dict[str, str] | None = None,
+) -> dict[str, object]:
+    originals = originals or {}
+    summary = strip_llm_summary_prefix(str(result.get("summary") or "").strip())
+    if result.get("truncated"):
+        from packages.agent.patch import QualityGateError
+
+        raise QualityGateError("truncated_patch", "Truncated patch JSON; refusing partial full-file salvage. Use edits.")
+    if not summary:
+        raise ValueError("Invalid patch shape: missing summary")
+
+    new_deps = _explicit_dependency_delta(result, originals)
+    payload = dict(result)
+    payload["files"] = [
+        item
+        for item in (result.get("files") or [])
+        if isinstance(item, dict)
+        and Path(str(item.get("path") or "")).name.lower() not in MANIFEST_PATHS
+    ]
+    try:
+        from packages.agent.patch import materialize_safe_patch
+
+        normalized_files = _strip_otter_stub_files(
+            materialize_safe_patch(payload, originals, excerpts=excerpts)
+        )
+    except ValueError:
+        raise
+    except Exception as error:  # noqa: BLE001
+        raise ValueError(f"Invalid patch shape: {error}") from error
 
     js_stack = _is_js_patch(normalized_files, originals)
-    if js_stack:
-        # Small local models often import bcryptjs/uuid without filling `dependencies`.
-        declared_deps.update(_missing_npm_imports(normalized_files, originals, declared_deps))
-
-    if declared_deps and js_stack:
+    if new_deps and js_stack:
         base_manifest = originals.get("package.json") or '{"name":"app","dependencies":{}}'
-        merged = _merge_dependencies(base_manifest, declared_deps)
+        merged = _merge_dependencies(base_manifest, new_deps)
         if merged is not None:
             normalized_files = [item for item in normalized_files if item["path"] != "package.json"]
             normalized_files.append({"path": "package.json", "content": merged})
-        else:
-            # Last resort: tell the validator these imports are intentional deps.
-            originals = {
-                **originals,
-                "package.json": json.dumps(
-                    {"dependencies": {**_package_names_as_deps(originals.get("package.json", "")), **declared_deps}},
-                    indent=2,
-                )
-                + "\n",
-            }
 
     if not normalized_files:
-        raise ValueError("Patch contained no usable files")
+        raise ValueError("Invalid patch shape: missing files/edits")
     validate_patch_quality(request, normalized_files, originals)
     return {
         "summary": summary,
         "files": normalized_files,
         "source": "llm",
-        "truncated": bool(result.get("truncated")),
+        "truncated": False,
     }
+
+
+def _is_retryable_validation_error(error: BaseException | str) -> bool:
+    if isinstance(error, (httpx.TimeoutException, httpx.ConnectError)):
+        return False
+    text = str(error).lower()
+    if any(marker in text for marker in ("timed out", "timeout", "connect", "10061", "network")):
+        return False
+    if "http 5" in text or "http 429" in text:
+        return False
+    return True
+
+
+def _retry_user_message(error: str, excerpts: dict[str, str] | None = None) -> str:
+    blocks: list[str] = []
+    for path, body in list((excerpts or {}).items())[:4]:
+        blocks.append(f"FILE: {path}\n{body[:1600]}")
+    excerpt_block = ("\n\n".join(blocks) + "\n\n") if blocks else ""
+    return (
+        f"QUALITY/SCHEMA ERROR:\n{error}\n\n"
+        "Return ONLY corrected JSON. No markdown.\n"
+        "Use edits with a verbatim unique old_string (4+ lines) copied from FILE below, "
+        "or old_string \"\" to append at end of that file. "
+        "files[] only for paths that do not exist yet. No package.json.\n\n"
+        f"{excerpt_block}"
+        '{"summary":"...","edits":[{"path":"...","old_string":"...","new_string":"..."}],'
+        '"files":[{"path":"...","content":"..."}]}'
+    )
+
+
+def _format_llm_error(model_id: str, error: object, *, timeout_s: float | None = None) -> str:
+    if isinstance(error, httpx.TimeoutException):
+        seconds = f" after {timeout_s:.0f}s" if timeout_s else ""
+        detail = str(error).strip()
+        return f"{model_id} timed out{seconds}" + (f": {detail}" if detail else "")
+    reason = str(error).strip() if error is not None else ""
+    if not reason:
+        reason = type(error).__name__ if not isinstance(error, str) else "empty error"
+    return f"{model_id}: {reason}"
 
 
 def _is_js_patch(files: list[dict[str, str]], originals: dict[str, str]) -> bool:
@@ -963,9 +1020,13 @@ async def generate_patch(
     files: list[dict[str, str]],
     *,
     plan_context: dict[str, object] | None = None,
+    apply_originals: dict[str, str] | None = None,
 ) -> dict[str, object]:
     """Generate a real patch via LLM, or a deterministic health patch. Never TODO stubs."""
-    originals = {item["path"]: item["content"] for item in files}
+    excerpts = {item["path"]: item["content"] for item in files}
+    originals = dict(apply_originals) if apply_originals else dict(excerpts)
+    for path, body in excerpts.items():
+        originals.setdefault(path, body)
     settings = get_settings()
 
     # Health can still use deterministic path when LLM is unavailable
@@ -978,64 +1039,39 @@ async def generate_patch(
         key, model, base = _validate_llm_settings()
 
     limited = files[:CONTEXT_FILE_LIMIT]
+    target_paths = [item["path"] for item in limited]
     context = "\n\n".join(
         f"FILE: {item['path']}\n{item['content'][:CONTEXT_CHARS_PER_FILE]}" for item in limited
     )
-    plan_block = ""
+    plan_files = []
     if plan_context:
-        steps = (plan_context.get("steps") or [])[:5]
-        affected = (plan_context.get("affected_files") or [])[:8]
-        plan_block = (
-            "\n\nImplementation plan hints (use as guidance, not as a TODO list):\n"
-            f"Title: {plan_context.get('title', '')}\n"
-            f"Summary: {str(plan_context.get('summary') or '')[:400]}\n"
-            f"Steps: {json.dumps(steps)}\n"
-            f"Affected files: {json.dumps(affected)}\n"
-        )
-
+        plan_files = [
+            str(path)
+            for path in (plan_context.get("affected_files") or [])
+            if str(path) in set(target_paths)
+        ][:6]
     auth_rules = ""
     if _is_auth_request(request):
         auth_rules = (
-            "\nAuth-specific rules (mandatory):\n"
-            "A. Add a real `users` (or equivalent) table/model with email + password hash columns — "
-            "never reuse domain tables like `cards` for credentials.\n"
-            "B. Implement register + login routes that bcrypt/argon2 hash and verify passwords.\n"
-            "C. If using sessions, add express-session (or passport/next-auth) and wire middleware — "
-            "do not assign `req.session` without that dependency.\n"
-            "D. No stub comments ('Replace with actual…', TODO placeholders).\n"
-            "E. Use real Drizzle APIs for this stack (no `.select().get()` on node-postgres drizzle).\n"
+            "Auth constraints: add a users model/table, hash passwords, real login/register routes. "
+            "No plaintext, no TODOs, no invented ORM APIs.\n"
         )
     prompt = (
-        "Return ONLY valid JSON (no markdown fences) with this shape:\n"
-        '{"summary":"short description",'
-        '"dependencies":{"package-name":"^1.2.3"},'
-        '"edits":[{"path":"relative/path.ext","old_string":"exact existing snippet",'
-        '"new_string":"replacement snippet"}],'
-        '"files":[{"path":"relative/path.ext","content":"full file contents"}]}\n\n'
+        "SYSTEM TASK: modify an existing repository with the smallest correct change.\n"
+        "Return ONLY JSON (no markdown, no prose):\n"
+        '{"summary":"...","edits":[{"path":"...","old_string":"...","new_string":"..."}],'
+        '"files":[{"path":"...","content":"..."}],"dependencies":{}}\n'
         "Rules:\n"
-        "1. Implement the requested change for real — working code, not placeholders.\n"
-        "2. NEVER add TODO(Otter), FIXME stubs, or 'implement later' comments as the change.\n"
-        "3. Prefer editing existing auth/route/entrypoint files that match the stack.\n"
-        "4. Never create otter_*.py, OTTER_*.md, or disconnected stub files.\n"
-        "5. If a /health (or equivalent) already exists, do not duplicate it.\n"
-        "6. Match existing style, imports, and framework conventions EXACTLY.\n"
-        "7. Change as few files as possible, but include every file required for a working change.\n"
-        "8. PREFER `edits` (targeted old_string→new_string) over full `files` rewrites. "
-        "Use `files` only for brand-new files or when an edit cannot express the change. "
-        "If a FILE is already in context, preserve its existing contents and apply a minimal edit — "
-        "never replace a library module with a stub that only contains the new symbol.\n"
-        f"{_edit_prompt_addon()}"
-        "9. NEVER invent APIs (no fake drizzle helpers, no made-up packages).\n"
-        "10. If the repo uses drizzle-orm/pg-core + node-postgres, keep that pattern; extend pgTable schemas.\n"
-        "11. For auth/password: hash passwords (bcrypt/argon2/scrypt); never store plaintext.\n"
-        "12. NEVER output package.json or lock files. Declare new packages in `dependencies` instead — "
-        "they are merged into package.json automatically.\n"
-        "13. List the most important change first; the response is length-capped.\n"
-        "14. Summary must be plain English for humans — never include model names or `[llm:…]` tags.\n"
+        "- edits for existing files. old_string must be copied VERBATIM from a FILE block and be unique "
+        "(use 4+ lines). old_string \"\" appends new_string at end of that file.\n"
+        "- files[] only for brand-new paths that are not in TARGET FILES.\n"
+        "- Modify only TARGET FILES. Preserve unrelated code. No package.json. No TODOs. No invented APIs.\n"
         f"{auth_rules}"
-        f"Requested change: {request}\n"
-        f"{plan_block}\n"
-        f"Repository context:\n{context}"
+        f"TASK:\n{request}\n"
+        f"TARGET FILES: {json.dumps(target_paths)}\n"
+        f"PLAN FILES: {json.dumps(plan_files)}\n"
+        f"RELEVANT CODE:\n{context}\n"
+        "OUTPUT: JSON only."
     )
 
     free_failover = bool(getattr(settings, "llm_free_failover", True))
@@ -1053,6 +1089,24 @@ async def generate_patch(
     local = _is_ollama_base(base)
     timeout = 300.0 if local else 120.0
     request_base = _resolve_base_url(base)
+    first_attempt_latency: float | None = None
+    retry_latency: float | None = None
+
+    async def _post_completion(payload: dict[str, object]) -> httpx.Response:
+        async with httpx.AsyncClient(timeout=timeout) as client:
+            return await client.post(
+                f"{request_base.rstrip('/')}/chat/completions",
+                headers=_llm_headers(key, base),
+                json=payload,
+            )
+
+    def _parse_and_normalize(text: str) -> dict[str, object]:
+        parsed = _extract_json_object(text)
+        patch = _normalize_patch(
+            parsed, originals=originals, request=request, excerpts=excerpts
+        )
+        patch["summary"] = strip_llm_summary_prefix(str(patch["summary"]))
+        return patch
 
     for model_id in candidates:
         payload: dict[str, object] = {
@@ -1063,15 +1117,10 @@ async def generate_patch(
                 {
                     "role": "system",
                     "content": (
-                        "You are a cautious senior software engineer. "
-                        "Return only compact JSON with keys summary, dependencies, and optionally edits and/or files. "
-                        "Prefer targeted edits over full file rewrites. "
-                        "Never replace an existing library file with a stub. "
-                        "Never wrap JSON in markdown. "
-                        "Produce a real implementation that compiles against the existing stack. "
-                        "Never invent ORM APIs. Never store plaintext passwords. Never TODO-only patches. "
-                        "For email/password auth: add a users schema, hash passwords, and real session/auth wiring. "
-                        "Summary text must not mention model names."
+                        "You are a senior software engineer modifying an existing repository. "
+                        "Return only JSON with summary plus edits and/or files. "
+                        "Prefer targeted edits. Never rewrite a library file as a stub. "
+                        "No markdown fences. No package.json. No TODOs."
                     ),
                 },
                 {"role": "user", "content": prompt},
@@ -1080,117 +1129,92 @@ async def generate_patch(
         if not local:
             payload["max_completion_tokens"] = MAX_COMPLETION_TOKENS
         else:
-            # Shrink KV cache so local 7B models can load on low-RAM hosts.
             payload["options"] = {"num_ctx": OLLAMA_NUM_CTX, "num_predict": MAX_COMPLETION_TOKENS}
         if _supports_json_object(base):
             payload["response_format"] = {"type": "json_object"}
 
         try:
-            async with httpx.AsyncClient(timeout=timeout) as client:
-                response = await client.post(
-                    f"{request_base.rstrip('/')}/chat/completions",
-                    headers=_llm_headers(key, base),
-                    json=payload,
-                )
+            attempt_started = time.perf_counter()
+            response = await _post_completion(payload)
+            first_attempt_latency = time.perf_counter() - attempt_started
             if response.status_code >= 400:
                 body = (response.text or "")[:500]
                 logger.warning("LLM %s HTTP %s: %s", model_id, response.status_code, body)
-                last_error = f"{model_id} HTTP {response.status_code}: {body}"
-                partial = _failed_generation_text(response)
-                if not partial:
+                last_error = f"{model_id} HTTP {response.status_code}: {body or 'empty body'}"
+                last_raw = _failed_generation_text(response) or body
+                if not last_raw or not _is_retryable_validation_error(last_error):
                     continue
+                content = last_raw
+            else:
                 try:
-                    patch = _normalize_patch(
-                        _extract_json_object(partial), originals=originals, request=request
-                    )
-                except ValueError as error:
-                    last_error = f"{model_id} truncated: {error}"
-                    logger.warning("LLM %s truncated and unsalvageable: %s", model_id, error)
+                    content = str(response.json()["choices"][0]["message"]["content"] or "")
+                except (KeyError, IndexError, TypeError, json.JSONDecodeError) as error:
+                    last_error = _format_llm_error(model_id, error, timeout_s=timeout)
+                    last_raw = (response.text or "")[:800]
                     continue
-                patch["summary"] = strip_llm_summary_prefix(str(patch["summary"]))
-                patch["model"] = model_id
-                patch["structured_recovery"] = True
-                patch["raw_structured_ok"] = False
-                return patch
-            content = response.json()["choices"][0]["message"]["content"]
-            last_raw = str(content or "")
+                last_raw = content
+
             recovered = False
             try:
-                parsed = _extract_json_object(content)
-            except ValueError:
-                recovered = True
-                repair_payload = dict(payload)
-                repair_payload["messages"] = [
-                    *list(payload["messages"]),
-                    {"role": "assistant", "content": str(content or "")[:4000]},
-                    {
-                        "role": "user",
-                        "content": (
-                            "Your previous reply was not valid compact JSON. "
-                            "Reply with ONLY a JSON object with keys summary and files "
-                            "(optional: edits, dependencies). No markdown fences."
-                        ),
-                    },
-                ]
-                async with httpx.AsyncClient(timeout=timeout) as client:
-                    repaired = await client.post(
-                        f"{request_base.rstrip('/')}/chat/completions",
-                        headers=_llm_headers(key, base),
-                        json=repair_payload,
-                    )
-                if repaired.status_code >= 400:
-                    raise ValueError(f"JSON repair HTTP {repaired.status_code}")
-                content = repaired.json()["choices"][0]["message"]["content"]
-                last_raw = str(content or "")
-                parsed = _extract_json_object(content)
-            try:
-                patch = _normalize_patch(parsed, originals=originals, request=request)
-            except ValueError as shape_error:
-                if "invalid patch shape" not in str(shape_error).lower() and "no usable files" not in str(shape_error).lower():
+                patch = _parse_and_normalize(content)
+            except ValueError as error:
+                if not _is_retryable_validation_error(error):
                     raise
                 recovered = True
-                repair_payload = dict(payload)
-                repair_payload["messages"] = [
-                    *list(payload["messages"]),
-                    {"role": "assistant", "content": last_raw[:4000]},
+                retry_payload = dict(payload)
+                retry_payload["max_tokens"] = min(MAX_COMPLETION_TOKENS, 1024)
+                if local:
+                    retry_payload["options"] = {
+                        "num_ctx": OLLAMA_NUM_CTX,
+                        "num_predict": min(MAX_COMPLETION_TOKENS, 1024),
+                    }
+                retry_payload["messages"] = [
+                    payload["messages"][0],
                     {
                         "role": "user",
-                        "content": (
-                            "Your JSON was missing summary and/or a non-empty files list. "
-                            "Reply with ONLY a JSON object with keys summary and files. "
-                            "Do not invent files that were not requested. No markdown."
-                        ),
+                        "content": _retry_user_message(str(error), excerpts=excerpts),
+                    },
+                    {"role": "assistant", "content": last_raw[:2500]},
+                    {
+                        "role": "user",
+                        "content": "That JSON failed validation. Return ONLY the corrected JSON object.",
                     },
                 ]
-                async with httpx.AsyncClient(timeout=timeout) as client:
-                    repaired = await client.post(
-                        f"{request_base.rstrip('/')}/chat/completions",
-                        headers=_llm_headers(key, base),
-                        json=repair_payload,
-                    )
+                retry_started = time.perf_counter()
+                repaired = await _post_completion(retry_payload)
+                retry_latency = time.perf_counter() - retry_started
                 if repaired.status_code >= 400:
-                    raise ValueError(f"schema repair HTTP {repaired.status_code}")
-                content = repaired.json()["choices"][0]["message"]["content"]
-                last_raw = str(content or "")
-                parsed = _extract_json_object(content)
-                patch = _normalize_patch(parsed, originals=originals, request=request)
+                    body = (repaired.text or "")[:500]
+                    raise ValueError(f"validation retry HTTP {repaired.status_code}: {body or 'empty body'}")
+                content = str(repaired.json()["choices"][0]["message"]["content"] or "")
+                last_raw = content
+                patch = _parse_and_normalize(content)
             patch["summary"] = strip_llm_summary_prefix(str(patch["summary"]))
             patch["model"] = model_id
-            patch["structured_recovery"] = recovered or bool(parsed.get("truncated"))
+            patch["structured_recovery"] = recovered
             patch["raw_structured_ok"] = not recovered
+            patch["first_attempt_latency"] = first_attempt_latency
+            patch["retry_latency"] = retry_latency
             return patch
+        except httpx.TimeoutException as error:
+            last_error = _format_llm_error(model_id, error, timeout_s=timeout)
+            logger.warning("LLM generate with %s failed: %s", model_id, last_error)
+            continue
         except (KeyError, IndexError, TypeError, ValueError, json.JSONDecodeError, httpx.HTTPError) as error:
-            last_error = f"{model_id}: {error}"
-            logger.warning("LLM generate with %s failed: %s", model_id, error)
+            last_error = _format_llm_error(model_id, error, timeout_s=timeout)
+            logger.warning("LLM generate with %s failed: %s", model_id, last_error)
             continue
 
-    # Health-only escape hatch after LLM failure
     if is_health_request(request):
         return deterministic_patch(request, files)
 
+    quality_gate = None
+    if "QUALITY_GATE:" in last_error:
+        quality_gate = {"message": last_error}
     raise PatchGenerationError(
         f"Patch generation failed across local models ({', '.join(candidates[:4])}…): {last_error}",
         raw_completion=_raw_preview(last_raw),
+        quality_gate=quality_gate,
     )
 
 

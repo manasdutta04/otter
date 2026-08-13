@@ -21,7 +21,7 @@
       "github/ISSUE_TEMPLATE/config.yml"
     ],
     "hit_count": 24,
-    "latency_s": 0.3052409000010812,
+    "latency_s": 0.2558413000006112,
     "metrics": {
       "recall@3": 1.0,
       "recall@5": 1.0,
@@ -78,8 +78,8 @@
       "score_pct": 0.8,
       "success": true
     },
-    "latency_s": 0.6044548999998369,
+    "latency_s": 0.5821608000005654,
     "error": null
   },
-  "latency_s": 0.9126064000010956
+  "latency_s": 0.8405701000010595
 }

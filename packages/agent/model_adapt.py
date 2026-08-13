@@ -44,8 +44,8 @@ def budget_for_model(model: str) -> ModelBudget:
     if size is not None and size <= 9:
         return ModelBudget(
             model=name,
-            max_context_files=6,
-            max_chars_per_file=3000,
+            max_context_files=4,
+            max_chars_per_file=1800,
             max_tool_calls=8,
             max_worker_iterations=4,
             max_subtasks=8,

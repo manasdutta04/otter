@@ -1,0 +1,92 @@
+[
+  {
+    "task_id": "task-010",
+    "model": "qwen2.5-coder:7b",
+    "failure_stage": "patch",
+    "error": "Patch generation failed across local models (qwen2.5-coder:7b\u2026): qwen2.5-coder:7b: No JSON object found in model response",
+    "category": "json_malformed",
+    "kind": "implement",
+    "modified_files": [],
+    "summary": ""
+  },
+  {
+    "task_id": "task-012",
+    "model": "qwen2.5-coder:7b",
+    "failure_stage": "patch",
+    "error": "Patch generation failed across local models (qwen2.5-coder:7b\u2026): qwen2.5-coder:7b: Edit target not unique in src/click/types.py; Destructive rewrite of tests/test_types.py dropped existing symbols: test_float_range_no_clamp_open. Use edits with exact snippets from context.",
+    "category": "quality_gate",
+    "kind": "implement",
+    "modified_files": [],
+    "summary": ""
+  },
+  {
+    "task_id": "task-014",
+    "model": "qwen2.5-coder:7b",
+    "failure_stage": "patch",
+    "error": "Patch generation failed across local models (qwen2.5-coder:7b\u2026): qwen2.5-coder:7b: Edit target not unique in starlette/config.py",
+    "category": "quality_gate",
+    "kind": "implement",
+    "modified_files": [],
+    "summary": ""
+  },
+  {
+    "task_id": "task-015",
+    "model": "qwen2.5-coder:7b",
+    "failure_stage": "patch",
+    "error": "Patch generation failed across local models (qwen2.5-coder:7b\u2026): qwen2.5-coder:7b: Edit target not found in test/test_auth.py",
+    "category": "quality_gate",
+    "kind": "implement",
+    "modified_files": [],
+    "summary": ""
+  },
+  {
+    "task_id": "task-016",
+    "model": "qwen2.5-coder:7b",
+    "failure_stage": "patch",
+    "error": "Patch generation failed across local models (qwen2.5-coder:7b\u2026): qwen2.5-coder:7b: Edit target not unique in src/services/userService.ts",
+    "category": "quality_gate",
+    "kind": "implement",
+    "modified_files": [],
+    "summary": ""
+  },
+  {
+    "task_id": "task-017",
+    "model": "qwen2.5-coder:7b",
+    "failure_stage": "patch",
+    "error": "Patch generation failed across local models (qwen2.5-coder:7b\u2026): qwen2.5-coder:7b: Rejected low-quality patch: auth change is missing login/register routes; auth change is missing a users model/table (do not reuse domain tables like cards)",
+    "category": "quality_gate",
+    "kind": "implement",
+    "modified_files": [],
+    "summary": ""
+  },
+  {
+    "task_id": "task-018",
+    "model": "qwen2.5-coder:7b",
+    "failure_stage": "patch",
+    "error": "Patch generation failed across local models (qwen2.5-coder:7b\u2026): qwen2.5-coder:7b: Edit target not unique in starlette/middleware/__init__.py",
+    "category": "quality_gate",
+    "kind": "implement",
+    "modified_files": [],
+    "summary": ""
+  },
+  {
+    "task_id": "task-019",
+    "model": "qwen2.5-coder:7b",
+    "failure_stage": "patch",
+    "error": "Patch generation failed across local models (qwen2.5-coder:7b\u2026): qwen2.5-coder:7b: Edit target not unique in src/click/types.py",
+    "category": "quality_gate",
+    "kind": "implement",
+    "modified_files": [],
+    "summary": ""
+  },
+  {
+    "task_id": "task-020",
+    "model": "qwen2.5-coder:7b",
+    "failure_stage": "patch",
+    "error": "Patch generation failed across local models (qwen2.5-coder:7b\u2026): qwen2.5-coder:7b: Edit target not unique in bottle.py",
+    "category": "quality_gate",
+    "kind": "implement",
+    "modified_files": [],
+    "summary": ""
+  }
+]

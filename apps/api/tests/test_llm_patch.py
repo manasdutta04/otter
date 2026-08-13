@@ -162,7 +162,9 @@ def test_dependency_delta_merges_into_package_json():
     from app.llm import _normalize_patch
 
     originals = {
-        "package.json": json.dumps({"name": "app", "dependencies": {"express": "^4.21.2"}}),
+        "package.json": json.dumps(
+            {"name": "app", "dependencies": {"express": "^4.21.2", "drizzle-orm": "0.39.3"}}
+        ),
         "server/auth.ts": "export {};\n",
     }
     result = {
@@ -196,7 +198,7 @@ def test_dependency_delta_merges_into_package_json():
     assert json.loads(manifest["content"])["dependencies"]["bcrypt"] == "^5.1.1"
 
 
-def test_auto_adds_imported_bcryptjs_when_dependencies_omitted():
+def test_inferred_imports_do_not_auto_append_package_json():
     from app.llm import _normalize_patch
 
     originals = {
@@ -229,50 +231,21 @@ def test_auto_adds_imported_bcryptjs_when_dependencies_omitted():
             },
         ],
     }
-    patch = _normalize_patch(result, originals=originals, request="add email password authentication")
-    manifest = next(item for item in patch["files"] if item["path"] == "package.json")
-    deps = json.loads(manifest["content"])["dependencies"]
-    assert deps["bcryptjs"] == "^2.4.3"
-    assert deps["express"] == "^4.21.2"
+    with pytest.raises(ValueError, match="QUALITY_GATE|not in package.json|low-quality|unexpected_dependency"):
+        _normalize_patch(result, originals=originals, request="add email password authentication")
 
 
-def test_auto_adds_bcryptjs_even_when_package_json_context_is_truncated():
+def test_truncated_full_file_json_is_rejected():
     from app.llm import _normalize_patch
 
-    # Force invalid JSON like the old 3k context truncate did.
-    truncated = '{\n  "name": "greetings-card",\n  "dependencies": {\n    "express": "^4.21.2",\n    "passport": "^0.7'
-    with pytest.raises(json.JSONDecodeError):
-        json.loads(truncated)
-    originals = {"package.json": truncated}
+    originals = {"server/auth.ts": "export {};\n"}
     result = {
-        "summary": "Add login",
-        "files": [
-            {
-                "path": "shared/schema.ts",
-                "content": (
-                    'import { pgTable, text, uuid } from "drizzle-orm/pg-core";\n'
-                    'export const users = pgTable("users", {\n'
-                    '  id: uuid("id").primaryKey(),\n'
-                    '  email: text("email").notNull(),\n'
-                    '  passwordHash: text("password_hash").notNull(),\n'
-                    "});\n"
-                ),
-            },
-            {
-                "path": "server/routes.ts",
-                "content": (
-                    "import bcryptjs from 'bcryptjs';\n"
-                    "app.post('/api/register', async (req) => {\n"
-                    "  const passwordHash = await bcryptjs.hash(req.body.password, 10);\n"
-                    "});\n"
-                    "app.post('/api/login', async () => {});\n"
-                ),
-            },
-        ],
+        "summary": "Added auth",
+        "files": [{"path": "server/auth.ts", "content": "import bcrypt from 'bcrypt';\n"}],
+        "truncated": True,
     }
-    patch = _normalize_patch(result, originals=originals, request="add email password authentication")
-    manifest = next(item for item in patch["files"] if item["path"] == "package.json")
-    assert "bcryptjs" in json.loads(manifest["content"])["dependencies"]
+    with pytest.raises(ValueError, match="Truncated"):
+        _normalize_patch(result, originals=originals, request="add login")
 
 
 def test_model_rewritten_package_json_is_reduced_to_a_delta():
@@ -368,7 +341,7 @@ def test_validate_rejects_hallucinated_auth_patch():
             ),
         },
     ]
-    with pytest.raises(ValueError, match="low-quality"):
+    with pytest.raises(ValueError, match="QUALITY_GATE|low-quality|invented"):
         validate_patch_quality("add email/password authentication", files, originals)
 
 
@@ -464,7 +437,7 @@ def test_validate_rejects_greetings_card_stub_auth():
             ),
         },
     ]
-    with pytest.raises(ValueError, match="low-quality"):
+    with pytest.raises(ValueError, match="QUALITY_GATE|low-quality|invented|auth"):
         validate_patch_quality(
             "I want to add one email/password authentication before opening the main",
             files,
@@ -505,4 +478,116 @@ def test_normalize_patch_does_not_invent_package_json_for_python_only():
     patch = _normalize_patch(result, originals=originals, request="add is_valid_email")
     assert all(item["path"] != "package.json" for item in patch["files"])
     assert any(item["path"] == "bottle.py" for item in patch["files"])
+
+
+def test_edits_normalize_for_existing_file():
+    from app.llm import _normalize_patch
+
+    originals = {"utils.py": "def add(a, b):\n    return a + b\n"}
+    result = {
+        "summary": "Add multiply",
+        "edits": [
+            {
+                "path": "utils.py",
+                "old_string": "def add(a, b):\n    return a + b\n",
+                "new_string": "def add(a, b):\n    return a + b\n\ndef multiply(a, b):\n    return a * b\n",
+            }
+        ],
+    }
+    patch = _normalize_patch(result, originals=originals, request="add multiply helper")
+    assert patch["files"][0]["path"] == "utils.py"
+    assert "def multiply" in patch["files"][0]["content"]
+    assert "def add" in patch["files"][0]["content"]
+
+
+def test_stub_rewrite_of_existing_library_is_rejected():
+    from app.llm import _normalize_patch
+
+    originals = {
+        "bottle.py": (
+            "class Bottle:\n    def run(self):\n        return True\n\n"
+            "def auth_basic(func):\n    return func\n\n"
+            "def tob(value):\n    return value\n"
+        )
+        * 20
+    }
+    result = {
+        "summary": "Add TimingPlugin",
+        "files": [{"path": "bottle.py", "content": "class TimingPlugin:\n    pass\n"}],
+    }
+    with pytest.raises(ValueError, match="Destructive rewrite|shorter|dropped"):
+        _normalize_patch(result, originals=originals, request="add TimingPlugin")
+
+
+def test_retry_prompt_contains_validation_error():
+    from app.llm import _is_retryable_validation_error, _retry_user_message
+
+    message = _retry_user_message("Python syntax error in bottle.py")
+    assert "Python syntax error in bottle.py" in message
+    assert "edits" in message.lower()
+    assert _is_retryable_validation_error(ValueError("Invalid patch shape: missing files/edits"))
+    assert not _is_retryable_validation_error("qwen2.5-coder:7b timed out after 300s")
+    compact = _retry_user_message("edit_target_not_unique", excerpts={"a.py": "def add(a, b):\n    return a + b\n"})
+    assert "FILE: a.py" in compact
+    assert "old_string" in compact
+
+
+def test_empty_old_string_appends_to_existing_python_file():
+    from app.llm import _normalize_patch
+
+    originals = {"utils.py": "def add(a, b):\n    return a + b\n"}
+    result = {
+        "summary": "Add multiply",
+        "edits": [{"path": "utils.py", "old_string": "", "new_string": "\ndef multiply(a, b):\n    return a * b\n"}],
+    }
+    patch = _normalize_patch(result, originals=originals, request="add multiply helper")
+    body = patch["files"][0]["content"]
+    assert "def add" in body
+    assert "def multiply" in body
+
+
+def test_nested_file_edits_and_new_ts_file():
+    from app.llm import _normalize_patch
+
+    originals = {"src/app.ts": "export const n = 1;\n"}
+    result = {
+        "summary": "Add helper and new util",
+        "files": [
+            {
+                "path": "src/app.ts",
+                "edits": [{"old": "export const n = 1;", "new": "export const n = 2;"}],
+            },
+            {"path": "src/util.ts", "content": "export const k = 3;\n"},
+        ],
+    }
+    patch = _normalize_patch(result, originals=originals, request="add util helper")
+    by_path = {item["path"]: item["content"] for item in patch["files"]}
+    assert by_path["src/app.ts"] == "export const n = 2;\n"
+    assert by_path["src/util.ts"] == "export const k = 3;\n"
+
+
+def test_excerpt_disambiguates_non_unique_old_string():
+    from packages.agent.patch import apply_edits_to_originals
+
+    full = "def one():\n    return 1\n\ndef two():\n    return 1\n"
+    excerpt = "def two():\n    return 1\n"
+    files = apply_edits_to_originals(
+        [{"path": "m.py", "old_string": "    return 1\n", "new_string": "    return 2\n"}],
+        {"m.py": full},
+        excerpts={"m.py": excerpt},
+    )
+    assert files[0]["content"].count("return 2") == 1
+    assert "def one():\n    return 1" in files[0]["content"]
+
+
+def test_quality_gate_error_is_structured():
+    from packages.agent.patch import QualityGateError, materialize_safe_patch
+
+    with pytest.raises(QualityGateError, match="category: edit_target_not_found") as caught:
+        materialize_safe_patch(
+            {"summary": "x", "edits": [{"path": "a.py", "old_string": "missing", "new_string": "x"}]},
+            {"a.py": "def ok():\n    return 1\n"},
+        )
+    assert caught.value.category == "edit_target_not_found"
+    assert caught.value.file == "a.py"
 

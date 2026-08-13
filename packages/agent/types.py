@@ -98,8 +98,8 @@ class ModelBudget:
     """Adaptive limits for the selected LLM (small-model friendly defaults)."""
 
     model: str
-    max_context_files: int = 6
-    max_chars_per_file: int = 3000
+    max_context_files: int = 4
+    max_chars_per_file: int = 1800
     max_tool_calls: int = 8
     max_worker_iterations: int = 4
     max_subtasks: int = 8

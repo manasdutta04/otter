@@ -67,6 +67,130 @@ def _ordered_add(selected: list[str], seen: set[str], rel: str) -> None:
     selected.append(norm)
 
 
+_ATTR_RE = re.compile(r"\b([A-Za-z_][\w]*)\.([A-Za-z_][\w]*)\b")
+_SKIP_ATTR_MODS = {"e", "g", "i", "ie", "eg", "self", "this", "cls", "cls_", "super"}
+
+
+def is_test_rel(rel: str) -> bool:
+    path = str(rel).replace("\\", "/").lower()
+    name = Path(path).name
+    return (
+        "/test/" in f"/{path}/"
+        or "/tests/" in f"/{path}/"
+        or name.startswith("test_")
+        or name.endswith(("_test.py", ".test.ts", ".test.js", ".spec.ts", ".spec.js"))
+    )
+
+
+def prompt_impl_path_hints(task: str, root: Path) -> list[str]:
+    """Literal paths and module.attr → file guesses that exist on disk. Not task-id specific."""
+    hints: list[str] = []
+    try:
+        from packages.retrieval import literal_paths_in_query
+
+        hints.extend(literal_paths_in_query(task))
+    except Exception:  # noqa: BLE001
+        pass
+    for match in _ATTR_RE.finditer(task or ""):
+        mod = match.group(1)
+        if mod.lower() in _SKIP_ATTR_MODS or len(mod) < 2:
+            continue
+        for candidate in (
+            f"{mod}.py",
+            f"src/{mod}.py",
+            f"lib/{mod}.py",
+            f"{mod}/__init__.py",
+            f"src/{mod}/__init__.py",
+        ):
+            if (root / candidate).is_file():
+                hints.append(candidate.replace("\\", "/"))
+                break
+    seen: set[str] = set()
+    ordered: list[str] = []
+    for rel in hints:
+        norm = str(rel).replace("\\", "/").lstrip("./")
+        if not norm or norm in seen:
+            continue
+        seen.add(norm)
+        ordered.append(norm)
+    return ordered
+
+
+_STOP_IDENTS = {
+    "the",
+    "and",
+    "for",
+    "add",
+    "with",
+    "that",
+    "this",
+    "from",
+    "should",
+    "return",
+    "class",
+    "function",
+    "file",
+    "test",
+    "unit",
+    "small",
+    "otherwise",
+    "existing",
+    "export",
+    "import",
+}
+
+
+def focused_excerpt(content: str, task: str, max_chars: int) -> str:
+    """Return a contiguous source window around task symbols, not a blind file prefix."""
+    if max_chars <= 0 or len(content) <= max_chars:
+        return content
+    idents = [
+        token
+        for token in re.findall(r"\b[A-Za-z_][A-Za-z0-9_]{2,}\b", task or "")
+        if token.lower() not in _STOP_IDENTS
+    ]
+    lines = content.splitlines(keepends=True)
+    best_line: int | None = None
+    for ident in idents:
+        pattern = re.compile(rf"\b{re.escape(ident)}\b")
+        for index, line in enumerate(lines):
+            if not pattern.search(line):
+                continue
+            if re.search(r"\b(def|class|function|const|export|async)\b", line):
+                best_line = index
+                break
+        if best_line is not None:
+            break
+    if best_line is None:
+        for ident in idents:
+            found = content.find(ident)
+            if found >= 0:
+                start = max(0, found - min(240, max_chars // 4))
+                return content[start : start + max_chars]
+        return content[:max_chars]
+    start_line = max(0, best_line - 6)
+    chunk = "".join(lines[start_line:])
+    return chunk[:max_chars]
+
+
+def _finalize_generate_selection(
+    selected: list[str],
+    scores: dict[str, float],
+    limit: int,
+) -> list[str]:
+    """Prefer implementation files plus at most one test inside the generate budget."""
+    impls = [path for path in selected if not is_test_rel(path)]
+    tests = [path for path in selected if is_test_rel(path)]
+    impls.sort(key=lambda path: scores.get(path, 0.0), reverse=True)
+    tests.sort(key=lambda path: scores.get(path, 0.0), reverse=True)
+    if impls:
+        keep_impl = impls[: max(1, limit - (1 if tests else 0))]
+        ordered = keep_impl + tests[:1]
+    else:
+        ordered = tests[:limit]
+    return ordered[:limit]
+
+
 def build_context(
     repo_root: Path | str,
     task: str,
@@ -100,6 +224,9 @@ def build_context(
             return
         scores[norm] = max(scores.get(norm, 0.0), score)
         _ordered_add(selected, seen, norm)
+
+    for rel in prompt_impl_path_hints(task, root):
+        consider(str(rel), score=80.0)
 
     for rel in extra_paths or []:
         consider(str(rel), score=50.0)
@@ -140,7 +267,7 @@ def build_context(
         for preferred in ("shared/schema.ts", "server/db.ts", "server/routes.ts", "server/index.ts"):
             consider(preferred, score=12.0)
 
-    selected = selected[: budget.max_context_files]
+    selected = _finalize_generate_selection(selected, scores, budget.max_context_files)
 
     files: list[ContextFile] = []
     evidence: list[str] = []
@@ -150,7 +277,10 @@ def build_context(
             raw = path.read_text(encoding="utf-8", errors="ignore")
         except OSError:
             continue
-        content = raw if path.name.lower() in MANIFESTS else raw[: budget.max_chars_per_file]
+        if path.name.lower() in MANIFESTS:
+            content = raw
+        else:
+            content = focused_excerpt(raw, task, budget.max_chars_per_file)
         files.append(ContextFile(path=rel, content=content, score=scores.get(rel, 0.0)))
         evidence.append(rel)
 
@@ -197,4 +327,12 @@ def context_excludes_irrelevant(bundle: ContextBundle, irrelevant_substr: str) -
     return all(needle not in f.path.lower() for f in bundle.files)
 
 
-__all__ = ["build_context", "context_excludes_irrelevant", "is_source_rel", "wants_manifest_context"]
+__all__ = [
+    "build_context",
+    "context_excludes_irrelevant",
+    "is_source_rel",
+    "is_test_rel",
+    "focused_excerpt",
+    "prompt_impl_path_hints",
+    "wants_manifest_context",
+]

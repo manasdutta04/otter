@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from packages.agent.context import build_context, context_excludes_irrelevant
+from packages.agent.context import build_context, context_excludes_irrelevant, focused_excerpt
 from packages.agent.decompose import decompose_pagination_example, decompose_task
 from packages.agent.model_adapt import budget_for_model
 from packages.agent.patch import apply_edits_to_originals, prefer_targeted_files
@@ -161,3 +161,41 @@ def test_context_prefers_source_over_license_and_makefile(tmp_path: Path):
     assert "LICENSE" not in paths
     assert "Makefile" not in paths
     assert "pyproject.toml" not in paths
+
+
+def test_context_module_attr_includes_named_impl_file(tmp_path: Path):
+    (tmp_path / "bottle.py").write_text("def auth_basic(fn):\n    return fn\n" * 40, encoding="utf-8")
+    (tmp_path / "LICENSE").write_text("MIT\n", encoding="utf-8")
+    tests = tmp_path / "test"
+    tests.mkdir()
+    for i in range(6):
+        (tests / f"test_extra_{i}.py").write_text("def test_ok():\n    assert True\n", encoding="utf-8")
+    bundle = build_context(
+        tmp_path,
+        "Change bottle.auth_basic denial text",
+        model="qwen2.5-coder:7b",
+    )
+    paths = [f.path.replace("\\", "/") for f in bundle.files]
+    assert "bottle.py" in paths
+    assert "LICENSE" not in paths
+    assert len(bundle.files) <= 4
+
+
+def test_focused_excerpt_prefers_named_symbol_over_file_prefix():
+    header = "import os\n\n" + ("x = 1\n" * 80)
+    target = "class EmailParamType:\n    def convert(self, value):\n        return value\n"
+    content = header + target + ("y = 2\n" * 40)
+    excerpt = focused_excerpt(content, "Add EmailParamType convert that validates '@'", max_chars=400)
+    assert "class EmailParamType" in excerpt
+    assert excerpt != content[:400]
+
+
+def test_stub_full_rewrite_rejected_by_materialize():
+    from packages.agent.patch import materialize_safe_patch
+
+    original = "class MyPlugin:\n    pass\n\nclass Other:\n    pass\n" + ("x = 1\n" * 80)
+    with pytest.raises(ValueError, match="Destructive rewrite|dropped|shorter"):
+        materialize_safe_patch(
+            {"summary": "plugins", "files": [{"path": "test/test_plugins.py", "content": "class TimingPlugin:\n    pass\n"}]},
+            {"test/test_plugins.py": original},
+        )

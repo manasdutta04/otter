@@ -21,7 +21,7 @@
       "test/test_stpl.py"
     ],
     "hit_count": 24,
-    "latency_s": 0.14680950000183657,
+    "latency_s": 0.14386069999818574,
     "metrics": {
       "recall@3": 0.5,
       "recall@5": 0.5,
@@ -78,65 +78,64 @@
       "score_pct": 0.5,
       "success": false
     },
-    "latency_s": 0.40040720000251895,
+    "latency_s": 0.38433070000246516,
     "error": null
   },
   "patch": {
-    "ok": true,
-    "generation_succeeded": true,
-    "applied": true,
+    "ok": false,
+    "generation_succeeded": false,
+    "applied": false,
     "e2e_success": false,
     "todo_only": false,
-    "summary": "Change bottle.auth_basic to return 'Authentication required' instead of 'Access denied' when the check callback returns False.",
-    "model_reported": "qwen2.5-coder:7b",
-    "modified_files": [
-      "test/test_auth.py"
-    ],
-    "expected_files_hit": true,
-    "expected_file_accuracy": 0.5,
+    "summary": "",
+    "model_reported": null,
+    "modified_files": [],
+    "expected_files_hit": false,
+    "expected_file_accuracy": 0.0,
     "unexpected_files": [],
     "context_files": [
-      "test/test_auth.py",
-      "test/test_contextlocals.py",
-      "test/test_resources.py",
-      "test/test_mount.py",
-      "test/test_app.py",
-      "test/test_wsgi.py"
+      "bottle.py",
+      "test/test_auth.py"
     ],
-    "context_file_count": 6,
-    "context_chars": 10693,
+    "context_file_count": 2,
+    "context_chars": 2145,
     "token_measurement": "unavailable",
     "usage": null,
     "syntax": {
-      "ok": true,
-      "checked": [
-        "test/test_auth.py"
-      ],
-      "errors": []
+      "ok": false,
+      "checked": [],
+      "errors": [
+        "not applied"
+      ]
     },
     "expect_in_files": {
       "ok": false,
       "missing": [
-        "bottle.py missing 'Authentication required'"
+        "not applied"
       ]
     },
     "tests": {
-      "status": "fail",
-      "passed": false,
-      "output": "F.                                                                       [100%]\n================================== FAILURES ===================================\nC:\\Users\\ASUS\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\unittest\\case.py:900: AssertionError: b'Authentication required' != b'\\n    <!DOCTYPE HTML PUBLIC \"-//IETF//DTD[690 chars]l>\\n'\n=========================== short test summary info ===========================\nFAILED test/test_auth.py::TestBasicAuth::test__body - AssertionError: b'Authe...\n1 failed, 1 passed in 0.18s\n\n",
-      "command": "C:\\Coding Workspace\\otter\\benchmarks\\.venv\\Scripts\\python.exe -m pytest -q --tb=line -p no:cacheprovider -o addopts= -o filterwarnings= test/test_auth.py"
+      "status": "skipped",
+      "passed": null,
+      "output": "not applied",
+      "command": null
     },
-    "copy_latency_s": 0.45764689999850816,
-    "context_latency_s": 0.36589180000009947,
-    "generate_latency_s": 58.32050430000163,
-    "apply_latency_s": 0.001467000001866836,
-    "test_latency_s": 0.712622699997155,
-    "error": null,
-    "failure_category": "test failure",
-    "status_machine": "approved",
-    "structured_recovery": true,
-    "raw_structured_ok": false,
-    "raw_completion_preview": null
+    "copy_latency_s": 0.3695253000005323,
+    "context_latency_s": 0.3689922999983537,
+    "generate_latency_s": 23.451143199999933,
+    "apply_latency_s": 0.0,
+    "test_latency_s": 0.0,
+    "error": "Patch generation failed across local models (qwen2.5-coder:7b\u2026): qwen2.5-coder:7b: QUALITY_GATE:\n    category: edit_target_not_found\n    file: bottle.py\n    reason: old_string was not found in the file; copy a verbatim unique snippet from context",
+    "failure_category": "quality_gate",
+    "status_machine": "ready_for_approval",
+    "structured_recovery": false,
+    "raw_structured_ok": null,
+    "raw_completion_preview": "```json\n{\n  \"summary\": \"Modify bottle.auth_basic to change the response body text when check callback returns False.\",\n  \"edits\": [\n    {\n      \"path\": \"bottle.py\",\n      \"old_string\": \"return 'Access denied'\",\n      \"new_string\": \"return 'Authentication required'\"\n    }\n  ],\n  \"files\": [],\n  \"dependencies\": {}\n}\n```",
+    "first_attempt_latency_s": null,
+    "retry_latency_s": null,
+    "quality_gate": {
+      "message": "qwen2.5-coder:7b: QUALITY_GATE:\n    category: edit_target_not_found\n    file: bottle.py\n    reason: old_string was not found in the file; copy a verbatim unique snippet from context"
+    }
   },
-  "latency_s": 60.41904540000178
+  "latency_s": 24.718914599998243
 }

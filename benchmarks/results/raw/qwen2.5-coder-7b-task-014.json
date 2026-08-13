@@ -21,7 +21,7 @@
       "tests/test_authentication.py"
     ],
     "hit_count": 24,
-    "latency_s": 0.26598680000097374,
+    "latency_s": 0.26930060000086087,
     "metrics": {
       "recall@3": 1.0,
       "recall@5": 1.0,
@@ -78,7 +78,7 @@
       "score_pct": 0.8,
       "success": true
     },
-    "latency_s": 0.6535694999984116,
+    "latency_s": 0.6027943000008236,
     "error": null
   },
   "patch": {
@@ -94,15 +94,11 @@
     "expected_file_accuracy": 0.0,
     "unexpected_files": [],
     "context_files": [
-      "tests/test_config.py",
       "starlette/config.py",
-      "tests/test_routing.py",
-      "tests/test_schemas.py",
-      "tests/test_endpoints.py",
-      "tests/middleware/test_base.py"
+      "tests/test_config.py"
     ],
-    "context_file_count": 6,
-    "context_chars": 18000,
+    "context_file_count": 2,
+    "context_chars": 3600,
     "token_measurement": "unavailable",
     "usage": null,
     "syntax": {
@@ -124,17 +120,22 @@
       "output": "not applied",
       "command": null
     },
-    "copy_latency_s": 0.2524924999997893,
-    "context_latency_s": 1.0734427999996115,
-    "generate_latency_s": 13.797576800003299,
+    "copy_latency_s": 0.1984396999978344,
+    "context_latency_s": 1.0755489000002854,
+    "generate_latency_s": 66.481676899999,
     "apply_latency_s": 0.0,
     "test_latency_s": 0.0,
-    "error": "Patch generation failed across local models (qwen2.5-coder:7b\u2026): qwen2.5-coder:7b: Invalid patch shape",
-    "failure_category": "wrong_schema",
+    "error": "Patch generation failed across local models (qwen2.5-coder:7b\u2026): qwen2.5-coder:7b: QUALITY_GATE:\n    category: destructive_rewrite\n    file: tests/test_config.py\n    reason: tests/test_config.py proposed content is much shorter than the original (163 vs 5008 chars; deletion_ratio=0.77)",
+    "failure_category": "quality_gate",
     "status_machine": "ready_for_approval",
     "structured_recovery": false,
     "raw_structured_ok": null,
-    "raw_completion_preview": "```json\n{\n  \"summary\": \"The request cannot be processed as it lacks necessary details.\"\n}\n```"
+    "raw_completion_preview": "```json\n{\n  \"summary\": \"Added Config.get_bool method and test in tests/test_config.py\",\n  \"edits\": [\n    {\n      \"path\": \"starlette/config.py\",\n      \"old_string\": \"\",\n      \"new_string\": \"\\n    def get_bool(self, key: str, default=False) -> bool:\\n        value = self(key, cast=str, default=default)\\n        if value.lower() in ('1', 'true', 'yes', 'on'):\\n            return True\\n        elif value.lower() in ('0', 'false', 'no', 'off'):\\n            return False\\n        else:\\n            raise ValueError(f'Invalid boolean value: {value}')\\n\"\n    }\n  ],\n  \"files\": [\n    {\n      \"path\": \"tests/test_config.py\",\n      \"content\": \"import pytest\\nfrom starlette.config import Config, Secret, URL, undefined\\nfrom starlette.datastructures import CommaSeparatedStrings\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\"\n    }\n  ]\n}\n```",
+    "first_attempt_latency_s": null,
+    "retry_latency_s": null,
+    "quality_gate": {
+      "message": "qwen2.5-coder:7b: QUALITY_GATE:\n    category: destructive_rewrite\n    file: tests/test_config.py\n    reason: tests/test_config.py proposed content is much shorter than the original (163 vs 5008 chars; deletion_ratio=0.77)"
+    }
   },
-  "latency_s": 16.045812899999873
+  "latency_s": 68.62991560000228
 }

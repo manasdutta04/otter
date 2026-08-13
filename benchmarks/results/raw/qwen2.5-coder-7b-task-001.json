@@ -16,7 +16,7 @@
       "src/middleware/auth.ts"
     ],
     "hit_count": 5,
-    "latency_s": 0.007974099997227313,
+    "latency_s": 0.0061867000003985595,
     "metrics": {
       "recall@3": 0.0,
       "recall@5": 1.0,
@@ -71,8 +71,8 @@
       "score_pct": 0.8,
       "success": true
     },
-    "latency_s": 0.020445099999051308,
+    "latency_s": 0.019059100002777996,
     "error": null
   },
-  "latency_s": 0.028481299999839393
+  "latency_s": 0.025299999997514533
 }

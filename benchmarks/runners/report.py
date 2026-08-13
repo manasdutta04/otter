@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import os
 import platform
+import re
 import shutil
 import subprocess
 from collections import Counter
@@ -196,6 +197,8 @@ def aggregate_model(model_result: dict[str, Any]) -> dict[str, Any]:
             "retrieval": summarize_latencies(_vals(usable, ("retrieval", "latency_s"))),
             "planning": summarize_latencies(_vals(usable, ("planning", "latency_s"))),
             "generation": summarize_latencies(_vals(implement, ("patch", "generate_latency_s"))),
+            "first_attempt": summarize_latencies(_vals(implement, ("patch", "first_attempt_latency_s"))),
+            "retry": summarize_latencies(_vals(implement, ("patch", "retry_latency_s"))),
             "total": summarize_latencies(_vals(usable, ("latency_s",))),
             "model_ping": (model_result.get("probe") or {}).get("latency_s"),
         },
@@ -248,6 +251,7 @@ def collect_failures(all_results: dict[str, dict[str, Any]]) -> list[dict[str, A
                     "kind": row.get("kind"),
                     "modified_files": patch.get("modified_files"),
                     "summary": (patch.get("summary") or "")[:400],
+                    "quality_gate": patch.get("quality_gate"),
                 }
             )
     return failures
@@ -315,6 +319,26 @@ def _md_table(rows: list[list[str]]) -> str:
     body = "\n".join("| " + " | ".join(r) + " |" for r in rows[1:])
     return "\n".join([header, sep, body])
 
+def _quality_gate_breakdown(failures: list[dict[str, Any]]) -> str:
+    cats: Counter[str] = Counter()
+    for item in failures:
+        if item.get("category") != "quality_gate":
+            continue
+        gate = item.get("quality_gate")
+        name = None
+        if isinstance(gate, dict):
+            name = gate.get("category")
+        if not name:
+            match = re.search(r"category:\s+(\S+)", str(item.get("error") or ""))
+            name = match.group(1) if match else "unspecified"
+        cats[str(name)] += 1
+    if not cats:
+        return "No quality-gate failures."
+    rows = [["QUALITY_GATE category", "Count"]]
+    rows.extend([name, str(count)] for name, count in cats.most_common())
+    return _md_table(rows)
+
+
 def write_report_md(
     path: Path,
     *,
@@ -325,6 +349,7 @@ def write_report_md(
     aggregates: dict[str, dict[str, Any]],
     failures: list[dict[str, Any]],
     baseline: dict[str, Any] | None = None,
+    v03: dict[str, Any] | None = None,
 ) -> None:
     qwen = aggregates.get(MODEL_A) or {}
     q_probe = ((probe.get("models") or {}).get(MODEL_A) or {})
@@ -335,12 +360,22 @@ def write_report_md(
     lat = (qwen.get("latency") or {}).get("total") or {}
     b_q = {}
     b_fail: Counter[str] = Counter()
+    v03_q: dict[str, Any] = {}
+    v03_fail: Counter[str] = Counter()
     if baseline and isinstance(baseline.get("aggregates"), dict):
         b_q = (baseline.get("aggregates") or {}).get(MODEL_A) or {}
     if baseline and isinstance(baseline.get("failures"), list):
         b_fail = Counter(
             f.get("category")
             for f in baseline["failures"]
+            if f.get("model") == MODEL_A and f.get("kind") == "implement"
+        )
+    if v03 and isinstance(v03.get("aggregates"), dict):
+        v03_q = (v03.get("aggregates") or {}).get(MODEL_A) or {}
+    if v03 and isinstance(v03.get("failures"), list):
+        v03_fail = Counter(
+            f.get("category")
+            for f in v03["failures"]
             if f.get("model") == MODEL_A and f.get("kind") == "implement"
         )
 
@@ -357,7 +392,7 @@ def write_report_md(
     )
 
     lines = [
-        "# Otter Benchmark v0.3 - Qwen2.5-Coder 7B",
+        "# Otter Benchmark v0.5 - Qwen2.5-Coder 7B",
         "",
         "## Executive Summary",
         "",
@@ -386,30 +421,33 @@ def write_report_md(
         f"- Python: {env.get('python')}",
         f"- Node: {env.get('node')}",
         "",
-        "## v0.2 -> v0.3 Results",
+        "## v0.3 / v0.4 / v0.5 Results",
         "",
     ]
-    if b_q:
+    if b_q or v03_q:
+        v03_lat = ((v03_q.get("latency") or {}).get("total") or {})
+        v03_struct = sum(v03_fail[c] for c in STRUCTURED_FAIL)
         lines += [
             _md_table(
                 [
-                    ["Metric", "v0.2", "v0.3", "Delta"],
-                    ["Recall@5", _fmt_pct(b_q.get("recall@5")), _fmt_pct(qwen.get("recall@5")), _pp_delta(b_q.get("recall@5"), qwen.get("recall@5"))],
-                    ["Precision@5", _fmt_pct(b_q.get("precision@5")), _fmt_pct(qwen.get("precision@5")), _pp_delta(b_q.get("precision@5"), qwen.get("precision@5"))],
-                    ["Precision@|gold|", _fmt_pct(b_q.get("precision_at_gold")), _fmt_pct(qwen.get("precision_at_gold")), _pp_delta(b_q.get("precision_at_gold"), qwen.get("precision_at_gold"))],
-                    ["Plan Grounding", _fmt_pct(b_q.get("plan_grounding_pct") or b_q.get("plan_score_pct")), _fmt_pct(qwen.get("plan_grounding_pct")), _pp_delta(b_q.get("plan_grounding_pct") or b_q.get("plan_score_pct"), qwen.get("plan_grounding_pct"))],
-                    ["Patch Success", _fmt_pct(b_q.get("patch_success_rate")), _fmt_pct(qwen.get("patch_success_rate")), _pp_delta(b_q.get("patch_success_rate"), qwen.get("patch_success_rate"))],
-                    ["End-to-End Success", _fmt_pct(b_q.get("e2e_success_rate")), _fmt_pct(qwen.get("e2e_success_rate")), _pp_delta(b_q.get("e2e_success_rate"), qwen.get("e2e_success_rate"))],
-                    ["Mean Latency", _fmt_s(((b_q.get("latency") or {}).get("total") or {}).get("mean")), _fmt_s(lat.get("mean")), _num_delta(((b_q.get("latency") or {}).get("total") or {}).get("mean"), lat.get("mean")) + "s"],
-                    ["Median Latency", _fmt_s(((b_q.get("latency") or {}).get("total") or {}).get("median")), _fmt_s(lat.get("median")), _num_delta(((b_q.get("latency") or {}).get("total") or {}).get("median"), lat.get("median")) + "s"],
-                    ["P95 Latency", _fmt_s(((b_q.get("latency") or {}).get("total") or {}).get("p95")), _fmt_s(lat.get("p95")), _num_delta(((b_q.get("latency") or {}).get("total") or {}).get("p95"), lat.get("p95")) + "s"],
-                    ["Structured-output failures", str(b_fail.get("wrong_schema", 0) + b_fail.get("json_malformed", 0) + b_fail.get("malformed model output", 0) or 2), str(q_struct), str(q_struct - (b_fail.get("wrong_schema", 0) + b_fail.get("json_malformed", 0) + b_fail.get("malformed model output", 0) or 2))],
-                    ["Test failures", str(b_fail.get("test failure", 0) or 4), str(q_fail.get("test failure", 0)), str(q_fail.get("test failure", 0) - (b_fail.get("test failure", 0) or 4))],
-                    ["Wrong-file failures", str(b_fail.get("incorrect file selection", 0) or 2), str(q_fail.get("incorrect file selection", 0)), str(q_fail.get("incorrect file selection", 0) - (b_fail.get("incorrect file selection", 0) or 2))],
+                    ["Metric", "v0.3", "v0.4", "v0.5", "v0.4 -> v0.5"],
+                    ["Recall@5", _fmt_pct(b_q.get("recall@5")), _fmt_pct(v03_q.get("recall@5")), _fmt_pct(qwen.get("recall@5")), _pp_delta(v03_q.get("recall@5"), qwen.get("recall@5"))],
+                    ["Precision@5", _fmt_pct(b_q.get("precision@5")), _fmt_pct(v03_q.get("precision@5")), _fmt_pct(qwen.get("precision@5")), _pp_delta(v03_q.get("precision@5"), qwen.get("precision@5"))],
+                    ["Precision@|gold|", _fmt_pct(b_q.get("precision_at_gold")), _fmt_pct(v03_q.get("precision_at_gold")), _fmt_pct(qwen.get("precision_at_gold")), _pp_delta(v03_q.get("precision_at_gold"), qwen.get("precision_at_gold"))],
+                    ["Plan Grounding", _fmt_pct(b_q.get("plan_grounding_pct") or b_q.get("plan_score_pct")), _fmt_pct(v03_q.get("plan_grounding_pct")), _fmt_pct(qwen.get("plan_grounding_pct")), _pp_delta(v03_q.get("plan_grounding_pct"), qwen.get("plan_grounding_pct"))],
+                    ["Patch Success", _fmt_pct(b_q.get("patch_success_rate")), _fmt_pct(v03_q.get("patch_success_rate")), _fmt_pct(qwen.get("patch_success_rate")), _pp_delta(v03_q.get("patch_success_rate"), qwen.get("patch_success_rate"))],
+                    ["End-to-End Success", _fmt_pct(b_q.get("e2e_success_rate")), _fmt_pct(v03_q.get("e2e_success_rate")), _fmt_pct(qwen.get("e2e_success_rate")), _pp_delta(v03_q.get("e2e_success_rate"), qwen.get("e2e_success_rate"))],
+                    ["Mean Latency", _fmt_s(((b_q.get("latency") or {}).get("total") or {}).get("mean")), _fmt_s(v03_lat.get("mean")), _fmt_s(lat.get("mean")), _num_delta(v03_lat.get("mean"), lat.get("mean")) + "s"],
+                    ["Median Latency", _fmt_s(((b_q.get("latency") or {}).get("total") or {}).get("median")), _fmt_s(v03_lat.get("median")), _fmt_s(lat.get("median")), _num_delta(v03_lat.get("median"), lat.get("median")) + "s"],
+                    ["P95 Latency", _fmt_s(((b_q.get("latency") or {}).get("total") or {}).get("p95")), _fmt_s(v03_lat.get("p95")), _fmt_s(lat.get("p95")), _num_delta(v03_lat.get("p95"), lat.get("p95")) + "s"],
+                    ["Structured-output failures", str(sum(b_fail[c] for c in STRUCTURED_FAIL)), str(v03_struct), str(q_struct), str(q_struct - v03_struct)],
+                    ["Test failures", str(b_fail.get("test failure", 0)), str(v03_fail.get("test failure", 0)), str(q_fail.get("test failure", 0)), str(q_fail.get("test failure", 0) - v03_fail.get("test failure", 0))],
+                    ["Wrong-file failures", str(b_fail.get("incorrect file selection", 0)), str(v03_fail.get("incorrect file selection", 0)), str(q_fail.get("incorrect file selection", 0)), str(q_fail.get("incorrect file selection", 0) - v03_fail.get("incorrect file selection", 0))],
                 ]
             ),
             "",
-            "Deltas for rates are percentage points, not relative percent change.",
+            "Deltas are v0.4 -> v0.5. Rates use percentage points, not relative percent change.",
+            "Targets in the spec are goals, not claims. If E2E stays low, that is the result.",
             "",
         ]
     else:
@@ -481,6 +519,8 @@ def write_report_md(
                 ["Median latency", _fmt_s(lat.get("median"))],
                 ["P95 latency", _fmt_s(lat.get("p95"))],
                 ["Mean generate latency", _fmt_s((qwen.get("latency") or {}).get("generation", {}).get("mean"))],
+                ["Mean first-attempt latency", _fmt_s((qwen.get("latency") or {}).get("first_attempt", {}).get("mean"))],
+                ["Mean retry latency", _fmt_s((qwen.get("latency") or {}).get("retry", {}).get("mean"))],
                 ["Mean retrieval latency", _fmt_s((qwen.get("latency") or {}).get("retrieval", {}).get("mean"))],
                 ["Mean planning latency", _fmt_s((qwen.get("latency") or {}).get("planning", {}).get("mean"))],
             ]
@@ -492,31 +532,35 @@ def write_report_md(
         "",
         _md_table(
             [
-                ["Failure Category", "v0.2", "v0.3", "Delta"],
-                ["Test failure", str(b_fail.get("test failure", 0) or 4), str(q_fail.get("test failure", 0)), str(q_fail.get("test failure", 0) - (b_fail.get("test failure", 0) or 4))],
-                ["Wrong file", str(b_fail.get("incorrect file selection", 0) or 2), str(q_fail.get("incorrect file selection", 0)), str(q_fail.get("incorrect file selection", 0) - (b_fail.get("incorrect file selection", 0) or 2))],
-                ["JSON malformed", str(b_fail.get("json_malformed", 0)), str(q_fail.get("json_malformed", 0)), str(q_fail.get("json_malformed", 0) - b_fail.get("json_malformed", 0))],
-                ["Wrong schema", str(b_fail.get("wrong_schema", 0) or 2), str(q_fail.get("wrong_schema", 0)), str(q_fail.get("wrong_schema", 0) - (b_fail.get("wrong_schema", 0) or 2))],
-                ["Syntax failure", str(b_fail.get("syntax failure", 0)), str(q_fail.get("syntax failure", 0)), str(q_fail.get("syntax failure", 0) - b_fail.get("syntax failure", 0))],
-                ["Not verifiable", str(b_fail.get("not_verifiable", 0)), str(q_fail.get("not_verifiable", 0)), str(q_fail.get("not_verifiable", 0) - b_fail.get("not_verifiable", 0))],
-                ["Other", str(sum(v for k, v in b_fail.items() if k not in {"test failure", "incorrect file selection", "json_malformed", "wrong_schema", "syntax failure", "not_verifiable", "malformed model output"})), str(sum(v for k, v in q_fail.items() if k not in {"test failure", "incorrect file selection", "json_malformed", "wrong_schema", "syntax failure", "not_verifiable"})), NA],
+                ["Failure Category", "v0.3", "v0.4", "v0.5", "v0.4 -> v0.5"],
+                ["Test failure", str(b_fail.get("test failure", 0)), str(v03_fail.get("test failure", 0)), str(q_fail.get("test failure", 0)), str(q_fail.get("test failure", 0) - v03_fail.get("test failure", 0))],
+                ["Wrong file", str(b_fail.get("incorrect file selection", 0)), str(v03_fail.get("incorrect file selection", 0)), str(q_fail.get("incorrect file selection", 0)), str(q_fail.get("incorrect file selection", 0) - v03_fail.get("incorrect file selection", 0))],
+                ["JSON malformed", str(b_fail.get("json_malformed", 0)), str(v03_fail.get("json_malformed", 0)), str(q_fail.get("json_malformed", 0)), str(q_fail.get("json_malformed", 0) - v03_fail.get("json_malformed", 0))],
+                ["Wrong schema", str(b_fail.get("wrong_schema", 0)), str(v03_fail.get("wrong_schema", 0)), str(q_fail.get("wrong_schema", 0)), str(q_fail.get("wrong_schema", 0) - v03_fail.get("wrong_schema", 0))],
+                ["Syntax failure", str(b_fail.get("syntax failure", 0)), str(v03_fail.get("syntax failure", 0)), str(q_fail.get("syntax failure", 0)), str(q_fail.get("syntax failure", 0) - v03_fail.get("syntax failure", 0))],
+                ["Not verifiable", str(b_fail.get("not_verifiable", 0)), str(v03_fail.get("not_verifiable", 0)), str(q_fail.get("not_verifiable", 0)), str(q_fail.get("not_verifiable", 0) - v03_fail.get("not_verifiable", 0))],
+                ["Quality gate", str(b_fail.get("quality_gate", 0)), str(v03_fail.get("quality_gate", 0)), str(q_fail.get("quality_gate", 0)), str(q_fail.get("quality_gate", 0) - v03_fail.get("quality_gate", 0))],
+                ["Malformed model output", str(b_fail.get("malformed model output", 0)), str(v03_fail.get("malformed model output", 0)), str(q_fail.get("malformed model output", 0)), str(q_fail.get("malformed model output", 0) - v03_fail.get("malformed model output", 0))],
+                ["Other", str(sum(v for k, v in b_fail.items() if k not in {"test failure", "incorrect file selection", "json_malformed", "wrong_schema", "syntax failure", "not_verifiable", "malformed model output", "quality_gate"})), str(sum(v for k, v in v03_fail.items() if k not in {"test failure", "incorrect file selection", "json_malformed", "wrong_schema", "syntax failure", "not_verifiable", "malformed model output", "quality_gate"})), str(sum(v for k, v in q_fail.items() if k not in {"test failure", "incorrect file selection", "json_malformed", "wrong_schema", "syntax failure", "not_verifiable", "malformed model output", "quality_gate"})), NA],
             ]
         ),
         "",
-        f"See `qwen-v0.3-failures.json` ({len(failures)} rows).",
+        f"See `qwen-v0.5-failures.json` ({len(failures)} rows).",
+        "",
+        "## Quality-gate breakdown",
+        "",
+        _quality_gate_breakdown(failures),
         "",
         "## Root Cause Analysis",
         "",
-        "v0.2 mislabeled several failures as test/JSON issues. Generation context was planner",
-        "rglob junk (LICENSE/Makefile/manifests/.po), so Qwen rewrote library files as stubs.",
-        "v0.3 feeds TF-IDF ranked source files into generate_patch, stops synthesizing",
-        "package.json on Python-only patches, and isolates pytest from the host site-packages.",
+        "v0.4 quality-gate failures were mostly non-unique or missing edit snippets,",
+        "because edits were applied against truncated excerpts and short old_strings.",
+        "v0.5 applies edits to full files, allows empty old_string as append, uses",
+        "symbol-dense excerpts, compact retries, and structured QUALITY_GATE errors.",
         "",
         "## Regression Testing",
         "",
-        "Existing Otter unit tests plus new context/planner/harness regressions:",
-        "45 passed (test_llm_patch, test_e2e_flow, test_agent_core, test_patch_safety,",
-        "test_schemas, test_planner, test_metrics).",
+        "Existing Otter unit tests plus v0.5 generation/edit/harness regressions (57 passed).",
         "",
         "## Limitations",
         "",
@@ -561,7 +605,7 @@ def write_all(
         "dataset": dataset,
         "aggregates": aggregates,
         "table": comparison_table(aggregates.get(MODEL_A) or {}),
-        "note": "v0.3 is Qwen-only. Retrieval and planning are heuristic Otter stages.",
+        "note": "v0.5 is Qwen-only. Retrieval and planning are heuristic Otter stages.",
     }
     (results_dir / "comparison.json").write_text(json.dumps(comparison, indent=2), encoding="utf-8")
     (results_dir / "failures.json").write_text(json.dumps(failures, indent=2), encoding="utf-8")
@@ -570,27 +614,43 @@ def write_all(
         (results_dir / f"{slug}.json").write_text(json.dumps(payload, indent=2), encoding="utf-8")
         (raw_dir / f"{slug}.json").write_text(json.dumps(payload, indent=2), encoding="utf-8")
     qwen_payload = all_results.get(MODEL_A) or next(iter(all_results.values()), {})
-    (results_dir / "qwen-v0.3.json").write_text(json.dumps(qwen_payload, indent=2), encoding="utf-8")
-    (results_dir / "qwen-v0.3-failures.json").write_text(json.dumps(failures, indent=2), encoding="utf-8")
+    (results_dir / "qwen-v0.5-results.json").write_text(json.dumps(qwen_payload, indent=2), encoding="utf-8")
+    (results_dir / "qwen-v0.5-failures.json").write_text(json.dumps(failures, indent=2), encoding="utf-8")
+
+    def _load_history(path: Path) -> dict[str, Any] | None:
+        if not path.is_file():
+            return None
+        try:
+            loaded = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            return None
+        if "aggregates" in loaded:
+            return loaded
+        if "tasks" in loaded:
+            return {"aggregates": {MODEL_A: aggregate_model(loaded)}}
+        return None
 
     baseline = None
-    for candidate in (results_dir / "v0.2" / "comparison.json", results_dir / "v0.2-baseline.json"):
-        if not candidate.is_file():
-            continue
+    for candidate in (results_dir / "qwen-v0.3-baseline.json", results_dir / "qwen-v0.3.json"):
+        baseline = _load_history(candidate)
+        if baseline is not None:
+            break
+    v03_fail_path = results_dir / "qwen-v0.3-failures.json"
+    if baseline is not None and v03_fail_path.is_file():
         try:
-            loaded = json.loads(candidate.read_text(encoding="utf-8"))
-        except (OSError, json.JSONDecodeError):
-            continue
-        if "aggregates" in loaded:
-            baseline = loaded
-        else:
-            baseline = {"aggregates": {MODEL_A: aggregate_model(loaded)}}
-        break
-    v02_failures = results_dir / "v0.2" / "failures.json"
-    if baseline is not None and v02_failures.is_file():
+            baseline["failures"] = json.loads(v03_fail_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError, TypeError):
+            pass
+
+    v04 = None
+    for candidate in (results_dir / "qwen-v0.4-baseline.json", results_dir / "qwen-v0.4-results.json"):
+        v04 = _load_history(candidate)
+        if v04 is not None:
+            break
+    v04_fail_path = results_dir / "qwen-v0.4-failures.json"
+    if v04 is not None and v04_fail_path.is_file():
         try:
-            all_v02 = json.loads(v02_failures.read_text(encoding="utf-8"))
-            baseline["failures"] = [f for f in all_v02 if f.get("model") == MODEL_A]
+            v04["failures"] = json.loads(v04_fail_path.read_text(encoding="utf-8"))
         except (OSError, json.JSONDecodeError, TypeError):
             pass
     write_report_md(
@@ -602,5 +662,6 @@ def write_all(
         aggregates=aggregates,
         failures=failures,
         baseline=baseline,
+        v03=v04,
     )
-    shutil.copyfile(results_dir / "report.md", results_dir / "qwen-v0.3-report.md")
+    shutil.copyfile(results_dir / "report.md", results_dir / "qwen-v0.5-report.md")

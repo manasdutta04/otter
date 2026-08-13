@@ -17,7 +17,7 @@
       "package.json"
     ],
     "hit_count": 6,
-    "latency_s": 0.004264799998054514,
+    "latency_s": 0.005393699997512158,
     "metrics": {
       "recall@3": 0.6666666666666666,
       "recall@5": 1.0,
@@ -71,7 +71,7 @@
       "score_pct": 0.6,
       "success": false
     },
-    "latency_s": 0.016449599999759812,
+    "latency_s": 0.01374480000231415,
     "error": null
   },
   "patch": {
@@ -80,7 +80,7 @@
     "applied": true,
     "e2e_success": true,
     "todo_only": false,
-    "summary": "Add validation for invalid email addresses in the user creation path. Reject emails that do not contain '@'. Return a client error rather than inserting a bad record.",
+    "summary": "Add validation for invalid email addresses in the user creation path.",
     "model_reported": "qwen2.5-coder:7b",
     "modified_files": [
       "src/services/userService.ts"
@@ -92,11 +92,10 @@
       "src/repositories/userRepository.ts",
       "src/services/userService.ts",
       "src/routes/users.ts",
-      "tests/user.test.ts",
-      "src/middleware/auth.ts"
+      "tests/user.test.ts"
     ],
-    "context_file_count": 5,
-    "context_chars": 856,
+    "context_file_count": 4,
+    "context_chars": 698,
     "token_measurement": "unavailable",
     "usage": null,
     "syntax": {
@@ -117,17 +116,20 @@
       "output": "no gold tests",
       "command": null
     },
-    "copy_latency_s": 0.02379799999835086,
-    "context_latency_s": 0.02077850000205217,
-    "generate_latency_s": 18.610541099998954,
-    "apply_latency_s": 0.0014354000013554469,
-    "test_latency_s": 7.399998139590025e-06,
+    "copy_latency_s": 0.020917699999699835,
+    "context_latency_s": 0.020639899998059263,
+    "generate_latency_s": 15.239241799998126,
+    "apply_latency_s": 0.0015376000010292046,
+    "test_latency_s": 4.400000761961564e-06,
     "error": null,
     "failure_category": null,
     "status_machine": "approved",
     "structured_recovery": false,
     "raw_structured_ok": true,
-    "raw_completion_preview": null
+    "raw_completion_preview": null,
+    "first_attempt_latency_s": 15.229259399999137,
+    "retry_latency_s": null,
+    "quality_gate": null
   },
-  "latency_s": 18.696224600000278
+  "latency_s": 15.317583500000183
 }

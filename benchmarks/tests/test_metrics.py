@@ -32,6 +32,49 @@ def test_pytest_collection_import_is_not_verifiable():
     assert passed["status"] == "pass"
 
 
+def test_python_multipart_warning_plus_missing_local_module_is_fail():
+    from benchmarks.runners.patch import _classify_pytest_result
+
+    output = (
+        "Please use `import python_multipart` instead.\n"
+        "E   ModuleNotFoundError: No module named 'starlette.middleware.request_id'\n"
+    )
+    classified = _classify_pytest_result(1, output)
+    assert classified["status"] == "fail"
+    assert classified["passed"] is False
+    infra = _classify_pytest_result(1, "ModuleNotFoundError: No module named 'httpx'\n")
+    assert infra["status"] == "not_verifiable"
+
+
+def test_edit_target_errors_are_quality_gate():
+    from benchmarks.runners.patch import classify_failure
+
+    category = classify_failure(
+        generation_ok=False,
+        todo_only=False,
+        quality_error=None,
+        apply_error=None,
+        syntax={"ok": False},
+        tests={"status": "skipped"},
+        expected_hit=False,
+        unexpected=[],
+        generate_error="qwen2.5-coder:7b: Edit target not unique in src/click/types.py",
+    )
+    assert category == "quality_gate"
+    structured = classify_failure(
+        generation_ok=False,
+        todo_only=False,
+        quality_error=None,
+        apply_error=None,
+        syntax={"ok": False},
+        tests={"status": "skipped"},
+        expected_hit=False,
+        unexpected=[],
+        generate_error="QUALITY_GATE:\n    category: destructive_rewrite\n    file: bottle.py\n    reason: stub",
+    )
+    assert structured == "quality_gate"
+
+
 def test_recall_and_precision_at_k():
     retrieved = ["a.py", "b.py", "c.py", "d.py"]
     gold = ["a.py", "z.py"]

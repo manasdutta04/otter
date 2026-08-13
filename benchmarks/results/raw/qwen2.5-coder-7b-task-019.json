@@ -21,7 +21,7 @@
       "src/click/decorators.py"
     ],
     "hit_count": 24,
-    "latency_s": 0.2355247999985295,
+    "latency_s": 0.2552658999993582,
     "metrics": {
       "recall@3": 0.6,
       "recall@5": 0.8,
@@ -78,7 +78,7 @@
       "score_pct": 0.7,
       "success": false
     },
-    "latency_s": 0.5772388000004867,
+    "latency_s": 0.5924685000027239,
     "error": null
   },
   "patch": {
@@ -96,13 +96,11 @@
     "context_files": [
       "src/click/__init__.py",
       "src/click/types.py",
-      "tests/test_options.py",
-      "tests/test_types.py",
-      "tests/typing/typing_password_option.py",
-      "tests/typing/typing_group_kw_options.py"
+      "src/click/testing.py",
+      "tests/test_options.py"
     ],
-    "context_file_count": 6,
-    "context_chars": 12411,
+    "context_file_count": 4,
+    "context_chars": 7200,
     "token_measurement": "unavailable",
     "usage": null,
     "syntax": {
@@ -124,17 +122,22 @@
       "output": "not applied",
       "command": null
     },
-    "copy_latency_s": 0.3292522000010649,
-    "context_latency_s": 0.7383205999976781,
-    "generate_latency_s": 13.265900800000963,
+    "copy_latency_s": 0.23923509999804082,
+    "context_latency_s": 0.7605557999995654,
+    "generate_latency_s": 220.56295570000293,
     "apply_latency_s": 0.0,
     "test_latency_s": 0.0,
-    "error": "Patch generation failed across local models (qwen2.5-coder:7b\u2026): qwen2.5-coder:7b: Invalid patch shape",
-    "failure_category": "wrong_schema",
+    "error": "Patch generation failed across local models (qwen2.5-coder:7b\u2026): qwen2.5-coder:7b: QUALITY_GATE:\n    category: destructive_rewrite\n    file: src/click/__init__.py\n    reason: src/click/__init__.py dropped 39/75 lines (deletion_ratio=0.52)",
+    "failure_category": "quality_gate",
     "status_machine": "ready_for_approval",
     "structured_recovery": false,
     "raw_structured_ok": null,
-    "raw_completion_preview": "```json\n{\n  \"summary\": \"The request cannot be processed as it lacks necessary details.\"\n}\n```"
+    "raw_completion_preview": "```json\n{\n  \"summary\": \"Add a click.option decorator helper require_email_option() in src/click/decorators.py that adds a required --email option using an email ParamType (add EmailParamType in src/click/types.py if it does not exist). Invalid values without '@' must fail parsing. Export what is needed from src/click/__init__.py. Add tests in tests/test_options.py and tests/test_types.py as appropriate.\",\n  \"edits\": [\n    {\n      \"path\": \"src/click/decorators.py\",\n      \"old_string\": \"\",\n      \"new_string\": \"from .types import EmailParamType\\n\\n@option('--email', type=EmailParamType(), required=True)\\ndef require_email_option(f):\\n    return f\"\n    },\n    {\n      \"path\": \"src/click/types.py\",\n      \"old_string\": \"\",\n      \"new_string\": \"class EmailParamType(ParamType):\\n    name = 'email'\\\n\u2026\nls import get_current_context as get_current_context\\nfrom .parser import OptionParser as OptionParser\\nfrom .termui import clear as clear\\nfrom .termui import confirm as confirm\\nfrom .termui import echo_via_pager as echo_via_pager\\nfrom .termui import edit as edit\\nfrom .termui import pause_echo as pause_echo\\nfrom .termui import progressbar as progressbar\\nfrom .termui import prompt as prompt\\nfrom .termui import secho as secho\\nfrom .termui import style as style\\nfrom .utils import get_terminal_size as get_terminal_size\\nfrom .utils import iter_items as iter_items\\nfrom .utils import iter_slices as iter_slices\\nfrom .utils import isatty as isatty\\nfrom .utils import open_file as open_file\\nfrom .utils import run_command as run_command\\nfrom .utils import which as which\"\n    }\n  ]\n}\n```",
+    "first_attempt_latency_s": null,
+    "retry_latency_s": null,
+    "quality_gate": {
+      "message": "qwen2.5-coder:7b: QUALITY_GATE:\n    category: destructive_rewrite\n    file: src/click/__init__.py\n    reason: src/click/__init__.py dropped 39/75 lines (deletion_ratio=0.52)"
+    }
   },
-  "latency_s": 15.147622200001933
+  "latency_s": 222.4122204000014
 }

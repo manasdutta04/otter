@@ -15,7 +15,7 @@
       "tests/user.test.ts"
     ],
     "hit_count": 4,
-    "latency_s": 0.00349379999897792,
+    "latency_s": 0.004048899998451816,
     "metrics": {
       "recall@3": 1.0,
       "recall@5": 1.0,
@@ -68,8 +68,8 @@
       "score_pct": 0.8,
       "success": true
     },
-    "latency_s": 0.012394699999276781,
+    "latency_s": 0.011928900003113085,
     "error": null
   },
-  "latency_s": 0.01594249999834574
+  "latency_s": 0.01605760000165901
 }

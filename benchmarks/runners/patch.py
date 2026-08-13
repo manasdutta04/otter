@@ -5,6 +5,7 @@ from __future__ import annotations
 import ast
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -95,21 +96,20 @@ def expect_in_files(root: Path, specs: list[dict[str, Any]]) -> dict[str, Any]:
     return {"ok": not missing, "missing": missing}
 
 
-_INFRA_MARKERS = (
-    "No module named 'httpx'",
-    "No module named 'python_multipart'",
-    "No module named 'multipart'",
-    "No module named 'anyio'",
-    "No module named 'sniffio'",
-    "No module named 'itsdangerous'",
-    "Please use `import python_multipart`",
+_THIRD_PARTY_ROOTS = frozenset(
+    {"httpx", "python_multipart", "multipart", "anyio", "sniffio", "itsdangerous"}
 )
+_MODULE_NOT_FOUND_RE = re.compile(r"No module named ['\"]([^'\"]+)['\"]")
 
 
 def _classify_pytest_result(returncode: int, output: str) -> dict[str, Any]:
     if returncode == 0:
         return {"status": "pass", "passed": True}
-    if any(marker in output for marker in _INFRA_MARKERS):
+    missing = _MODULE_NOT_FOUND_RE.findall(output or "")
+    if missing:
+        local = [name for name in missing if name.split(".")[0] not in _THIRD_PARTY_ROOTS]
+        if local:
+            return {"status": "fail", "passed": False}
         return {"status": "not_verifiable", "passed": None}
     return {"status": "fail", "passed": False}
 
@@ -184,7 +184,17 @@ def classify_failure(
             return "wrong_schema"
         if "truncated" in low:
             return "json_truncated"
-        if "rejected low-quality" in low or "auth change" in low or "imports `" in low:
+        if (
+            "rejected low-quality" in low
+            or "quality_gate" in low
+            or "auth change" in low
+            or "imports `" in low
+            or "edit target" in low
+            or "edit_target" in low
+            or "destructive rewrite" in low
+            or "destructive_rewrite" in low
+            or "truncated patch" in low
+        ):
             return "quality_gate"
         if "connect" in low or "10061" in low or "ollama" in low:
             return "infrastructure failure"
@@ -271,19 +281,34 @@ async def run_patch(
     files = files[:CONTEXT_FILE_LIMIT]
     for item in files:
         item["content"] = item["content"][:CONTEXT_CHARS_PER_FILE]
+    apply_originals: dict[str, str] = {}
+    for item in files:
+        disk = work_root / item["path"]
+        if disk.is_file():
+            try:
+                apply_originals[item["path"]] = disk.read_text(encoding="utf-8", errors="ignore")
+            except OSError:
+                apply_originals[item["path"]] = item["content"]
     context_chars = sum(len(item["content"]) for item in files)
     context_s = time.perf_counter() - ctx_started
 
     gen_started = time.perf_counter()
     generate_error = None
     raw_completion = None
+    quality_gate = None
     proposal: dict[str, Any] | None = None
     try:
         with pin_model(model):
-            proposal = await generate_patch(prompt, files, plan_context=plan)
+            proposal = await generate_patch(
+                prompt,
+                files,
+                plan_context=plan,
+                apply_originals=apply_originals,
+            )
     except PatchGenerationError as error:
         generate_error = str(error)
         raw_completion = getattr(error, "raw_completion", None)
+        quality_gate = getattr(error, "quality_gate", None)
     except Exception as error:  # noqa: BLE001
         generate_error = str(error)
     generate_s = time.perf_counter() - gen_started
@@ -386,4 +411,7 @@ async def run_patch(
         "structured_recovery": bool((proposal or {}).get("structured_recovery")),
         "raw_structured_ok": (proposal or {}).get("raw_structured_ok"),
         "raw_completion_preview": raw_completion,
+        "first_attempt_latency_s": (proposal or {}).get("first_attempt_latency"),
+        "retry_latency_s": (proposal or {}).get("retry_latency"),
+        "quality_gate": quality_gate,
     }

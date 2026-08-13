@@ -21,7 +21,7 @@
       "src/click/__init__.py"
     ],
     "hit_count": 24,
-    "latency_s": 0.32299910000074306,
+    "latency_s": 0.25038750000021537,
     "metrics": {
       "recall@3": 0.0,
       "recall@5": 1.0,
@@ -78,8 +78,8 @@
       "score_pct": 0.8,
       "success": true
     },
-    "latency_s": 0.5794905999973707,
+    "latency_s": 0.5447027000009257,
     "error": null
   },
-  "latency_s": 0.9052639000001363
+  "latency_s": 0.7965492999974231
 }
