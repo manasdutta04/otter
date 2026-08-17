@@ -258,6 +258,34 @@ export default function LandingPage() {
         </a>
       </section>
 
+      <aside className="launch-badges" aria-label="Launch badges">
+        <a
+          href="https://peerlist.io/manasdutta04/project/otter--selfhosted-engineering-intelligence"
+          target="_blank"
+          rel="noreferrer"
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="https://peerlist.io/api/v1/projects/embed/PRJHR8DNJ9RKQLG6B3M767BM7RM7D7?showUpvote=true&theme=light"
+            alt="Otter - Self-hosted engineering intelligence"
+            height={72}
+          />
+        </a>
+        <a
+          href="https://www.producthunt.com/products/otter-self-hosted-engineering-ai?embed=true&utm_source=badge-featured&utm_medium=badge&utm_campaign=badge-otter-self-hosted-engineering-ai"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1222315&theme=light&t=1786940804737"
+            alt="Otter - Self-hosted engineering AI - Easily understand & change code | Product Hunt"
+            width={250}
+            height={54}
+          />
+        </a>
+      </aside>
+
       <footer className="site-footer site-footer-columns">
         <div className="site-footer-grid">
           <div>
